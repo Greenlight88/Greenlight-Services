@@ -1,0 +1,1023 @@
+/**** KTL_RELATED - BEGIN ****/
+
+/**!
+	* Knack Toolkit Library (ktl) - CSS
+    * @author  Normand Defayette <nd@ctrnd.com>
+	* @license MIT
+	* 2019-2023
+    */
+
+/* KTL CSS version: 0.7.15 */
+
+/************ General Settings **************/
+#verButtonId {
+	opacity: var(--viBarOpacity);
+	z-index: 10; /*Need to be visible with sticky headers*/
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.kn-radio.horizontal {
+	display: flex;
+}
+
+.option.radio.horizontal {
+	padding-right: 15px;
+}
+
+.kn-checkbox.horizontal {
+	display: flex;
+}
+
+.option.checkbox.horizontal {
+	padding-right: 15px;
+}
+
+#knack-body.iFrameWnd {
+	background-color: #e1e1e1;
+}
+
+.iFrameWnd #kn-app-header, .iFrameWnd .knHeader {
+	display: none;
+}
+
+.ktlHidden,
+[class^="ktlHidden_"],
+[class*=" ktlHidden_"] {
+	position: absolute !important;
+	left: -9000px !important;
+}
+
+.ktlDisplayNone,
+[class^="ktlDisplayNone_"],
+[class*=" ktlDisplayNone_"] {
+	display: none !important;
+}
+
+.ktlCollapse {
+	visibility: collapse;
+}
+
+.ktlVisibilityHidden {
+	visibility: hidden;
+}
+
+/* Dynamic Hide/Show Columns feature  - BEGIN */
+.ktlCollapsedColumn {
+	max-width: 0px;
+	padding: 0;
+	border: none;
+	overflow: hidden;
+}
+
+th.ktlCollapsedColumn {
+	overflow: visible;
+	z-index: 1;
+}
+
+.ktlCollapsedColumn span {
+	display: none !important;
+}
+
+.ktlCollapsedColumn i.ktlHideShowColumnIcon {
+	position: absolute;
+	top: -10px;
+	color: grey;
+	left: 3px;
+	transform: rotate(-90deg);
+	font-size: 1.5em;
+	display: block;
+}
+
+td.ktlCollapsedColumn {
+	background-image: repeating-linear-gradient( 45deg, currentColor, currentColor 1px, transparent 1px, transparent 3px );
+	background-size: 4px 4px;
+	color: #80808080;
+}
+
+.ktlCollapsedColumn .ktlHideShowColumnIcon {
+	display: none; /* Hide the hide-show icon */
+}
+
+.ktlCollapsedColumn {
+	cursor: ew-resize !important;
+}
+
+td.ktlCollapsedColumn:hover {
+	cursor: ew-resize !important;
+	background-color: transparent !important;
+}
+
+th.ktlCollapsedColumn span a:hover {
+	cursor: ew-resize !important;
+}
+
+th .fa-caret-left {
+	color: #0003
+}
+
+.ktlHideShowColumnIcon.fa-caret-left {
+	font-size: large;
+	cursor: pointer;
+	margin-left: -7px;
+	margin-right: 5px;
+	margin-top: 2px;
+}
+
+.ktlDenseGrid .ktlHideShowColumnIcon.fa-caret-left {
+	margin-left: 0px;
+}
+
+.ktlHatched {
+	background-image: linear-gradient(45deg, #808080 25%, transparent 25%, transparent 75%, #808080 75%, #808080), linear-gradient(45deg, #808080 25%, transparent 25%, transparent 75%, #808080 75%, #808080);
+	background-size: 10px 10px; /* The size of the hatching */
+	background-position: 0 0, 5px 5px; /* Positioning of each layer */
+}
+/* Dynamic Hide/Show Columns feature  - END */
+
+.ktlInlineEditableCellsStyle {
+	background-color: var(--ktlInlineEditableCellsBgColor);
+	font-weight: var(--ktlInlineEditableCellsFontWeight);
+}
+
+.cell-edit.ktlNoInlineEdit {
+	cursor: default !important;
+	font-weight: initial;
+}
+
+	.cell-edit.ktlNoInlineEdit.ktlInlineEditableCellsStyle {
+		background-color: unset;
+	}
+
+.ktlDragAndDrop tbody tr {
+	pointer-events: all;
+	cursor: grab;
+}
+
+.ktlDragAndDrop .cell-edit.ktlNoInlineEdit {
+	pointer-events: all;
+	cursor: grab !important;
+}
+
+
+.ktlNotValid,
+[class^="ktlNotValid_"]:not(.kn-radio, .kn-checkbox),
+[class*=" ktlNotValid_"]:not(.kn-radio, .kn-checkbox) {
+	background-color: #fdb0b0 !important; /* Same pinkish color as Knack error */
+}
+
+.ktlNotAllowed {
+	cursor: not-allowed;
+}
+
+.center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.ktlBottomExtraSpaces {
+	margin-bottom: 500px !important;
+}
+
+/* Apply the style to the entire body of the webpage to allow scrolling, but with invisible H/V scrollbars. */
+.ktlInvisibleScrollBars {
+	overflow: auto; /* Enable scrolling */
+	scrollbar-width: auto; /* For Firefox */
+	-ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+	/* For Webkit browsers like Chrome, Safari */
+	.ktlInvisibleScrollBars::-webkit-scrollbar {
+		display: none;
+	}
+
+.ktlSortDisabled .knTable th {
+	pointer-events: none;
+}
+
+a.ktlSortDisabled {
+	pointer-events: none;
+}
+
+.ktlLinkDisabled {
+	text-decoration: none !important;
+	pointer-events: none;
+	color: #0008 !important;
+}
+
+.ktlSingleLineTable {
+	white-space: nowrap;
+}
+
+.ktlTable--rowHover tbody tr:hover {
+	background-color: var(--ktltableRowHoverBkgColor) !important;
+	transition: background-color .2s ease-out;
+}
+
+/* Bulk Operations */
+.bulkOpsControlsDiv {
+	display: flex;
+}
+
+.bulkOpsControlsWithSearchDiv {
+	margin-inline-start: 5%;
+}
+
+.ktlAddonsDiv {
+	display: inline-flex;
+}
+
+.ktlAddonsWithSearchDiv {
+	margin-inline-start: 2em;
+}
+
+.ktlDateTimePickerDiv {
+	margin-top: 0.3em;
+}
+
+	.ktlDateTimePickerDiv:not(.ktlAddonsWithSearchDiv) {
+		margin-top: 0.5em;
+		margin-bottom: 2em;
+	}
+
+.ktlButtonMargin {
+	margin-inline: 5px !important;
+}
+
+.bulkEditCb {
+	width: 18px;
+	height: 18px;
+}
+
+.bulkEditHeaderCbox {
+	margin-left: 10px !important;
+	margin-top: 2px !important;
+}
+
+.bulkEditTh {
+	display: inline-flex;
+	margin-right: 6px;
+}
+
+.bulkEditSelectedCol.bulkEditSelectedRow {
+	border-style: dashed;
+	border-width: medium !important;
+	background-color: var(--bulkEditSelectedColsAndRows) !important;
+	border-color: var(--bulkEditSelectedBorders);
+}
+
+.cell-edit.bulkEditSelectedRow {
+	background-color: var(--bulkEditSelectedRowsCells);
+}
+
+.bulkEditSelectSrc {
+	cursor: url('https://ctrnd.s3.amazonaws.com/Lib/KTL/Media/target.png') 5 5, auto !important;
+	pointer-events: all;
+}
+
+/************Bookmarks **************/
+/* Bookmarks Container */
+.ktlBookmarksContainer {
+	position: relative;
+    margin: 20px;
+	padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+	min-width: 260px;
+	max-width: fit-content;
+	transition: max-height 0.25s cubic-bezier(.4,0,.2,1), opacity 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+/* Minimized state: only header visible, buttons hidden */
+.ktlBookmarksContainer.ktlBookmarksMinimized {
+    max-height: 48px !important;
+	padding: 0;
+	margin: 0 0 0 20px;
+    opacity: 0.7;
+    min-width: 0;
+    width: fit-content;
+    box-shadow: none;
+	border-radius: 0;
+	background: none;
+}
+
+.ktlBookmarksContainer.ktlBookmarksMinimized .ktlBookmarksHeader span,
+.ktlBookmarksContainer.ktlBookmarksMinimized .ktlBookmarksMinBtn,
+.ktlBookmarksContainer.ktlBookmarksMinimized .ktlBookmarksButtons {
+    display: none !important;
+}
+
+/* Bookmarks Header */
+.ktlBookmarksHeader {
+    width: 100%;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Bookmarks Buttons Container */
+.ktlBookmarksButtons {
+	width: 100%;
+    max-height: 130px;   /* adjust as needed for your button size */
+    overflow-y: auto;
+}
+
+/* Minimize Button */
+.ktlBookmarksMinBtn {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 2001;
+}
+
+/* Helper Text */
+.ktlBookmarksHelperText {
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    color: #555;
+    width: 100%;
+}
+
+.ktlBookmarkButton {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin: 2px 4px;
+}
+
+.ktlBookmarkButton .icon.is-small {
+    margin-right: 8px;
+}
+
+.ktlBookmarksMainIcon {
+    font-size: 1.5em;
+    color: #4d4d4d;
+    transition: color 0.2s;
+}
+
+.ktlBookmarksMainIcon:hover {
+    color: #1b1b1b;
+}
+
+/* Context Menu for Bookmarks */
+.ktlBookmarkMenu {
+    font-size: 13px;
+    min-width: 120px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+	padding: 3px 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 9999;
+}
+
+.ktlBookmarkMenu > div:hover {
+    background: #f0f0f0;
+}
+/************ Tooltips **************/
+.tooltip {
+	position: relative;
+	display: inline-block;
+}
+
+	/* Tooltip text */
+	.tooltip .tooltiptext {
+		visibility: hidden;
+		background-color: #555;
+		color: #fff;
+		text-align: center;
+		padding: 7px 7px;
+		border-radius: 6px;
+		/* Position the tooltip text */
+		position: absolute;
+		z-index: 1;
+		bottom: 23px;
+		left: -126px;
+		margin-left: 0;
+		width: 250px;
+		/* Fade in tooltip */
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+
+		/* Tooltip arrow */
+		.tooltip .tooltiptext::after {
+			content: "";
+			position: absolute;
+			top: 100%;
+			left: 50%;
+			margin-left: -5px;
+			border-width: 5px;
+			border-style: solid;
+			border-color: #555 transparent transparent transparent;
+		}
+
+	/* Show the tooltip text when you mouse over the tooltip container */
+	.tooltip:hover .tooltiptext {
+		visibility: visible;
+		opacity: 1;
+	}
+
+/* Set the tooltip text styles */
+.ktlTooltip {
+	display: none;
+	font-weight: 400;
+	text-align: left;
+	border: 1px solid #000000;
+	border-radius: 5px;
+	padding: 10px 15px;
+	max-width: 315px;
+	width: max-content;
+}
+
+/* Set the Icon Styles */
+.ktlTooltipIcon {
+	margin-top: 0.15em;
+	padding-left: 0.15em;
+	opacity: 0.3;
+}
+
+/* set the user tooltip styles */
+.ktlTtip-form-view {
+	background-color: var(--ktlTtipFormViewBgColor);
+	color: var(--ktlTtipFormViewTxtColor);
+}
+
+.ktlTtipIcon-form-view {
+	color: var(--ktlTtipIconFormViewColor);
+}
+
+.ktlTtip-details-view {
+	background-color: var(--ktlTtipDetailsViewBgColor);
+	color: var(--ktlTtipDetailsViewTxtColor);
+}
+
+.ktlTtipIcon-details-view {
+	color: var(--ktlTtipIconDetailsViewColor);
+}
+
+.ktlTtip-table-view {
+	background-color: var(--ktlTtipTableViewBgColor);
+	color: var(--ktlTtipTableViewTxtColor);
+}
+
+.ktlTtipIcon-table-view {
+	color: var(--ktlTtipIconTableViewColor);
+}
+
+/************Show Hide Views**************/
+
+#knack-body .kn-content .ktlHideShowSection {
+	position: relative;
+	padding-top: 20px;
+	margin-left: 0px;
+	border-top-left-radius: 0;
+	margin-top: unset;
+	margin-bottom: unset;
+	margin-right: unset;
+}
+
+#knack-body .kn-modal .ktlHideShowSection .kn-details-column {
+	overflow: visible;
+}
+
+.ktlArrow {
+	display: inline-block;
+}
+
+.ktlUp {
+	transform: rotate(90deg);
+}
+
+.ktlDown {
+	transform: rotate(-90deg);
+}
+
+.ktlBoxWithBorder {
+	padding: 5px 15px 15px;
+	background-color: #F9F9F9;
+	border-radius: 8px;
+	border: 2px solid var(--ktlHideShowButtonColor);
+}
+
+#knack-body .kn-content .ktlShrinkLink {
+	font-size: 12px;
+	text-decoration: none;
+	text-align: center;
+	display: block;
+	width: fit-content;
+	margin: -10px auto -10px auto;
+}
+
+.ktlHideShowButton {
+	color: black;
+	padding: 10px;
+	font-size: 16px;
+	font-weight: 300;
+	margin-bottom: -14px;
+}
+
+.kn-content .view-header:has(.ktlHideShowButton) {
+	margin-bottom: 0px;
+	max-width: fit-content;
+	background-color: var(--ktlHideShowButtonColor);
+	border-radius: 8px 8px 0 0;
+	cursor: grab;
+	overflow: hidden;
+}
+
+	.kn-content .view-header:has(.ktlHideShowButton) .kn-title {
+		margin-top: 0px;
+	}
+
+/************ Character Limit **************/
+.input-circle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+    .input-wrapper {
+        width: 100%;
+    }
+
+    .circle-text-wrapper {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .circle-progress {
+        width: 20px;
+        height: 20px;
+    }
+
+    .circle-progress circle {
+        fill: none;
+        stroke-width: 4;
+        stroke-dasharray: 100;
+    }
+
+    .char-limit {
+        margin-left: 5px;
+        font-size: 14px;
+        color: black;
+    }
+
+.char-count {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+	font-size: 16px;
+	margin-right: 10px;
+	margin-top: 3px;
+	color: black;
+}
+
+/************ User Filters **************/
+.activeFilter {
+	border: 2px solid rgb(var(--ktlActiveFilterBorderClr));
+	box-shadow: 0 0 2px 3px var(--ktlActiveFilterBorderClr);
+}
+
+.filterControl {
+	display: flex;
+	width: 30px;
+}
+
+/************ Pop-up **************/
+.contextMenu {
+	text-align: left;
+	font-size: larger;
+	list-style: none !important;
+	margin: 7px !important;
+	display: list-item;
+}
+
+.menuDiv {
+	background-color: #dfe8ff;
+	position: fixed;
+	z-index: 6;
+	white-space: nowrap;
+}
+
+	.menuDiv li:hover {
+		background-color: #a6bdf9;
+	}
+
+/************ Debug Window **************/
+#debugWnd::-webkit-scrollbar {
+	-webkit-appearance: none;
+}
+
+	#debugWnd::-webkit-scrollbar:vertical {
+		width: 20px;
+	}
+
+	#debugWnd::-webkit-scrollbar:horizontal {
+		height: 20px;
+	}
+
+#debugWnd::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, .28);
+	border: 2px solid #ffffff;
+}
+
+#debugWnd::-webkit-scrollbar-track {
+	background-color: #ffffff;
+}
+
+/* Dev Options popup */
+.devBtnsDiv {
+	position: fixed;
+	background-color: #ffffff;
+	border: dimgrey;
+	border-width: 3px;
+	border-style: solid;
+	display: inline-grid;
+	justify-items: center;
+	padding: 8px;
+}
+
+.devBtn {
+	font-size: 20px;
+	white-space: nowrap;
+	width: 97%;
+	height: 30px;
+	margin-bottom: 5px;
+	align-items: center !important;
+}
+
+.ktlDevToolsHeader {
+	height: 35px;
+	z-index: 10;
+	font-size: 17pt;
+	font-weight: 500;
+	line-height: 35px;
+	text-align: center;
+	width: 100%;
+	color: black;
+	margin-bottom: 10px;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+}
+
+.devToolSearchDiv {
+	z-index: 20;
+	min-width: 220px;
+	position: fixed;
+}
+
+.ktlDevToolsSearchInput {
+	width: auto;
+	height: 26px;
+	margin-top: 5px;
+}
+
+.ktlConsoleDiv {
+	overflow: scroll;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 12px;
+	background-color: #dee1e1;
+	white-space: pre;
+	border-width: 3px;
+	border-style: solid;
+	padding: 10px;
+	resize: both;
+	box-sizing: border-box;
+}
+
+
+/* Kiosk Mode */
+body.ktlKioskMode { /* Add extra space at top of screen in kiosk mode, to prevent conflict with menus or other objects. */
+	padding-top: 15px;
+}
+
+/* Kiosk buttons */
+.ktlKioskButtons {
+	font-size: 20px !important;
+	height: 33px !important;
+}
+
+.kn-menu .ktlKioskButtons {
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.ktlFormKioskButtons {
+	height: 40px !important;
+}
+
+.ktlSmallKioskButtons {
+	margin-left: 20px !important;
+}
+
+.ktlLargerCheckBox {
+	width: 30px;
+	height: 30px;
+	vertical-align: middle !important;
+}
+
+.ktlKioskModalPage {
+	max-width: 98%;
+}
+
+/* Reduced page margins, to maximize available real-estate. */
+.ktlNarrowMarginsPage .kn-scene.kn-container {
+	padding: 2px;
+	margin-left: 2px !important;
+	margin-right: 2px !important;
+}
+
+/* For any page where high data density is required, typically for Dashboards */
+.ktlDenseGrid .knTable th,
+.ktlDenseGrid .knTable td {
+	padding: 1px 2px 1px 2px !important;
+}
+
+@media print {
+	#addVersionInfoDiv, .bulkEditCb {
+		display: none;
+	}
+
+	.cell-editable td.cell-edit {
+		background-color: unset !important;
+	}
+}
+
+#devBtnsDivId {
+	z-index: 10;
+}
+
+@keyframes ktlFlashingOnOff {
+	0% {
+		opacity: 1;
+	}
+
+	80% {
+		opacity: 1;
+	}
+
+	80.01% {
+		opacity: 0.3;
+	}
+
+	100% {
+		opacity: 0.3;
+	}
+}
+
+.ktlFlashingOnOff {
+	animation: ktlFlashingOnOff var(--ktlFlashRate) infinite;
+}
+
+@keyframes ktlFlashingFadeInOut {
+	0% {
+		opacity: 1;
+	}
+
+	60% {
+		opacity: 1;
+	}
+
+	80% {
+		opacity: 0.3;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+.ktlFlashingFadeInOut {
+	animation: ktlFlashingFadeInOut var(--ktlFlashRate) infinite;
+}
+
+/* Moving stripes for progress indicator. */
+@keyframes ktlMoveStripes {
+	0% {
+		background-position: 0 0;
+	}
+
+	100% {
+		background-position: 50px 0;
+	}
+}
+
+.ktlProgress {
+	height: 20px;
+	background-size: 10px 10px;
+	background-image: repeating-linear-gradient( 45deg, #ccc, #ccc 1px, transparent 1px, transparent 50% );
+	animation: ktlMoveStripes 2s linear infinite;
+	opacity: 0.5;
+}
+
+.ktlBlurry {
+	color: transparent;
+	text-shadow: 0 0 8px #000;
+}
+
+.ktlOutline {
+	box-shadow: inset 0 0 0 3px var(--ktlOutlineColor);
+}
+
+.ktlOutlineDevPopup {
+	outline-offset: -2px;
+	outline: 2px dashed blue;
+}
+
+.ktlNoBgColor {
+	background-color: transparent !important;
+}
+
+.ktlAttention {
+	background-color: orangered !important;
+}
+
+.highlightedSubmittedRow {
+	background-color: #e0ddb8;
+}
+
+/* Status Monitoring */
+.ktlOfflineStatusCritical {
+	background-color: yellow !important;
+	color: red !important;
+	font-weight: bold !important;
+}
+
+.ktlOfflineStatus {
+	background-color: GoldenRod !important;
+	font-weight: bold !important;
+}
+
+.ktlDraggable {
+	position: absolute;
+	cursor: grab;
+}
+
+/* max-width will be set by KTL at run time, based on column width's setting. */
+.ktlTruncateCellText {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: inline-block;
+	vertical-align: bottom;
+}
+
+.ktlClickableCell {
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	text-decoration: underline;
+}
+
+	.ktlClickableCell:hover {
+		background-color: #aaa;
+	}
+
+/* Virtual Keyboard */
+.virtualKeyboardFocus {
+	border-color: #1E3978;
+}
+
+#simple-keyboard {
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	z-index: 9000;
+	display: flex;
+	background-color: transparent;
+	justify-content: center;
+	font-size: 3rem;
+	pointer-events: none;
+}
+
+.hg-rows {
+	background-color: #888 !important;
+	border-width: 4px;
+	border-color: #999;
+	border-style: ridge;
+	pointer-events: all;
+}
+
+.hg-layout-numeric .hg-rows {
+	width: 600px;
+	padding: 10px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px -1px rgba(0,0,0,3);
+}
+
+.hg-theme-default.hg-layout-numeric .hg-button {
+	width: auto !important;
+}
+
+.hg-theme-default .hg-button.hg-standardBtn[data-skbtn=".com"],
+.hg-theme-default .hg-button.hg-standardBtn[data-skbtn=".ca"] {
+	max-width: 140px !important;
+}
+
+.hg-layout-default .hg-rows, .hg-layout-shift .hg-rows {
+	padding: 10px;
+	border-radius: 10px !important;
+	box-shadow: 0px 0px 11px -2px rgba(0,0,0,3);
+}
+
+.hg-theme-default div.hg-button {
+	height: 4.5rem !important;
+}
+
+.hg-theme-default .hg-button.hg-standardBtn {
+	width: 6rem !important;
+}
+
+.hg-button {
+	background-color: #eee !important;
+	border-top: 2px solid #fff; /* Lighter top border */
+	border-left: 2px solid #fff; /* Lighter left border */
+	border-bottom: 2px solid #000000 !important; /* Darker bottom border */
+	border-right: 2px solid #000000; /* Darker right border */
+	border-radius: 5px !important;
+	padding-bottom: 10px !important;
+}
+
+.capslock .hg-button-capslock {
+	border: 2px solid #cccccc !important;
+	background: #cccccc !important;
+}
+
+.hg-layout-shift .hg-button.hg-functionBtn[data-skbtn="{arrowleft}"],
+.hg-layout-shift .hg-button.hg-functionBtn[data-skbtn="{arrowright}"],
+.hg-layout-default .hg-button.hg-functionBtn[data-skbtn="{arrowleft}"],
+.hg-layout-default .hg-button.hg-functionBtn[data-skbtn="{arrowright}"] {
+	max-width: 140px;
+}
+
+.hg-theme-default .hg-button.hg-standardBtn[data-skbtn="@"] {
+	max-width: unset !important;
+}
+
+.hg-theme-default .hg-button.hg-functionBtn[data-skbtn="{tab}"] {
+	width: 90px !important;
+}
+
+.hg-theme-default .hg-button.hg-standardBtn[data-skbtnuid="default-r4b1"],
+.hg-theme-default .hg-button.hg-standardBtn[data-skbtnuid="shift-r4b1"] {
+	max-width: 80px !important;
+}
+
+/* Autocomplete feature */
+ul.ui-autocomplete {
+	border-radius: 0 0 4px 4px;
+	background-clip: padding-box;
+	border: 1px solid #dbdbdb;
+	border-top: 0;
+	background: white;
+	margin-top: -8px;
+	list-style: none;
+}
+
+.ui-autocomplete .ui-menu-item {
+	color: #1a1a1a;
+	position: relative;
+}
+
+	.ui-autocomplete .ui-menu-item i {
+		position: absolute;
+		top: 0;
+		right: 0;
+		height: 2em;
+		width: 3em;
+	}
+
+		.ui-autocomplete .ui-menu-item i:after {
+			position: absolute;
+			font-size: 16px;
+			font-family: FontAwesome;
+			content: "\F00D";
+			top: 3px;
+			right: 13px;
+			color: #c1bdbd;
+		}
+
+		.ui-autocomplete .ui-menu-item i:hover:after {
+			color: #1a1a1a;
+		}
+
+/**** KTL_RELATED - END ****/

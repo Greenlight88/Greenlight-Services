@@ -1,0 +1,23 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if any get added later)
+node_modules/
+
+# Local development settings
+local-config.js
+.env
+
+# Logs
+*.log
+
+# Don't commit production secrets
+production-secrets.js 
