@@ -1,2186 +1,1776 @@
-/*Greenlight-Online css*/
-/*defining buttons*/
-.redButton {
-    background:    #D9534F;
-    border:        0px solid #D9534F;
-    border-radius: 4px;
-    padding:       7px 7px;
-    color:         #ffffff;
-    display:       inline-block;
-    font:          normal 600 12px/1.2 "Calibri", sans-serif;
-    text-align:    center;
-    text-shadow:   none;
-    height:        50px;
-    width:         80px;
-}
-.redButton:hover {
-    background:    #831f1c;
-    cursor: pointer;
+/* ===================================
+   TABLE HEADER STYLES
+   =================================== */
+.kn-table th {
+  background-color: #39b54a !important;
+  color: #fff !important;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding: 10px;
 }
 
-.purpleButton {
-    background:    #b539a4;
-    border:        0px solid #b539a4;
-    border-radius: 4px;
-    padding:       7px 7px;
-    color:         #ffffff;
-    display:       inline-block;
-    font:          normal 600 12px/1.2 "Calibri", sans-serif;
-    text-align:    center;
-    text-shadow:   none;
-    height:        50px;
-    width:         80px;
-}
-.purpleButton:hover {
-    background:    #79266e;
-    cursor: pointer;
+/* ===================================
+   KNACK BUTTON OVERRIDES - PRODUCTION CSS
+   =================================== */
+
+/* CSS Variables - Design System */
+:root {
+  /* Gray Scale */
+  --lt-color-gray-100: #f8f9fc;
+  --lt-color-gray-200: #f1f3f9;
+  --lt-color-gray-300: #dee3ed;
+  --lt-color-gray-400: #c2c9d6;
+  --lt-color-gray-500: #8f96a3;
+  --lt-color-gray-600: #5e636e;
+  --lt-color-gray-700: #2f3237;
+  --lt-color-gray-800: #1d1e20;
+  --lt-color-gray-900: #111213;
+
+  /* Base Colors */
+  --lt-color-white: #fff;
+  --lt-color-black: #111213;
+
+  /* Brand Colors - Customize these */
+  --brand-green: #39b54a;
+  --brand-green-hover: #2d8f3a;
+  --brand-green-active: #257830;
+
+  --brand-red: #dc3545;
+  --brand-red-hover: #c82333;
+  --brand-red-active: #bd2130;
+
+  --brand-blue: #3d6699;
+  --brand-blue-hover: #335280;
+  --brand-blue-active: #2b466b;
+
+  --brand-gray: #6c757d;
+  --brand-gray-hover: #545b62;
+  --brand-gray-active: #424649;
+
+  /* Shadows */
+  --shadow-default: 0 3px 1px -2px rgba(0, 0, 0, 0.2),
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  --shadow-hover: 0 4px 8px -2px rgba(0, 0, 0, 0.25),
+    0 3px 6px 0 rgba(0, 0, 0, 0.18),
+    0 2px 8px 0 rgba(0, 0, 0, 0.15);
+  --shadow-active: 0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    0 1px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12);
+
+  /* Typography */
+  --font-primary: 'Source Sans Pro', 'Open Sans', sans-serif;
+
+  /* Transitions */
+  --transition-default: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.blueButton {
-    background:    #4f90d9;
-    border:        0px solid #4f90d9;
-    border-radius: 4px;
-    padding:       7px 7px;
-    color:         #ffffff;
-    display:       inline-block;
-    font:          normal 600 12px/1.2 "Calibri", sans-serif;
-    text-align:    center;
-    text-shadow:   none;
-    height:        50px;
-    width:         80px;
+/* ===================================
+   SHARED KNACK BUTTON BASE STYLES
+   =================================== */
+/* Target all Knack buttons and custom injected classes */
+/* Using .kn-content prefix to avoid affecting header navigation */
+.kn-content .kn-button .kn-button-submit,
+.kn-content .kn-button.is-primary,
+.kn-content .kn-form.kn-button.is-primary input[type="submit"],
+.kn-content .kn-link-1,
+.kn-content .kn-link-2,
+.kn-content .kn-link-3,
+.kn-content .kn-link-4,
+.kn-content .kn-link-cancel,
+.kn-content .kn-button-menu a,
+.kn-content .kn-back-link a,
+.kn-content .kn-add-link a,
+/* Custom injected button classes */
+.biggreenButton,
+.bigblueButton,
+.bigredButton,
+.biggrayButton {
+  /* Reset & Base Styles */
+  font-weight: 400 !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+  font-family: var(--font-primary) !important;
+  box-sizing: border-box !important;
+
+  /* Layout */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  /* Sizing */
+  min-width: 120px !important;
+  padding: 8px 24px !important;
+  line-height: 1.4 !important;
+
+  /* Typography */
+  font-size: 1rem !important;
+  text-decoration: none !important;
+  user-select: none !important;
+  color: var(--lt-color-white) !important;
+
+  /* Appearance */
+  border: 2px solid transparent !important;
+  border-radius: 50px !important;
+  /* Pill shape */
+  cursor: pointer !important;
+
+  /* Effects */
+  box-shadow: var(--shadow-default) !important;
+  transition: var(--transition-default) !important;
+
+  /* States */
+  position: relative !important;
+  overflow: hidden !important;
 }
-.blueButton:hover {
-    background:    #1c3b83;
-    cursor: pointer;
+
+:root {
+  /* Unified button sizing */
+  --button-min-height: 40px;
+  --button-padding-vertical: 8px;
+  --button-padding-horizontal: 24px;
+  --button-min-width: 120px;
 }
-.greenButton {
-    background:    #39b54a;
-    border:        0px solid #39b54a;
-    border-radius: 4px;
-    padding:       7px 7px;
-    color:         #ffffff;
-    display:       inline-block;
-    font:          normal 600 12px/1.2 "Calibri", sans-serif;
-    text-align:    center;
-    text-shadow:   none;
-    height:        50px;
-    width:         80px;
+
+/* 1) Target all button-like elements with a single selector */
+.kn-content .kn-button,
+.kn-content .kn-link-1,
+.kn-content .kn-link-2,
+.kn-content .kn-link-3,
+.kn-content .kn-link-4,
+.kn-content .kn-link-cancel,
+.kn-content .kn-back-link a,
+.kn-content .kn-add-link a,
+.biggreenButton,
+.bigblueButton,
+.bigredButton,
+.biggrayButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: var(--button-min-height) !important;
+  min-width: var(--button-min-width) !important;
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal) !important;
 }
-.greenButton:hover {
-    background:    #267932;
-    cursor: pointer;
+
+/* 2) Special case: Save button with icon stays consistent without text indent hack */
+.kn-content .kn-form.kn-button.is-primary input[type="submit"] {
+  /* Restore label and match other buttons */
+  text-indent: 0 !important;
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal) !important;
+  min-width: var(--button-min-width) !important;
 }
-kn-form.kn-button.is-primary input[type="submit"]{
-    --lt-color-gray-100: #f8f9fc !important;
-    --lt-color-gray-200: #f1f3f9 !important;
-    --lt-color-gray-300: #dee3ed !important;
-    --lt-color-gray-400: #c2c9d6 !important;
-    --lt-color-gray-500: #8f96a3 !important;
-    --lt-color-gray-600: #5e636e !important;
-    --lt-color-gray-700: #2f3237 !important;
-    --lt-color-gray-800: #1d1e20 !important;
-    --lt-color-gray-900: #111213 !important;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04) !important;
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2) !important;
-    --lt-color-white: #fff !important; 
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400 !important;
-    -webkit-font-smoothing: antialiased !important;
-    text-rendering: optimizeLegibility !important;
-    font-family: Open Sans !important;
-    list-style: none !important;
-    box-sizing: inherit !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 64px !important;
-    line-height: 1 !important;
-    user-select: none !important;
-    text-decoration: none !important;
-    border: 1px solid !important;
-    font-size: 1.1em !important;
-    padding: 7px 16px 7px 50px!important;
-    border-radius: 3px !important;
-    border-width: 2px !important;
-    cursor: pointer !important;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12) !important;
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1) !important;
-    color: #FFFFFF !important;
-    background-color: #39b54a !important;
-    border-color: #39b54a !important;
+
+/* 3) Table action links inherit same height but get custom padding */
+.kn-content .kn-table tbody td a.kn-link-1,
+.kn-content .kn-table tbody td a.kn-link-2,
+.kn-content .kn-table tbody td a.kn-link-3,
+.kn-content .kn-table tbody td .biggreenButton,
+.kn-content .kn-table tbody td .bigblueButton,
+.kn-content .kn-table tbody td .bigredButton {
+  min-height: var(--button-min-height) !important;
+  padding: 6px 16px !important;
+  min-width: auto !important;
 }
-.kn-button.is-primary:hover {
-    background-color: #039b17 !important;
-    border-color: #039b17 !important;
+
+/* ===================================
+   HOVER & ACTIVE STATES (ALL BUTTONS)
+   =================================== */
+.kn-content .kn-button .kn-button-submit:hover,
+.kn-content .kn-button.is-primary:hover,
+.kn-content .kn-form.kn-button.is-primary input[type="submit"]:hover,
+.kn-content .kn-link-1:hover,
+.kn-content .kn-link-2:hover,
+.kn-content .kn-link-3:hover,
+.kn-content .kn-link-4:hover,
+.kn-content .kn-button-menu a:hover,
+.kn-content .kn-back-link a:hover,
+.kn-content .kn-add-link a:hover,
+/* Custom injected classes */
+.biggreenButton:hover,
+.bigblueButton:hover,
+.bigredButton:hover,
+.biggrayButton:hover {
+  /* Use theme variables */
+  box-shadow: var(--shadow-hover) !important;
+  transform: translateY(-2px) !important;
 }
+
+/* Active states */
+.kn-content .kn-button .kn-button-submit:active,
+.kn-content .kn-button.is-primary:active,
+.kn-content .kn-form.kn-button.is-primary input[type="submit"]:active,
+.kn-content .kn-link-1:active,
+.kn-content .kn-link-2:active,
+.kn-content .kn-link-3:active,
+.kn-content .kn-link-4:active,
+.kn-content .kn-button-menu a:active,
+.biggreenButton:active,
+.bigblueButton:active,
+.bigredButton:active,
+.biggrayButton:active {
+  box-shadow: var(--shadow-active) !important;
+  transform: translateY(0) !important;
+}
+
+/* ===================================
+   COLOR-SPECIFIC BUTTON STYLES
+   =================================== */
+/* 1. Primary Action (Green) */
+.kn-content .kn-button.is-primary,
+.kn-content .kn-form.kn-button.is-primary input[type="submit"],
 .biggreenButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #39b54a;
-    border-color: #39b54a;
+  background-color: var(--brand-green) !important;
+  border-color: var(--brand-green) !important;
 }
+
+.kn-content .kn-button.is-primary:hover,
+.kn-content .kn-form.kn-button.is-primary input[type="submit"]:hover,
 .biggreenButton:hover {
-    background-color: #039b17;
-    border-color: #039b17;
+  background-color: var(--brand-green-hover) !important;
+  border-color: var(--brand-green-hover) !important;
 }
-.ctaButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #ff6b35;
-    border-color: #ff6b35;
+
+.kn-content .kn-button.is-primary:active,
+.kn-content .kn-form.kn-button.is-primary input[type="submit"]:active,
+.biggreenButton:active {
+  background-color: var(--brand-green-active) !important;
+  border-color: var(--brand-green-active) !important;
 }
-.ctaButton:hover {
-    opacity: 0.8;
-}
+
+/* 2. Secondary Actions (Blue) */
+.kn-content .kn-link-1,
+.kn-content .kn-add-link a,
 .bigblueButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #4f90d9;
-    border-color: #4f90d9;
+  background-color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
 }
+
+.kn-content .kn-link-1:hover,
+.kn-content .kn-add-link a:hover,
 .bigblueButton:hover {
-    opacity: 0.8;
+  background-color: var(--brand-blue-hover) !important;
+  border-color: var(--brand-blue-hover) !important;
 }
-.bigbluetoppaddedButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased; 
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #4f90d9;
-    border-color: #4f90d9;
-    margin-top:30px !important;
+
+.kn-content .kn-link-1:active,
+.kn-content .kn-add-link a:active,
+.bigblueButton:active {
+  background-color: var(--brand-blue-active) !important;
+  border-color: var(--brand-blue-active) !important;
 }
-.bigbluetoppaddedButton:hover {
-    background-color: #1c3b83;
-    border-color: #1c3b83;
-}
-.biggreentoppaddedButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased; 
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #39b54a;
-    border-color: #39b54a;
-    margin-top:30px !important;
-}
-.biggreentoppaddedButton:hover {
-    background-color: #039b17;
-    border-color: #039b17;
-}
-.bigorangetoppaddedButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased; 
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #F0AD4E;
-    border-color: #F0AD4E;
-    margin-top:30px !important;
-}
-.bigorangetoppaddedButton:hover {
-    background-color: #EC971F;
-    border-color: #EC971F;
-}
-.bigpurpleButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased; 
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #b539a4;
-    border-color: #b539a4;
-    margin-top:0px !important;
-}
-.bigpurpleButton:hover {
-    background-color: #79266e;
-    border-color: #79266e;
-}.bigpurpletoppaddedButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased; 
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #b539a4;
-    border-color: #b539a4;
-    margin-top:30px !important;
-}
-.bigpurpletoppaddedButton:hover {
-    background-color: #79266e;
-    border-color: #79266e;
-}
+
+/* 3. Destructive Actions (Red) */
+.kn-content .kn-link-2,
+.kn-content .kn-link.is-delete,
+.kn-content .kn-button.is-danger,
 .bigredButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #D9534F;
-    border-color: #D9534F;
-}  
+  background-color: var(--brand-red) !important;
+  border-color: var(--brand-red) !important;
+}
+
+.kn-content .kn-link-2:hover,
+.kn-content .kn-link.is-delete:hover,
+.kn-content .kn-button.is-danger:hover,
 .bigredButton:hover {
-    background-color: #d8100a;
-    border-color: #d8100a;
-}
-.bigorangeButton {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #F0AD4E;
-    border-color: #F0AD4E;
-}  
-.bigorangeButton:hover {
-    background-color: #EC971F;
-    border-color: #EC971F;
-}
-.orangeButton {
-    background:    #F0AD4E;
-    border:        0px solid #F0AD4E;
-    border-radius: 4px;
-    padding:       7px 7px;
-    color:         #ffffff;
-    display:       inline-block;
-    font:          normal 600 12px/1.2 "Calibri", sans-serif;
-    text-align:    center;
-    text-shadow:   none;
-    height:        50px;
-    width:         80px;
-}
-.orangeButton:hover {
-    background:    #945c0d;
-    cursor: pointer;
-}
-.kn-button {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff;
-    --lt-color-black: #111213;
-    --lt-color-transparent: rgba(255, 255, 255, 0);
-    --lt-color-background-light: var(--lt-color-gray-100);
-    --lt-color-background-default: var(--lt-color-gray-200);
-    --lt-color-background-dark: var(--lt-color-gray-300);
-    --lt-color-border-light: var(--lt-color-gray-200);
-    --lt-color-border-default: var(--lt-color-gray-300);
-    --lt-color-border-dark: var(--lt-color-gray-400);
-    --lt-color-text-very-light: var(--lt-color-gray-500);
-    --lt-color-text-light: var(--lt-color-gray-600);
-    --lt-color-text-default: var(--lt-color-gray-700);
-    --lt-color-text-dark: var(--lt-color-gray-800);
-    --lt-color-overlay-default: #fff;
-    --lt-color-overlay-dark: #fff;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1);
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3);
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 64px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 7px 16px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #39b54a;
-    border-color: #39b54a;
-}
-.kn-button:hover {
-    background-color: #039b17;
-    border-color: #039b17;
-}
-.kn-button.is-small {
-    --lt-color-gray-100: #f8f9fc;
-    --lt-color-gray-200: #f1f3f9;
-    --lt-color-gray-300: #dee3ed;
-    --lt-color-gray-400: #c2c9d6;
-    --lt-color-gray-500: #8f96a3;
-    --lt-color-gray-600: #5e636e;
-    --lt-color-gray-700: #2f3237;
-    --lt-color-gray-800: #1d1e20;
-    --lt-color-gray-900: #111213;
-    --lt-shadowDefault: 0 2px 6px -1px rgba(0, 0, 0, 0.16), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
-    --lt-shadowActive: 0 0 8px -2px rgba(0, 0, 0, 0.1), 0 6px 20px -3px rgba(0, 0, 0, 0.2);
-    --lt-color-white: #fff !important;
-    --lt-color-black: #111213 !important;
-    --lt-color-transparent: rgba(255, 255, 255, 0) !important;
-    --lt-color-background-light: var(--lt-color-gray-100) !important;
-    --lt-color-background-default: var(--lt-color-gray-200) !important;
-    --lt-color-background-dark: var(--lt-color-gray-300) !important;
-    --lt-color-border-light: var(--lt-color-gray-200) !important;
-    --lt-color-border-default: var(--lt-color-gray-300) !important;
-    --lt-color-border-dark: var(--lt-color-gray-400) !important;
-    --lt-color-text-very-light: var(--lt-color-gray-500) !important;
-    --lt-color-text-light: var(--lt-color-gray-600) !important;
-    --lt-color-text-default: var(--lt-color-gray-700) !important;
-    --lt-color-text-dark: var(--lt-color-gray-800) !important;
-    --lt-color-overlay-default: #fff !important;
-    --lt-color-overlay-dark: #fff !important;
-    --lt-color-overlay-transparent: rgba(0, 0, 0, 0.1) !important;
-    --lt-shadow-website-overlay: 0 0 7px 0 rgba(0, 0, 0, 0.3) !important;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: Open Sans;
-    list-style: none;
-    box-sizing: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    line-height: 1;
-    user-select: none;
-    text-decoration: none !important;
-    border: 1px solid;
-    font-size: 1.1em;
-    padding: 2px 2px;
-    border-radius: 3px;
-    border-width: 2px;
-    cursor: pointer;
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    transition: box-shadow .28s cubic-bezier(.4,0,.2,1);
-    color: #FFFFFF;
-    background-color: #39b54a;
-    border-color: #39b54a;
-}
-.kn-button.is-small:hover {
-    background-color: #039b17;
-    border-color: #039b17;
-}
-.kn-button {
-    background:    #39b54a;
-    border:        0px solid #39b54a;
-    border-radius: 7px;
-    padding:       10px 30px;
-    color:         #ffffff;
-    display:       inline-block;
-    font:          normal 600 14px/1 "Calibri", sans-serif;
-    text-align:    center;
-    text-shadow:   none;
-
-}
-.kn-button:hover {
-    background:    #039b17;
+  background-color: var(--brand-red-hover) !important;
+  border-color: var(--brand-red-hover) !important;
 }
 
-/* registration google button */
-.kn-button.sso-button.sso-google:hover {
-    background: #EDEADE !important;
-}
-.kn-button.sso-button.sso-google {
-  user-select: none !important;
-  -moz-user-select: none !important;
-  -webkit-user-select: none !important;
-  -ms-user-select: none !important;
-  appearance: none !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background-color: WHITE !important;
-  background-image: none !important;
-  border: 1px solid #747775 !important;
-  -webkit-border-radius: 20px !important;
-  border-radius: 20px !important;
-  -webkit-box-sizing: border-box !important;
-  box-sizing: border-box !important;
-  color: #1f1f1f !important;
-  cursor: pointer !important;
-  font-family: 'Roboto', arial, sans-serif !important;
-  font-size: 14px !important;
-  height: 120px !important;
-  letter-spacing: 0.25px !important;
-  outline: none !important;
-  overflow: hidden !important;
-  padding: 12px 12px !important;
-  position: center !important;
-  text-align: center !important;
-  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s !important;
-  transition: background-color .218s, border-color .218s, box-shadow .218s !important;
-  vertical-align: middle !important;
-  white-space: nowrap !important;
-  width: auto !important;
-  max-width: 250px !important;
-  min-width: min-content !important;
-  min-height: 80px !important;
+.kn-content .kn-link-2:active,
+.kn-content .kn-link.is-delete:active,
+.kn-content .kn-button.is-danger:active,
+.bigredButton:active {
+  background-color: var(--brand-red-active) !important;
+  border-color: var(--brand-red-active) !important;
 }
 
-.kn-button.sso-button.sso-google .sso-google-icon {
-  height: 20px !important;
-  margin-right: 12px !important;
-  min-width: 20px !important;
-  width: 20px !important;
+/* 4. Tertiary Actions (Gray) */
+.kn-content .kn-link-3,
+.kn-content .kn-link-cancel,
+.kn-content .kn-back-link a,
+.biggrayButton {
+  background-color: var(--brand-gray) !important;
+  border-color: var(--brand-gray) !important;
 }
 
-.kn-button.sso-button.sso-google .kn-button.sso-button.sso-google-content-wrapper {
-  -webkit-align-items: center !important;
-  align-items: center !important;
-  display: flex !important;
-  -webkit-flex-direction: row !important;
-  flex-direction: row !important;
-  -webkit-flex-wrap: nowrap !important;
-  flex-wrap: nowrap !important;
-  height: 100% !important;
-  justify-content: space-between !important;
-  position: relative !important;
+.kn-content .kn-link-3:hover,
+.kn-content .kn-link-cancel:hover,
+.kn-content .kn-back-link a:hover,
+.biggrayButton:hover {
+  background-color: var(--brand-gray-hover) !important;
+  border-color: var(--brand-gray-hover) !important;
+}
+
+.kn-content .kn-link-3:active,
+.kn-content .kn-link-cancel:active,
+.kn-content .kn-back-link a:active,
+.biggrayButton:active {
+  background-color: var(--brand-gray-active) !important;
+  border-color: var(--brand-gray-active) !important;
+}
+
+/* Disabled States */
+.kn-content .kn-button[disabled],
+.kn-content .kn-button.is-disabled,
+.kn-content input[type="submit"][disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* ===================================
+   BULMA KNACK BUTTON OVERRIDES
+   =================================== */
+/* Fix for Bulma column system overrides */
+#knack-body.loginPage .columns,
+#knack-reset-pass .columns {
+  display: block !important;
   width: 100% !important;
+  max-width: 100% !important;
 }
 
-.kn-button.sso-button.sso-google .kn-button.sso-button.sso-google-contents {
-  -webkit-flex-grow: 1 !important;
-  flex-grow: 1 !important;
-  font-family: 'Roboto', arial, sans-serif !important;
-  font-weight: 500 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  vertical-align: top !important;
-}
-
-.kn-button.sso-button.sso-google .kn-button.sso-button.sso-google-state {
-  -webkit-transition: opacity .218s !important;
-  transition: opacity .218s !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  opacity: 0 !important;
-  position: absolute !important;
-  right: 0 !important;
-  top: 0 !important;
-}
-
-.kn-button.sso-button.sso-google:disabled {
-  cursor: default !important;
-  background-color: #ffffff61 !important;
-  border-color: #1f1f1f1f !important;
-}
-.kn-button.sso-button.sso-google:disabled .a.kn-button.sso-button.sso-google-contents {
-  opacity: 38% !important;
-}
-.kn-button.sso-button.sso-google:disabled .a.kn-button.sso-button.sso-google-icon {
-  opacity: 38% !important;
-}
-.kn-button.sso-button.sso-google:not(:disabled):active .a.kn-button.sso-button.sso-google-state, 
-.kn-button.sso-button.sso-google:not(:disable):focus .a.knd-button.sso-button.sso-google-state {
-  background-color: #303030 !important;
-  opacity: 12% !important;
-}.kn-button.sso-button.sso-google:not(:disabled):hover {
-  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
-}
-.kn-button.sso-button.sso-google:not(:disabled):hover .a.kn-button.sso-button.sso-google-state {
-  background-color: #303030 !important;
-  opacity: 8% !important;
-}
-/* registration google end */
-/* login google start */
-.kn-button.is-sso.is-google:hover {
-  background: #EDEADE !important;
-}
-.kn-button.is-sso.is-google {
-  user-select: none !important;
-  -moz-user-select: none !important;
-  -webkit-user-select: none !important;
-  -ms-user-select: none !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background-color: WHITE !important;
-  background-image: none !important;
-  border: 1px solid #747775 !important;
-  -webkit-border-radius: 20px !important;
-  border-radius: 20px !important;
-  -webkit-box-sizing: border-box !important;
-  box-sizing: border-box !important;
-  color: #1f1f1f !important;
-  cursor: pointer !important;
-  font-family: 'Roboto', arial, sans-serif !important;
-  font-size: 18px !important;
-  height: 150px !important;
-  letter-spacing: 0.25px !important;
-  outline: none !important;
-  overflow: hidden !important;
-  padding: 15px 15px !important;
-  position: center !important;
-  text-align: center !important;
-  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s !important;
-  transition: background-color .218s, border-color .218s, box-shadow .218s !important;
-  vertical-align: middle !important;
-  white-space: nowrap !important;
-  width: auto !important;
-  max-width: 344px !important;
-  min-width: min-content !important;
-  min-height: 100px !important;
-}
-.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-icon {
-  height: 25px !important;
-  margin-right: 15px !important;
-  min-width: 25px !important;
-  width: 25px !important;
-}
-.kn-button.is-sso.is-google .is-google-content-wrapper {
-  -webkit-align-items: center !important;
-  align-items: center !important;
-  display: flex !important;
-  -webkit-flex-direction: row !important;
-  flex-direction: row !important;
-  -webkit-flex-wrap: nowrap !important;
-  flex-wrap: nowrap !important;
-  height: 100% !important;
-  justify-content: space-between !important;
-  position: relative !important;
+#knack-body.loginPage .column,
+#knack-reset-pass .column,
+#knack-reset-pass .is-constrained {
+  display: block !important;
   width: 100% !important;
-}
-.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-contents {
-  -webkit-flex-grow: 1 !important;
-  flex-grow: 1 !important;
-  font-family: 'Roboto', arial, sans-serif !important;
-  font-weight: 500 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  vertical-align: top !important;
-}
-.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-state {
-  -webkit-transition: opacity .218s !important;
-  transition: opacity .218s !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  opacity: 0 !important;
-  position: absolute !important;
-  right: 0 !important;
-  top: 0 !important;
-}
-.kn-button.is-sso.is-google:disabled {
-  cursor: default !important;
-  background-color: #ffffff61 !important;
-  border-color: #1f1f1f1f !important;
-}
-.kn-button.is-sso.is-google:disabled .a.kn-button.is-sso.is-google-contents {
-  opacity: 38% !important;
-}
-.kn-button.is-sso.is-google:disabled .a.kn-button.is-sso.is-google-icon {
-  opacity: 38% !important;
-}
-.kn-button.is-sso.is-google:not(:disabled):active .a.kn-button.is-sso.is-google-state, 
-.kn-button.is-sso.is-google:not(:disabled):focus .a.kn-button.is-sso.is-google-state {
-  background-color: #303030 !important;
-  opacity: 12% !important;
-}
-.kn-button.is-sso.is-google:not(:disabled):hover {
-  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
-}
-.kn-button.is-sso.is-google:not(:disabled):hover .a.kn-button.is-sso.is-google-state {
-  background-color: #303030 !important;
-  opacity: 8% !important;
-}
-thead {
-    position:   sticky !important; 
-    top:        0px !important;
-    z-index:    5 !important; 
-    background-color:   #39b54a  !important; 
-    color:         #FFFFFF !important;
+  max-width: 100% !important;
+  flex: none !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-.kn-table-wrapper {
-    max-height: 700px !important;
+/* Specific fix for login column.is-half */
+#knack-body.loginPage .kn-login .columns .column.is-half {
+  width: 100% !important;
+  max-width: 600px !important;
+  padding: 50px 60px !important;
+  flex: none !important;
 }
-/* View Template ->*/
-#view_4488  .view-header {
-     padding-top: 40px !important;
-}#view_213  .kn-table-wrapper {
-    max-height: 700px !important;
+
+/* Form structure overrides */
+#knack-reset-pass form,
+#knack-reset-pass form ul.kn-form-group,
+#knack-reset-pass form li.kn-form-col {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
 }
-#view_213 th
-{
-    background-color:   #39b54a  !important; 
-    color:         #FFFFFF !important;
-    text-align:    center !important;
-    font:          normal 600 16px/1 "Calibri", sans-serif !important;
-    text-shadow:   none !important;
+
+/* Remove Bulma responsive behavior */
+@media screen and (min-width: 769px) {
+
+  #knack-reset-pass .columns:not(.is-mobile),
+  #knack-reset-pass .column.is-constrained {
+    display: block !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
 }
+
+/* ============================================
+   GREENLIGHT ONLINE - CONSOLIDATED LOGIN SEQUENCE CSS
+   All classes preserved, duplicates removed
+   ============================================ */
+
+/* ===================================
+   CSS VARIABLES & DESIGN SYSTEM
+   =================================== */
+:root {
+  /* Colors */
+  --gl-primary: #39b54a;
+  --gl-primary-hover: #2d8f3a;
+  --gl-primary-active: #257830;
+  --gl-text-dark: #363636;
+  --gl-text-medium: #666666;
+  --gl-text-light: #999999;
+  --gl-bg-white: #ffffff;
+  --gl-border-light: #dddddd;
+  --gl-border-medium: #bdbdbd;
+
+  /* NEW: Additional colors from consolidation */
+  --gl-input-border: #e0e0e0;
+  --gl-error-red: #d32f2f;
+  --gl-error-red-alt: #dc3545;
+  --gl-success-green: #28a745;
+  --gl-focus-blue: #2d5aa0;
+  --gl-password-toggle: #5a5a5a;
+  --gl-placeholder: #999999;
+
+  /* NEW: Dark mode specific colors */
+  --gl-dark-focus-blue: #8ab4f8;
+  --gl-dark-input-border: #5f6368;
+  --gl-dark-google-bg: #131314;
+  --gl-dark-google-hover-bg: #202124;
+  --gl-dark-google-hover-border: #949697;
+  --gl-dark-divider: #444444;
+  --gl-dark-button-hover: #257630;
+
+  /* Shared Properties */
+  --gl-shadow-main: 10px 10px 90px -24px rgba(150, 147, 150, 1);
+  --gl-input-height: 40px;
+  --gl-border-radius: 4px;
+  --gl-container-radius: 0.6em;
+  --gl-container-padding: 50px 60px;
+  --gl-font-primary: 'Source Sans Pro', 'Segoe UI', 'Roboto', sans-serif;
+
+  /* Dark Mode */
+  --gl-dark-bg: #1a1a1a;
+  --gl-dark-border: #2d2d2d;
+  --gl-dark-input: #303134;
+  --gl-dark-text: #E3E3E3;
+  --gl-dark-text-muted: #999999;
+}
+
+/* ===================================
+   BASE LOGIN PAGE SETUP
+   =================================== */
 #knack-body.loginPage {
   background-image: url("https://s3.ap-southeast-2.amazonaws.com/ap-southeast-2-assets.knack.com/assets/6208f8cd23f849001f9856ea/6662fcc459e9df0028d6878e/original/greenlightbackground1920x1080.png");
   background-size: cover;
   background-position: center;
-}
-#knack-body.loginPage  .knHeader__logo--custom {
-  width: 100px;
-}
-
-#knack-body.loginPage .knHeader__title-logo-wrapper {
-  width:fit-content;
-  margin:auto;
-}
-
-#knack-body.loginPage {
-  display: flex;
-  align-items: center;
-}
-
-.kn-login-form {
-  margin:auto;
-}
-.kn-form {
-  width: 100%;
-  margin:auto;
-}
-.loginPage * {
-   width:100%;
-}
-
-.loginPage .knHeader__title {
-  display: none!important;
-}
-.kn-login .column.is-half {
-  margin:auto;
-  border-radius:.6em;
-  -webkit-box-shadow: 10px 10px 90px -24px rgba(150,147,150,1);
-  -moz-box-shadow: 10px 10px 90px -24px rgba(150,147,150,1);
-  box-shadow: 10px 10px 90px -24px rgba(150,147,150,1);
-  border:1px solid rgb(189, 187, 187);
-  padding:20px;
-  background: white;
-}
-.kn-register .column.is-half {
-  margin:auto;
-  border-radius:.6em;
-  -webkit-box-shadow: 10px 10px 90px -24px rgba(150,147,150,1);
-  -moz-box-shadow: 10px 10px 90px -24px rgba(150,147,150,1);
-  box-shadow: 10px 10px 90px -24px rgba(150,147,150,1);
-  border:1px solid rgb(189, 187, 187);
-  padding:20px;
-  background: white;
-}
-.loginPage .knHeader {
- background-color: #ffffff00!important;
-}
-.kn-login .control input.checkbox {
-  margin-top:10px;
-  width:fit-content;
-}
-.kn-register .control input.checkbox {
-  margin-top:10px;
-  width:fit-content;
-}
-
-/* login page design work mav */
-#knack-body.loginPage{
-  display: block;
-}
-#knack-body.loginPage .kn-login .columns{
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-}
-#knack-body.loginPage .kn-login .columns .kn-sso-container .control{
-    position: absolute !important;
-    max-width: 344px !important;
-    top: 200px !important;
-    width: 100%;
-    left: 50%;
-    margin-left: -172px;
-}
-#knack-body.loginPage .kn-login .columns .column.is-half{
-    width: 100% !important;
-    padding: 50px;
-    
-}
-#knack-body.loginPage .kn-register .columns .column.is-half{
-    width: 100% !important;
-    padding: 50px;
-}
-#knack-body.loginPage .kn-login .columns .column a.kn-button.is-sso.is-google{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #dadce0;
-    height: 50px;
-    font-size: 18px;
-    overflow: hidden;
-    max-width: 344px;
-}
-
-#register_all_users {
-    display: flex;
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    overflow: auto;
-    padding: 50px;
-    border-radius: .6em;
-    box-shadow: 10px 10px 90px -24px rgba(150, 147, 150, 1);
-    border: 1px solid rgb(189, 187, 187);
-    background: white;
-}
-
-#register_all_users .kn-title {
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 100px;
-}
-
-#register_all_users .input, #knack-reset-pass .input {
-    min-height: 40px;
-}
-
-#register_all_users .column{
-padding : 0 !important; 
-}
-
-#register_all_users .line {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-#register_all_users .line .bg-emphasis {
-    background: rgb(184 184 184 / 80%);
-    height: 1px;
-    width: 50%;
-}
-
-#register_all_users .line .text-subtle {
-    width: auto;
-    margin: 0px 15px;
-    font-size: 13px;
-    line-height: 1rem;
-}
-
-#register_all_users .is-primary {
-    background: #3ab54b !important;
-    height: auto;
-    padding: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-
-#register_all_users div:last-child{
-  margin:0 !important;
-  border:0 !important;
-}  
-
-#register_all_users div:last-child p{
-  position: absolute;
-  width: 100%;
-  max-width: 275px;
-  left: 50%;
-    transform: translateX(-50%);
-    top: 200px !important;
-
-}
-
-.loginPage .kn-view.kn-back-link{
-    position: absolute;
-    left: 50%;
-    transform: translatex(-50%);
-    bottom: 0;
-    width: auto;
-}
-.loginPage .kn-view.kn-back-link a{
-  color: #363636;
-  font: normal 600 14px / 1 "Calibri", sans-serif;
-}
-a.kn-button.sso-button.sso-google {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #dadce0;
-    height: 50px;
-    font-size: 18px;
-    overflow: hidden;
-    max-width: 344px;
-    width: 100%;
-    background-color: hsl(0, 0%, 100%);
-    color: #666 !important;
-    cursor: pointer;
-    padding-left: 45px;
-    position: relative;
-}
-
-a.kn-button.sso-button.sso-google .icon{
-  background-image: url(https://cdn1.cloud-database.co/renderer/css/img/google.svg);
-    background-size: cover;
-    width: 45px;
-    height: 45px;
-    box-shadow: none;
-    margin-right: 25px;
-    display: inline-block;
-    position: absolute;
-    left: 0;
-    top: 0;
-}
-
-
-#knack-body.loginPage .kn-login .columns .column a.kn-button.is-sso.is-google:hover{
-  background-color: white;
-}
-#knack-body .kn-container, .kn-content .kn-container{
-  width: auto;
-}
-#knack-body.loginPage .kn-login .columns .column a.kn-button.is-sso.is-google .icon{
-  width: 45px;
-    height: 45px;
-    box-shadow: none;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form{
-      max-width: 100%;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .input{
-  min-height: 40px;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-title{
-  font-weight: 700;
-  text-align: center;
-    margin-bottom: 100px;
-}
-#knack-body.loginPage .kn-login .view-header p.kn-description{
-  display: none;
-}
-#knack-body.loginPage .kn-login .columns .column input[type="submit"]{
-      background: #3ab54b !important;
-    height: auto;
-    padding: 10px;
-    font-size: 15px;
-    font-weight: 600;
-}
-#knack-body.loginPage .kn-login .columns .column input[type="submit"]:hover{
-    opacity: 0.8;
-}
-#knack-body.loginPage .kn-login .view-header{
-  position: relative;
-  padding-top: 100px;
-}
-#knack-body.loginPage .kn-login .view-header:before{
-     content: '';
-  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
-      position: absolute;
-    width: 100px;
-    height: 100px;
-    top: 0px;
-    background-size: contain;
-    left: 50%;
-    margin-left: -50px;
-    background-repeat: no-repeat;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .login_form.control .control:nth-child(2){
-  padding-bottom: 30px;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .login_form.control #forgot-pass{
-      position: absolute;
-    bottom: 0px;
-    left: 0px;
-    color: #363636;
-    text-decoration: underline;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form #need-account{
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form #need-account *{
-  width: auto;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .kn-button.register{
-      background: transparent;
-    color: #363636;
-    display: inline-block;
-    padding: 8px 8px;
-    border: none;
-    width: auto;
-    text-decoration: underline !important;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .line{
-      display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
-}
-#register_all_users .forget-pass{
-  padding-bottom: 14px !important;
-}
-#register_all_users .forget-pass a{
-  color: #363636;
-    text-decoration: underline;
-    font-weight: 700;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .line .text-subtle{
-    width: auto;
-    margin: 0px 15px;
-    font-size: 13px;
-    line-height: 1rem;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .line .bg-emphasis{
-      background: rgb(184 184 184 / 80%);
-    height: 1px;
-    width: 50%;
-}
-#knack-body.loginPage{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-#knack-body.loginPage .kn-login .columns .column.is-1, #knack-body.loginPage .kn-login .columns .kn-sso-container.column{
-  padding: 0px;
-}
-#knack-reset-pass{
-    background: white;
-    padding: 50px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-@media(max-width: 680px){
-  #knack-body.loginPage .kn-login .columns .kn-sso-container .control{
-      max-width: 260px !important;
-      top: 200px !important;
-      width: 100% !important;
-      margin-left: -130px !important;
-  }
-  #knack-body.loginPage .kn-login .view-header{
-      padding-top: 90px !important;
-  }
-  #knack-body.loginPage .kn-login .view-header:before{
-      width: 80px !important;
-      height: 80px !important;
-      margin-left: -40px !important;
-  }
-  #knack-body.loginPage .kn-login .columns .column.is-half{
-
-    padding: 50px 40px 50px 25px !important;
-  }
-}
-/* login page design work mav - kn-register*/
-#knack-body.loginPage .kn-register .columns{
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-}
-#knack-body.loginPage .kn-register .columns .kn-sso-container .control{
-        position: absolute !important;
-    max-width: 275px !important;
-    top: 200px !important;
-    width: 100%;
-    left: 50%;
-    margin-left: -137px;
-}
-#knack-body.loginPage .kn-register .columns .column.is-half{
-  width: 100%;
-      width: 100% !important;
-    padding: 50px;
-}
-#knack-body.loginPage .kn-register .columns .column a.kn-button.is-sso.is-google{
-        display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #dadce0;
-    height: 40px;
-    font-size: 14px;
-    overflow: hidden;
-    max-width: 275px;
-}
-#knack-body.loginPage .kn-register .columns .column a.kn-button.is-sso.is-google:hover{
-  background-color: white;
-}
-#knack-body.loginPage .kn-register .columns .column a.kn-button.is-sso.is-google .icon{
-  width: 45px;
-    height: 45px;
-    box-shadow: none;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form{
-      max-width: 100%;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .input{
-  min-height: 40px;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-title{
-  font-weight: 700;
-  text-align: center;
-    margin-bottom: 100px;
-}
-#knack-body.loginPage .kn-register .view-header p.kn-description{
-  display: none;
-}
-#knack-body.loginPage .kn-register .columns .column input[type="submit"]{
-      background: #3ab54b !important;
-    height: auto;
-    padding: 10px;
-    font-size: 15px;
-    font-weight: 600;
-}
-#knack-body.loginPage .kn-register .columns .column input[type="submit"]:hover{
-    opacity: 0.8;
-}
-#knack-body.loginPage .kn-register .view-header{
-  position: relative;
-  padding-top: 100px;
-}
-#knack-body.loginPage .kn-register .view-header:before{
-     content: '';
-  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
-      position: absolute;
-    width: 100px;
-    height: 100px;
-    top: 0px;
-    background-size: contain;
-    left: 50%;
-    margin-left: -50px;
-    background-repeat: no-repeat;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .login_form.control .control:nth-child(2){
-  padding-bottom: 30px;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .login_form.control #forgot-pass{
-      position: absolute;
-    bottom: 0px;
-    left: 0px;
-    color: #363636;
-    text-decoration: underline;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form #need-account{
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form #need-account *{
-  width: auto;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .kn-button.register{
-      background: transparent;
-    color: #363636;
-    display: inline-block;
-    padding: 8px 8px;
-    border: none;
-    width: auto;
-    text-decoration: underline !important;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .line{
-      display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .line .text-subtle{
-    width: auto;
-    margin: 0px 15px;
-    font-size: 13px;
-    line-height: 1rem;
-}
-#knack-body.loginPage .kn-register .columns .column .kn-form .line .bg-emphasis{
-      background: rgb(184 184 184 / 80%);
-    height: 1px;
-    width: 50%;
-}
-#knack-body.loginPage{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-#knack-body.loginPage .kn-register .columns .column.is-1, #knack-body.loginPage .kn-register .columns .kn-sso-container.column{
-  padding: 0px;
-}
-#knack-reset-pass{
-        background: white;
-    padding: 50px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-@media(max-width: 680px){
-  #knack-body.loginPage .kn-register .columns .kn-sso-container .control{
-           max-width: 260px !important;
-      top: 200px !important;
-      width: 100% !important;
-      margin-left: -130px !important;
-  }
-  #knack-body.loginPage .kn-register .view-header{
-    padding-top: 90px !important;
-  }
-  #knack-body.loginPage .kn-register .view-header:before{
-        width: 80px !important;
-    height: 80px !important;
-        margin-left: -40px !important;
-  }
-  #knack-body.loginPage .kn-register .columns .column.is-half{
-
-    padding: 50px 40px 50px 25px !important;
-  }
-}
-/* login page design work mav */
-#knack-body.loginPage{
-  display: block;
-}
-#knack-body.loginPage .kn-login .columns{
-      flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-}
-#knack-body.loginPage .kn-login .columns .kn-sso-container .control{
-        position: absolute !important;
-    max-width: 275px !important;
-    top: 200px !important;
-    width: 100%;
-    left: 50%;
-    margin-left: -137px;
-}
-#knack-body.loginPage .kn-login .columns .column.is-half{
-  width: 100%;
-      width: 100% !important;
-    padding: 50px;
-    
-}
-#knack-body.loginPage .kn-register .columns .column.is-half{
-  width: 100%;
-      width: 100% !important;
-    padding: 50px;
-}
-#knack-body.loginPage .kn-login .columns .column a.kn-button.is-sso.is-google{
-        display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #dadce0;
-    height: 40px;
-    font-size: 14px;
-    overflow: hidden;
-    max-width: 275px;
-}
-
-#register_all_users {
-    display: flex;
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    overflow: auto;
-    padding: 50px;
-    border-radius: .6em;
-    box-shadow: 10px 10px 90px -24px rgba(150, 147, 150, 1);
-    border: 1px solid rgb(189, 187, 187);
-    background: white;
-}
-
-#register_all_users .kn-title {
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 100px;
-}
-
-#register_all_users .input {
-    min-height: 40px;
-}
-
-#register_all_users .column{
-padding : 0 !important; 
-}
-
-#register_all_users .line {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-#register_all_users .line .bg-emphasis {
-    background: rgb(184 184 184 / 80%);
-    height: 1px;
-    width: 50%;
-}
-
-#register_all_users .line .text-subtle {
-    width: auto;
-    margin: 0px 15px;
-    font-size: 13px;
-    line-height: 1rem;
-}
-
-#register_all_users .is-primary, .loginPage .is-primary {
-    background: #3ab54b !important;
-    background-color: #3ab54b !important;
-    height: auto;
-    padding: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    border: 0px solid hsl(0, 0%, 86%);
-    border-radius: 0.35em;
-    cursor: pointer;
-}
-.kn-button.is-google.icon{
-  margin-left: -4px;
-}
-#knack-reset-pass{
-  border-radius: 10px;
-}
-#register_all_users div:last-child{
-  margin:0 !important;
-  border:0 !important;
-} 
-#register_all_users div:last-child p{
-  position: absolute;
-  width: 100%;
-  max-width: 275px;
-  left: 50%;
-    transform: translateX(-50%);
-    top: 200px !important;
-}
-.loginPage .kn-view.kn-back-link{
-    position: absolute;
-    left: 50%;
-    transform: translatex(-50%);
-    bottom: 0;
-    width: auto;
-}
-loginPage .kn-view.kn-back-link a{
-  color: #363636;
-  font: normal 600 14px / 1 "Calibri", sans-serif;
-}
-a.kn-button.sso-button.sso-google {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #dadce0;
-    height: 40px;
-    font-size: 14px;
-    overflow: hidden;
-    max-width: 275px;
-    width: 100%;
-    background-color: hsl(0, 0%, 100%);
-    color: #666 !important;
-    cursor: pointer;
-    padding-left: 45px;
-    position: relative;
-}
-a.kn-button.sso-button.sso-google .icon{
-  background-image: url(https://cdn1.cloud-database.co/renderer/css/img/google.svg);
-    background-size: cover;
-    width: 42px;
-    height: 45px;
-    box-shadow: none;
-    margin-right: 25px;
-    display: inline-block;
-    position: absolute;
-    left: -7px;
-    top: -3px;
-}
-#knack-body.loginPage .kn-login .columns .column a.kn-button.is-sso.is-google:hover{
-  background-color: white;
-}
-#knack-body .kn-container, .kn-content .kn-container{
-  width: auto;
-}
-#knack-body.loginPage .kn-login .columns .column a.kn-button.is-sso.is-google .icon{
-  width: 45px;
-    height: 45px;
-    box-shadow: none;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form{
-      max-width: 100%;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .input{
-  min-height: 40px;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-title{
-  font-weight: 700;
-  text-align: center;
-    margin-bottom: 100px;
-}
-#knack-body.loginPage .kn-login .view-header p.kn-description{
-  display: none;
-}
-#knack-body.loginPage .kn-login .columns .column input[type="submit"]{
-    background: #3ab54b !important;
-    height: auto;
-    padding: 10px;
-    font-size: 15px;
-    font-weight: 600;
-}
-#knack-body.loginPage .kn-login .columns .column input[type="submit"]:hover{
-    opacity: 0.8;
-}
-#knack-body.loginPage .kn-login .view-header{
-  position: relative;
-  padding-top: 100px;
-}
-#knack-body.loginPage .kn-login .view-header:before{
-     content: '';
-  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
-      position: absolute;
-    width: 100px;
-    height: 100px;
-    top: 0px;
-    background-size: contain;
-    left: 50%;
-    margin-left: -50px;
-    background-repeat: no-repeat;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .login_form.control .control:nth-child(2){
-  padding-bottom: 30px;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .login_form.control #forgot-pass{
-      position: absolute;
-    bottom: 0px;
-    left: 0px;
-    color: #363636;
-    text-decoration: underline;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form #need-account{
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form #need-account *{
-  width: auto;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .kn-button.register{
-      background: transparent;
-    color: #363636;
-    display: inline-block;
-    padding: 8px 8px;
-    border: none;
-    width: auto;
-    text-decoration: underline !important;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .line{
-      display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .line .text-subtle{
-    width: auto;
-    margin: 0px 15px;
-    font-size: 13px;
-    line-height: 1rem;
-}
-#knack-body.loginPage .kn-login .columns .column .kn-login-form .line .bg-emphasis{
-      background: rgb(184 184 184 / 80%);
-    height: 1px;
-    width: 50%;
-}
-#knack-body.loginPage{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-#knack-body.loginPage .kn-login .columns .column.is-1, #knack-body.loginPage .kn-login .columns .kn-sso-container.column{
-  padding: 0px;
-}
-#knack-reset-pass{
-        background: white;
-    padding: 50px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-@media(max-width: 680px){
-  #knack-body.loginPage .kn-login .columns .kn-sso-container .control{
-      max-width: 260px !important;
-      top: 200px !important;
-      width: 100% !important;
-      margin-left: -130px !important;
-  }
-  #knack-body.loginPage .kn-login .view-header{
-    padding-top: 90px !important;
-  }
-  #knack-body.loginPage .kn-login .view-header:before{
-        width: 80px !important;
-    height: 80px !important;
-        margin-left: -40px !important;
-  }
-  #knack-body.loginPage .kn-login .columns .column.is-half{
-
-    padding: 50px 40px 50px 25px !important;
-  }
-}
-.confirmPage #kn-app-header{
-  display: none;
-}
-
-#kn-scene_1791 .view-group{
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    width: 100% !important;
-    padding: 50px;
-    box-shadow: 10px 10px 90px -24px rgba(150, 147, 150, 1);
-    border: 1px solid rgb(189, 187, 187);
-    margin: auto;
-    border-radius: 10px;
-    background: white;
-    text-align: center;
-}
-#kn-scene_1791 .view-group .view-column{
-  position: relative;
-}
-
-#kn-scene_1791 .view-group .view-column:before {
-    content: '';
-    background: url(https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png);
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    top: 0px;
-    background-size: contain;
-    left: 50%;
-    margin-left: -50px;
-    background-repeat: no-repeat;
-}
-
-#kn-scene_1791 .kn-rich_text{
-  margin-top: 100px;
-}
-#kn-scene_1791 .kn-rich_text h1 strong{
-  color: hsl(0, 0%, 21%) !important;
-} 
-
-#kn-scene_1792 .view-group{
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    width: 100% !important;
-    padding: 50px;
-    box-shadow: 10px 10px 90px -24px rgba(150, 147, 150, 1);
-    border: 1px solid rgb(189, 187, 187);
-    margin: auto;
-    border-radius: 10px;
-    background: white;
-    text-align: center;
-}
-#kn-scene_1792 .view-group .view-column{
-  position: relative;
-}
-
-#kn-scene_1792 .view-group .view-column:before {
-    content: '';
-    background: url(https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png);
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    top: 0px;
-    background-size: contain;
-    left: 50%;
-    margin-left: -50px;
-    background-repeat: no-repeat;
-}
-
-#kn-scene_1792 .kn-rich_text{
-  margin-top: 100px;
-}
-#kn-scene_1792 .kn-rich_text h1 strong{
-  color: hsl(0, 0%, 21%) !important;
-}
-#kn-scene_258 .view-group{
-    flex-direction: column !important;
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    width: 100% !important;
-    padding: 50px;
-    box-shadow: 10px 10px 90px -24px rgba(150, 147, 150, 1);
-    border: 1px solid rgb(189, 187, 187);
-    margin: auto;
-    border-radius: 10px;
-    background: white;
-    text-align: center;
-}
-#kn-scene_258 .view-group .view-column{
-  position: relative;
-}
-
-#kn-scene_258 .view-group .view-column:before {
-    content: '';
-    background: url(https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png);
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    top: 0px;
-    background-size: contain;
-    left: 50%;
-    margin-left: -50px;
-    background-repeat: no-repeat;
-}
-
-#kn-scene_258 .kn-rich_text{
-  margin-top: 100px;
-}
-#kn-scene_258 .kn-rich_text h1 strong{
-  color: hsl(0, 0%, 21%) !important;
-}
-/* Data Cards */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600;700&display=swap');
-
-* {
-  box-sizing: border-box;
-}
-
-.page-contain {
-  display: flex;
   min-height: 100vh;
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: #E7F3F1;
-  border: .75em solid white;
-  padding: 2em;
-  font-family: 'Open Sans', sans-serif;
+  overflow-x: hidden;
 }
 
-.data-card {
-  display: flex;
-  flex-direction: column;
-  max-width: 20.75em;
-  min-height: 20.75em;
-  overflow: hidden;
-  border-radius: .5em;
-  text-decoration: none;
-  background: white;
-  margin: 1em;
-  padding: 2.75em 2.5em;
-  box-shadow: 0 1.5em 2.5em -.5em rgba(0, 0, 0, .1);
-  transition: transform .45s ease, background .45s ease;
-}
-.data-card h3 {
-  color: #2E3C40;
-  font-size: 3.5em;
-  font-weight: 600;
-  line-height: 1;
-  padding-bottom: .5em;
-  margin: 0 0 0.142857143em;
-  border-bottom: 2px solid #753BBD;
-  transition: color .45s ease, border .45s ease;
+/* Force full height on viewport */
+html.loginPage,
+body.loginPage {
+  height: 100%;
+  overflow-x: hidden;
 }
 
-.data-card h4 {
-  color: #627084;
-  text-transform: uppercase;
-  font-size: 1.125em;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.1em;
-  margin: 0 0 1.777777778em;
-  transition: color .45s ease;
+/* ===================================
+   SHARED CONTAINER STYLES
+   =================================== */
+/* Login containers */
+.kn-login .column.is-half,
+#register_all_users,
+#knack-reset-pass,
+#knack-reset-pass.confirmation-state,
+.resetConfirmPage .kn-form-confirmation {
+  background: white !important;
+  padding: var(--gl-container-padding) !important;
+  border-radius: var(--gl-container-radius) !important;
+  box-shadow: var(--gl-shadow-main) !important;
+  border: 1px solid rgb(189, 187, 187) !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  min-width: 400px !important;
 }
 
-.data-card p {
-  opacity: 0;
-  color: #FFFFFF;
-  font-weight: 600;
-  line-height: 1.8;
-  margin: 0 0 1.25em;
-  transform: translateY(-1em);
-  transition: opacity .45s ease, transform .5s ease;
+/* Registration container */
+#register_all_users {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: auto !important;
 }
 
-.data-card .link-text {
+/* ===================================
+   SHARED LOGO STYLES
+   =================================== */
+/* Logo before containers */
+.kn-login .view-header::before,
+#knack-body.loginPage .kn-register .view-header::before,
+#register_all_users::before,
+#knack-reset-pass .reset-header::before,
+.reset-confirmation-logo {
+  content: '';
+  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  top: -60px;
+  background-size: contain;
+  left: 50%;
+  margin-left: -50px;
+  background-repeat: no-repeat;
+}
+
+/* Specific positioning for register */
+#knack-body.loginPage .kn-register .view-header {
+  position: relative;
+  padding-top: 100px;
+}
+
+#knack-body.loginPage .kn-register .view-header::before {
+  top: 0px;
+}
+
+/* Confirmation logo */
+.reset-confirmation-logo {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background-size: 60%;
+  background-position: center;
+  border-radius: 50%;
+  padding: 10px;
+  top: 0;
+  left: 0;
+  margin-left: 0;
+}
+
+/* ===================================
+   SHARED TYPOGRAPHY
+   =================================== */
+/* Titles */
+.kn-login .kn-title,
+#knack-reset-pass .kn-title,
+.signup-title,
+.reset-title,
+.reset-confirmation-title {
+  font-weight: 700 !important;
+  text-align: center !important;
+  color: var(--gl-text-dark) !important;
+  margin-bottom: 10px !important;
+  font-size: 28px !important;
+}
+
+/* Subtitles/descriptions */
+.kn-login .kn-description,
+.signup-subtitle,
+.reset-subtitle {
+  text-align: center !important;
+  color: var(--gl-text-medium) !important;
+  margin-bottom: 30px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* Confirmation text */
+#knack-reset-pass.confirmation-state p,
+.reset-confirmation-message p {
+  text-align: center !important;
+  color: var(--gl-text-dark) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  margin: 20px 0 !important;
+}
+
+/* ===================================
+   SHARED FORM ELEMENTS
+   =================================== */
+/* Field labels */
+.loginPage label,
+.login-field label,
+.signup-field label,
+.reset-field label,
+.gl-email-label {
   display: block;
-  color: #753BBD;
-  font-size: 1.125em;
-  font-weight: 600;
-  line-height: 1.2;
-  margin: auto 0 0;
-  transition: color .45s ease;
+  margin-bottom: 5px;
+  color: var(--gl-text-dark);
+  font-size: 14px;
+  font-weight: normal;
+  text-align: left;
 }
 
-.data-card .link-text svg {
-  margin-left: .5em;
-  transition: transform .6s ease;
+/* Required asterisk */
+.gl-email-label::after,
+.gl-reset-form .required-field::after {
+  content: " *";
+  color: var(--gl-error-red-alt);
+  font-weight: bold;
 }
 
-.data-card .link-text svg path {
-  transition: fill .45s ease;
+/* All input fields - Base styles */
+.loginPage input.input,
+.login-field input,
+.signup-field input,
+.reset-field input,
+.gl-email-input,
+#knack-reset-pass input.input,
+input.input,
+input[type="email"],
+input[type="password"],
+input[type="text"],
+textarea.input,
+.kn-input input,
+#knack-reset-pass input,
+#register_all_users input {
+  width: 100% !important;
+  min-height: var(--gl-input-height) !important;
+  padding: 12px !important;
+  border: 1px solid var(--gl-input-border) !important;
+  border-radius: var(--gl-border-radius) !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+  background-color: var(--gl-bg-white) !important;
+  color: var(--gl-text-dark) !important;
+  transition: border-color 0.2s ease, border-width 0.1s ease !important;
 }
 
-.data-card:hover {
-  background: #753BBD;
-  transform: scale(1.02);
+/* Enhanced validation input */
+.gl-email-input {
+  padding: 12px 16px !important;
+  border: 2px solid var(--gl-border-light) !important;
+  border-radius: 6px !important;
+  font-size: 16px !important;
+  transition: border-color 0.3s ease !important;
 }
 
-.data-card:hover h3 {
-  color: #FFFFFF;
-  border-bottom-color: #A754C4;
+/* Hover state - same thickness, label color */
+input.input:hover:not(:focus),
+input[type="email"]:hover:not(:focus),
+input[type="password"]:hover:not(:focus),
+input[type="text"]:hover:not(:focus),
+textarea.input:hover:not(:focus),
+.kn-input input:hover:not(:focus),
+#knack-reset-pass input:hover:not(:focus),
+#register_all_users input:hover:not(:focus) {
+  border: 1px solid var(--gl-text-dark) !important;
+  outline: none !important;
 }
 
-.data-card:hover h4 {
-  color: #FFFFFF;
+/* Focus state - double thickness */
+.loginPage input:focus,
+.gl-email-input:focus,
+.reset-field input:focus,
+input.input:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+textarea.input:focus,
+.kn-input input:focus,
+#knack-reset-pass input:focus,
+#register_all_users input:focus {
+  border: 2px solid var(--gl-text-dark) !important;
+  outline: none !important;
+  padding: 11px !important;
 }
 
-.data-card:hover p {
-  opacity: 1;
-  transform: none;
+/* Input validation states */
+.gl-email-input:invalid {
+  border-color: var(--gl-border-light) !important;
 }
 
-.data-card:hover .link-text {
-  color: #FFFFFF;
+.gl-email-input:valid,
+.gl-email-input.success,
+.gl-email-field.success .gl-email-input {
+  border-color: var(--gl-success-green) !important;
 }
 
-.data-card:hover .link-text svg {
-  animation: point 1.25s infinite alternate;
+/* Error states */
+.gl-email-input.error,
+.gl-email-field.error .gl-email-input,
+.signup-field.has-error input,
+.has-error input.input,
+.has-error input[type="email"],
+.has-error input[type="password"],
+.has-error input[type="text"],
+.kn-has-error input,
+input.input.error,
+input.is-error {
+  border-color: var(--gl-error-red) !important;
 }
 
-.data-card:hover .link-text svg path {
-  fill: #FFFFFF;
+/* Error hover state */
+.has-error input.input:hover:not(:focus),
+.has-error input[type="email"]:hover:not(:focus),
+.has-error input[type="password"]:hover:not(:focus),
+.has-error input[type="text"]:hover:not(:focus),
+.kn-has-error input:hover:not(:focus),
+input.input.error:hover:not(:focus),
+input.is-error:hover:not(:focus) {
+  border: 1px solid var(--gl-error-red) !important;
 }
 
-@keyframes point {
-  0% {
-   transform: translateX(0);
+/* Error focus state */
+.has-error input.input:focus,
+.has-error input[type="email"]:focus,
+.has-error input[type="password"]:focus,
+.has-error input[type="text"]:focus,
+.kn-has-error input:focus,
+input.input.error:focus,
+input.is-error:focus {
+  border: 2px solid var(--gl-error-red) !important;
+  padding: 11px !important;
+}
+
+/* Placeholder styling */
+#knack-body.loginPage input::placeholder,
+#register_all_users input[type="email"]::placeholder,
+.kn-register input[type="email"]::placeholder,
+#register_all_users input.input::placeholder,
+.kn-register input.input::placeholder {
+  color: var(--gl-placeholder) !important;
+  opacity: 0.9 !important;
+}
+
+/* Browser-specific placeholder */
+#knack-body.loginPage input::-webkit-input-placeholder {
+  color: var(--gl-placeholder) !important;
+}
+
+#knack-body.loginPage input::-moz-placeholder {
+  color: var(--gl-placeholder) !important;
+}
+
+#knack-body.loginPage input:-ms-input-placeholder {
+  color: var(--gl-placeholder) !important;
+}
+
+/* Remove conflicting outline styles */
+input:focus,
+textarea:focus,
+.input:focus {
+  outline: none !important;
+  outline-offset: 0 !important;
+}
+
+/* ===================================
+   SHARED BUTTON STYLES
+   =================================== */
+/* Primary buttons */
+.loginPage .is-primary,
+.signup-submit-btn,
+.reset-submit-btn,
+.gl-submit-btn,
+#knack-reset-pass button[type="submit"] {
+  width: 100% !important;
+  background: var(--gl-primary) !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: var(--gl-border-radius) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  margin: 20px 0 !important;
+  display: block !important;
+  text-align: center !important;
+  min-height: 44px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Button hover */
+.loginPage .is-primary:hover,
+.signup-submit-btn:hover,
+.reset-submit-btn:hover,
+.gl-submit-btn:hover {
+  background: var(--gl-primary-hover) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(57, 181, 74, 0.3) !important;
+}
+
+/* Button disabled */
+.gl-submit-btn:disabled {
+  background: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  transform: none !important;
+}
+
+/* ===================================
+   GOOGLE SSO BUTTON
+   =================================== */
+#knack-body.loginPage .kn-button.is-sso.is-google,
+.signup-google-btn {
+  background-color: #FFFFFF !important;
+  border: 1px solid #747775 !important;
+  color: var(--gl-text-dark) !important;
+  font-family: 'Roboto', arial, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  height: 40px !important;
+  padding: 0 12px 0 40px !important;
+  border-radius: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  transition: background-color .218s, border-color .218s, box-shadow .218s !important;
+  width: 100% !important;
+  max-width: 300px !important;
+  margin: 0 auto 20px !important;
+}
+
+/* Google icon */
+#knack-body.loginPage .kn-button.is-sso.is-google::before,
+.signup-google-btn::before {
+  content: '';
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=');
+  background-size: 18px 18px;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+#knack-body.loginPage .kn-button.is-sso.is-google:hover,
+.signup-google-btn:hover {
+  background-color: #F8F9FA !important;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
+  border-color: #DADCE0 !important;
+}
+
+/* Hide duplicate icon */
+#knack-body.loginPage .kn-button.is-sso.is-google .icon {
+  display: none !important;
+}
+
+/* ===================================
+   OR DIVIDER
+   =================================== */
+.line {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  margin: 25px 0;
+  position: relative;
+}
+
+.line .bg-emphasis {
+  background: #e0e0e0;
+  height: 1px;
+  flex: 1;
+}
+
+.line .text-subtle {
+  padding: 0 20px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--gl-placeholder);
+  background: white;
+  position: relative;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Signup divider - uses pseudo element */
+.signup-divider {
+  text-align: center;
+  margin: 25px 0;
+  position: relative;
+}
+
+.signup-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.signup-divider span {
+  background: white;
+  padding: 0 20px;
+  position: relative;
+  color: var(--gl-placeholder);
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+/* ===================================
+   SHARED LINK STYLES
+   =================================== */
+/* Text links */
+.forgot-password-link,
+#forgot-pass,
+.reset-back-link a,
+.gl-back-link-text,
+.forgot-back-link-cloned a,
+.confirmation-return-link a,
+.reset-confirmation-return a {
+  color: var(--gl-text-dark) !important;
+  text-decoration: underline !important;
+  font-size: 14px !important;
+  font-weight: normal !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  display: inline-block !important;
+}
+
+/* Forgot password specific - remove green hover */
+.forgot-password-link,
+#forgot-pass {
+  white-space: nowrap !important;
+  text-align: right !important;
+}
+
+/* Link hover states - keep same color and underline */
+.forgot-password-link:hover,
+#forgot-pass:hover,
+.reset-back-link a:hover,
+.gl-back-link-text:hover,
+.forgot-back-link-cloned a:hover,
+.confirmation-return-link a:hover,
+.reset-confirmation-return a:hover {
+  color: var(--gl-text-dark) !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+/* Bold links */
+#need-account .register.kn-button,
+.signup-login-text .login-link {
+  color: var(--gl-text-dark) !important;
+  text-decoration: underline !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 14px !important;
+}
+
+/* Keep same styling on hover */
+#need-account .register.kn-button:hover,
+.signup-login-text .login-link:hover {
+  color: var(--gl-text-dark) !important;
+  text-decoration: underline !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Link containers */
+#need-account,
+.signup-login-text {
+  text-align: center;
+  color: var(--gl-text-dark);
+  font-size: 14px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.reset-back-link,
+.gl-back-link,
+.reset-confirmation-return {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* ===================================
+   LOGIN SPECIFIC
+   =================================== */
+/* Login form rebuilt - ensure full width */
+.kn-login .kn-login-form.rebuilt {
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+}
+
+/* Login form element - override all constraints */
+.kn-login .kn-login-form.rebuilt form,
+.kn-login .kn-login-form.rebuilt form.control,
+.kn-login .kn-login-form.rebuilt form.login_form,
+.kn-login .kn-login-form.rebuilt .login_form.control {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Login wrapper if it exists */
+.kn-login .login-google-wrapper {
+  width: 100% !important;
+}
+
+/* Login controls full width */
+.kn-login .control.login-field,
+.kn-login .login-field,
+.kn-login .kn-login-form.rebuilt .control {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Input fields in login */
+.kn-login .kn-login-form.rebuilt input.input {
+  width: 100% !important;
+}
+
+/* SSO container spacing */
+#knack-body.loginPage .kn-sso-container:not(.column) {
+  max-width: 100% !important;
+  margin: 0 0 20px 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+/* Hide duplicate SSO column */
+#knack-body.loginPage .kn-sso-container.column {
+  display: none !important;
+}
+
+/* Password field margin */
+#knack-body.loginPage .kn-input-password {
+  margin-bottom: 10px !important;
+}
+
+/* Hide forgot pass in label */
+#knack-body.loginPage .kn-input-password label #forgot-pass {
+  display: none !important;
+}
+
+/* Remember me container */
+.login-options-container {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  width: 100% !important;
+  margin: 0 0 20px 0 !important;
+  gap: 10px !important;
+}
+
+.login-options-container .remember {
+  display: flex !important;
+  align-items: center !important;
+  font-size: 14px !important;
+  color: var(--gl-text-dark) !important;
+  cursor: pointer;
+  white-space: nowrap !important;
+}
+
+.login-options-container .remember input[type="checkbox"] {
+  margin: 0 8px 0 0 !important;
+  width: auto !important;
+  cursor: pointer;
+}
+
+/* ===================================
+   PASSWORD TOGGLE
+   =================================== */
+.password-input-wrapper,
+.confirm-password-wrapper,
+.kn-login .password-input-wrapper {
+  position: relative !important;
+}
+
+.password-toggle,
+.kn-login .password-toggle {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  cursor: pointer !important;
+  color: var(--gl-password-toggle) !important;
+  transition: color 0.2s !important;
+  z-index: 10 !important;
+}
+
+.password-toggle.inactive {
+  color: var(--gl-text-light) !important;
+}
+
+/* Password input padding */
+.password-input-wrapper input,
+.confirm-password-wrapper input,
+.kn-login #password {
+  padding-right: 40px !important;
+}
+
+/* ===================================
+   SIGNUP SPECIFIC
+   =================================== */
+/* Name inputs group */
+.name-inputs-group {
+  display: flex;
+  gap: 10px;
+}
+
+.name-inputs-group input {
+  flex: 1;
+}
+
+/* Gap after subtitle */
+.signup-subtitle {
+  margin-bottom: 20px !important;
+  margin-top: 0 !important;
+}
+
+/* Password field spacing */
+.password-input-wrapper,
+.confirm-password-wrapper {
+  margin-bottom: 20px !important;
+}
+
+/* Terms text */
+.signup-terms-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--gl-text-medium);
+  margin: 20px 0;
+  line-height: 1.5;
+}
+
+.signup-terms-text a {
+  color: var(--gl-text-medium) !important;
+  text-decoration: underline !important;
+}
+
+.signup-terms-text a:hover {
+  color: var(--gl-text-medium) !important;
+  text-decoration: underline !important;
+}
+
+/* Error states */
+.signup-field.has-error label {
+  color: var(--gl-error-red-alt) !important;
+}
+
+.signup-field.has-error .password-toggle {
+  color: var(--gl-error-red-alt) !important;
+}
+
+.error-message,
+.gl-error-message {
+  color: var(--gl-error-red-alt);
+  font-size: 12px;
+  margin-top: 5px;
+  text-align: left;
+  display: block;
+}
+
+.gl-error-message.show {
+  display: block !important;
+}
+
+/* Ensure confirm password field is visible */
+#register_all_users .confirm-password-wrapper,
+.kn-register input[name="confirm_password"],
+.kn-register .kn-input-confirm_password {
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* ===================================
+   RESET PASSWORD SPECIFIC
+   =================================== */
+/* Double logo fix */
+#knack-reset-pass .view-header::before {
+  display: none !important;
+}
+
+/* Scene container */
+.loginPage .kn-scene:has(#knack-reset-pass),
+.loginPage #kn-scene_257 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Back link special styling */
+.forgot-back-link-cloned {
+  display: block !important;
+  text-align: center !important;
+  margin-top: 25px !important;
+  background: none !important;
+  border: none !important;
+}
+
+#knack-reset-pass .forgot-back-link-cloned a,
+.reset-back-link a,
+.gl-back-link-text {
+  all: unset !important;
+  color: var(--gl-text-dark) !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: normal !important;
+  line-height: 1.5 !important;
+  display: inline-block !important;
+}
+
+#knack-reset-pass .forgot-back-link-cloned a:hover,
+.reset-back-link a:hover,
+.gl-back-link-text:hover {
+  color: var(--gl-text-dark) !important;
+  text-decoration: underline !important;
+}
+
+/* Force form inputs full width */
+#knack-reset-pass .kn-input,
+#knack-reset-pass .kn-input-email,
+#knack-reset-pass .control {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+/* Desktop positioning */
+@media (min-width: 769px) {
+  .loginPage .kn-scene {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    min-height: 100vh !important;
+    padding-top: 100px !important;
   }
-  100% {
-    transform: translateX(.125em);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .loginPage .kn-scene {
+    align-items: center !important;
+    padding: 20px !important;
+  }
+
+  /* Remove min-width on mobile */
+  #knack-body.loginPage .kn-login .columns,
+  #knack-body.loginPage .kn-register .columns {
+    min-width: auto !important;
+  }
+
+  /* Remove min-width on mobile, reduce padding */
+  .kn-login .column.is-half,
+  #register_all_users,
+  #knack-reset-pass {
+    min-width: auto !important;
+    padding: 30px 25px !important;
+  }
+
+  #knack-body.loginPage .kn-button.is-sso.is-google,
+  .signup-google-btn {
+    max-width: 100% !important;
+  }
+
+  .password-toggle {
+    right: 10px !important;
+  }
+
+  /* Prevent cutoff */
+  #knack-reset-pass,
+  #knack-reset-pass.confirmation-state,
+  .kn-login .column.is-half {
+    max-height: calc(100vh - 40px) !important;
+    overflow-y: auto !important;
   }
 }
-#view_4857 button[type="submit"] {
-  display: none;
-}
-/* Report No Action Buttons */
-#view_4999 .kn-submit .kn-button {
-  background-color:#D9534F !important;
-  margin:10px 0px 10px 0px !important;
-  zoom:150% !important;
-}
-/* Report/Proposal No Action Buttons - Consolidated */
-#view_4999 .kn-submit .kn-button,
-#view_5005 .kn-submit .kn-button,
-#view_5012 .kn-submit .kn-button,
-#view_5013 .kn-submit .kn-button,
-#view_5014 .kn-submit .kn-button {
-    background-color: #D9534F !important;
-    margin: 10px 0px 10px 0px !important;
-    zoom: 150% !important;
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .loginPage .kn-scene {
+    padding: 15px !important;
+  }
+
+  /* Further reduce min-width on very small screens */
+  .kn-login .column.is-half,
+  #register_all_users,
+  #knack-reset-pass {
+    min-width: 320px !important;
+    padding: 20px 15px !important;
+  }
+
+  .name-inputs-group {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Stack login options on small screens */
+  .login-options-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 15px !important;
+  }
+
+  .forgot-password-link,
+  #forgot-pass {
+    text-align: left !important;
+    margin-left: 0 !important;
+  }
 }
 
-#view_5005 .kn-submit .kn-button:hover,
-#view_5012 .kn-submit .kn-button:hover,
-#view_5013 .kn-submit .kn-button:hover,
-#view_5014 .kn-submit .kn-button:hover {
-    background: #831f1c !important;
-    cursor: pointer !important;
-}
-/* Proposal Action Buttons - Consolidated */
-#view_4983 .kn-submit .kn-button,
-#view_4985 .kn-submit .kn-button,
-#view_5002 .kn-submit .kn-button,
-#view_5009 .kn-submit .kn-button {
-    background: #39b54a !important;
-    margin: 10px 0px 10px 0px !important;
-    zoom: 150% !important;
+/* Short screens */
+@media (max-height: 600px) {
+  .loginPage .kn-scene {
+    align-items: flex-start !important;
+    padding-top: 20px !important;
+  }
 }
 
-#view_4983 .kn-submit .kn-button:hover,
-#view_4985 .kn-submit .kn-button:hover,
-#view_5002 .kn-submit .kn-button:hover,
-#view_5009 .kn-submit .kn-button:hover {
-    background: #039b17 !important;
-    cursor: pointer !important;
+/* ===================================
+   DARK MODE
+   =================================== */
+@media (prefers-color-scheme: dark) {
+
+  /* Containers */
+  .kn-login .column.is-half,
+  #register_all_users,
+  #knack-reset-pass,
+  #knack-reset-pass.confirmation-state,
+  .resetConfirmPage .kn-form-confirmation {
+    background: var(--gl-dark-bg) !important;
+    border-color: var(--gl-dark-border) !important;
+    box-shadow: 0 0 40px rgba(57, 181, 74, 0.1) !important;
+  }
+
+  /* Text */
+  .kn-login .kn-title,
+  #knack-reset-pass .kn-title,
+  .signup-title,
+  .reset-title,
+  .reset-confirmation-title,
+  .kn-login .kn-description,
+  .signup-subtitle,
+  .reset-subtitle,
+  .loginPage label,
+  #need-account,
+  .signup-login-text,
+  .signup-terms-text {
+    color: var(--gl-dark-text) !important;
+  }
+
+  /* Inputs */
+  .loginPage input.input,
+  .gl-email-input {
+    background-color: var(--gl-dark-input) !important;
+    border-color: var(--gl-dark-input-border) !important;
+    color: var(--gl-dark-text) !important;
+  }
+
+  .loginPage input:focus {
+    border-color: var(--gl-dark-focus-blue) !important;
+  }
+
+  /* Google button */
+  #knack-body.loginPage .kn-button.is-sso.is-google,
+  .signup-google-btn {
+    background-color: var(--gl-dark-google-bg) !important;
+    border-color: var(--gl-dark-input-border) !important;
+    color: var(--gl-dark-text) !important;
+  }
+
+  #knack-body.loginPage .kn-button.is-sso.is-google:hover,
+  .signup-google-btn:hover {
+    background-color: var(--gl-dark-google-hover-bg) !important;
+    border-color: var(--gl-dark-google-hover-border) !important;
+  }
+
+  /* Divider - dark mode */
+  .line .bg-emphasis {
+    background: var(--gl-dark-divider) !important;
+  }
+
+  .line .text-subtle {
+    color: var(--gl-placeholder) !important;
+    background: var(--gl-dark-bg) !important;
+  }
+
+  .signup-divider span {
+    background: var(--gl-dark-bg) !important;
+    color: var(--gl-placeholder) !important;
+  }
+
+  /* Links */
+  .forgot-password-link,
+  .reset-back-link a,
+  .gl-back-link-text,
+  .signup-terms-text a,
+  #knack-reset-pass.confirmation-state p {
+    color: var(--gl-dark-text-muted) !important;
+  }
+
+  /* Links on hover - keep same color */
+  .forgot-password-link:hover,
+  .reset-back-link a:hover,
+  .gl-back-link-text:hover,
+  .signup-terms-text a:hover {
+    color: var(--gl-dark-text-muted) !important;
+    text-decoration: underline !important;
+  }
+
+  /* Buttons */
+  .loginPage .is-primary,
+  .signup-submit-btn,
+  .reset-submit-btn,
+  .gl-submit-btn {
+    background: #2d8e3a !important;
+  }
+
+  .loginPage .is-primary:hover {
+    background: var(--gl-dark-button-hover) !important;
+  }
+
+  /* Logo fix */
+  .reset-confirmation-logo {
+    background-color: white !important;
+    border-radius: 50% !important;
+    padding: 10px !important;
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  /* Checkbox */
+  #knack-body.loginPage input[type="checkbox"] {
+    accent-color: var(--gl-primary) !important;
+  }
 }
 
+/* ===================================
+   UTILITY & CLEANUP
+   =================================== */
+/* Hide empty/duplicate elements */
+.kn-login .column:empty,
+.kn-back-link.floating,
+#knack-reset-pass+.kn-back-link,
+.resetConfirmPage .kn-back-link:not(.confirmation-return-link) {
+  display: none !important;
+}
+
+/* Remove form spacing issues */
+#knack-body.loginPage .kn-login-form>*:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Ensure proper z-index */
+.kn-login .kn-login-form {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===================================
+   FIX 1: HIDE KNACK HEADER ON LOGIN PAGES
+   =================================== */
+#knack-body.loginPage .knHeader {
+  display: none !important;
+}
+
+/* ===================================
+   FIX: LOGOS FOR CLONED ELEMENTS
+   =================================== */
+
+/* Keep header hidden */
+#knack-body.loginPage .knHeader {
+  display: none !important;
+}
+
+/* LOGIN PAGE - Add logo inside container */
+.kn-login .column.is-half::before {
+  content: '';
+  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
+  display: block;
+  width: 80px;
+  height: 80px;
+  background-size: contain;
+  margin: 20px auto 20px;
+  /* Reduced from 30px */
+  background-repeat: no-repeat;
+}
+
+/* SIGNUP PAGE - Add logo to cloned header */
+.signup-logo-rebuilt {
+  content: '';
+  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
+  display: block;
+  width: 80px;
+  height: 80px;
+  background-size: contain;
+  margin: 20px auto 20px;
+  /* Reduced from 30px */
+  background-repeat: no-repeat;
+}
+
+/* RESET PASSWORD - Style the cloned logo div */
+.reset-logo-rebuilt {
+  content: '';
+  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
+  display: block;
+  width: 80px;
+  height: 80px;
+  background-size: contain;
+  margin: 20px auto 20px;
+  /* Reduced from 30px */
+  background-repeat: no-repeat;
+}
+
+/* CONFIRMATION PAGE - Style the cloned confirmation logo */
+.confirmation-logo {
+  content: '';
+  background: url('https://api.knack.com/v1/applications/6208f8cd23f849001f9856ea/download/asset/665e6f82f2baaf002899bcb6/1.logovariationlogoonly.png');
+  display: block;
+  width: 80px;
+  height: 80px;
+  background-size: contain;
+  margin: 20px auto 20px;
+  /* Reduced from 30px */
+  background-repeat: no-repeat;
+}
+
+/* Adjust container padding - less padding needed since logos are smaller */
+.kn-login .column.is-half {
+  padding-top: 20px !important;
+  padding-bottom: 20px !important;
+}
+
+#register_all_users {
+  padding-top: 20px !important;
+  padding-bottom: 20px !important;
+}
+
+#knack-reset-pass {
+  padding-top: 20px !important;
+  padding-bottom: 20px !important;
+}
+
+/* Remove any floating logos */
+.kn-login .view-header::before,
+#knack-body.loginPage .kn-register .view-header::before,
+#register_all_users::before,
+#knack-reset-pass::before,
+#knack-reset-pass.confirmation-state::before,
+#knack-reset-pass .reset-header::before {
+  display: none !important;
+}
+
+/* ===================================
+   MINOR STYLING FIXES
+   =================================== */
+
+/* 1. Login Page - Description text color to match labels */
+.kn-login .kn-description {
+  color: var(--gl-text-dark) !important;
+  /* Changed from medium to dark */
+}
+
+/* 2. Login Page - Reduce white space around sign in button */
+.loginPage .is-primary,
+.kn-login input[type="submit"] {
+  margin: 10px 0 !important;
+  /* Reduced from 20px */
+}
+
+/* 3. Sign Up Page - Subtitle color to match labels */
+.signup-subtitle {
+  color: var(--gl-text-dark) !important;
+  /* Changed from medium to dark */
+  margin-bottom: 15px !important;
+  /* Also reduced spacing */
+}
+
+/* 4. Sign Up Page - Terms text color to match labels */
+.signup-terms-text {
+  color: var(--gl-text-dark) !important;
+  /* Changed from medium to dark */
+}
+
+.signup-terms-text a {
+  color: var(--gl-text-dark) !important;
+  /* Keep links same color */
+  text-decoration: underline !important;
+}
+
+/* 5. Sign Up Page - Reduce white space above Continue button */
+.signup-submit-btn,
+#register_all_users input[type="submit"] {
+  margin-top: 10px !important;
+  /* Reduced from default */
+  margin-bottom: 10px !important;
+}
+
+/* Also reduce spacing on terms text */
+.signup-terms-text {
+  margin: 10px 0 !important;
+  /* Reduced from 20px */
+}
+
+/* 6. Reset Password Page - Subtitle color to match labels */
+.reset-subtitle {
+  color: var(--gl-text-dark) !important;
+  /* Changed from medium to dark */
+}
+
+/* 7. Confirmation Page - Reduce white space below logo */
+.confirmation-logo,
+.reset-confirmation-logo {
+  margin-bottom: 10px !important;
+  /* Reduced from 20px */
+}
+
+/* Additional spacing adjustments for better visual balance */
+.reset-confirmation-title {
+  margin-bottom: 15px !important;
+  /* Ensure consistent spacing */
+}
+
+/* Ensure all submit buttons have consistent spacing */
+.reset-submit-btn,
+.gl-submit-btn,
+#knack-reset-pass button[type="submit"] {
+  margin: 10px 0 !important;
+  /* Consistent with other buttons */
+}
+
+/* === FORM CONSISTENCY FIXES === */
+
+/* 1. Match all forms to same width constraints */
+.kn-login-form.rebuilt,
+.signup-form-container,
+.signup-rebuilt,
+#register_all_users,
+#knack-reset-pass {
+  max-width: 600px !important;
+  min-width: 320px !important;
+  /* Prevent too narrow on mobile */
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+/* 2. Consistent padding across all form containers */
+.kn-login .column.is-half,
+.kn-register .column.is-half,
+#register_all_users,
+#knack-reset-pass,
+.kn-login-form.rebuilt {
+  padding: 50px !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. Consistent form styling */
+.kn-login-form.rebuilt,
+.signup-form-container,
+#register_all_users {
+  background: white !important;
+  border-radius: 0.6em !important;
+  box-shadow: 10px 10px 90px -24px rgba(150, 147, 150, 1) !important;
+  border: 1px solid rgb(189, 187, 187) !important;
+}
+
+/* === MOBILE CONSISTENCY (@media max-width: 680px) === */
+@media(max-width: 680px) {
+
+  /* 1. Consistent padding reduction */
+  .kn-login .column.is-half,
+  .kn-register .column.is-half,
+  #register_all_users,
+  #knack-reset-pass,
+  .kn-login-form.rebuilt,
+  .signup-form-container {
+    padding: 40px 25px !important;
+    /* Reduced padding on mobile */
+  }
+
+  /* 2. SSO button adjustments */
+  .kn-sso-container .control,
+  .login-google-wrapper,
+  a.kn-button.sso-button.sso-google {
+    max-width: 260px !important;
+    width: 100% !important;
+  }
+
+  /* 3. Logo adjustments */
+  .kn-login .view-header:before,
+  .kn-register .view-header:before,
+  .signup-logo {
+    width: 80px !important;
+    height: 80px !important;
+    margin-left: -40px !important;
+  }
+
+  /* 4. Header padding */
+  .kn-login .view-header,
+  .kn-register .view-header,
+  .signup-header {
+    padding-top: 90px !important;
+  }
+
+  /* 5. Form element spacing */
+  .line {
+    margin: 20px 0 !important;
+    /* Reduced from 30px */
+  }
+
+  .signup-subtitle {
+    margin-bottom: 20px !important;
+    /* Reduced from 30px */
+    font-size: 16px !important;
+    /* Slightly smaller on mobile */
+  }
+
+  /* 6. Input fields */
+  input.input,
+  .kn-login-form.rebuilt input,
+  #register_all_users input {
+    min-height: 40px !important;
+    font-size: 16px !important;
+    /* Prevents zoom on iOS */
+  }
+
+  /* 7. Button adjustments */
+  .is-primary,
+  input[type="submit"] {
+    padding: 12px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* === VERY SMALL SCREENS (max-width: 400px) === */
+@media(max-width: 400px) {
+
+  .kn-login-form.rebuilt,
+  .signup-form-container,
+  #register_all_users,
+  #knack-reset-pass {
+    padding: 30px 20px !important;
+    border-radius: 0 !important;
+    /* Full width on very small screens */
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  .signup-subtitle {
+    font-size: 14px !important;
+  }
+}
+
+/* === ENSURE READABLE FONT SIZES === */
+.kn-login-form.rebuilt label,
+.signup-form-container label,
+#register_all_users label {
+  font-size: 14px !important;
+  min-height: auto !important;
+}
+
+/* === PREVENT HORIZONTAL SCROLL === */
+#knack-body.loginPage {
+  overflow-x: hidden !important;
+}
+
+.kn-login-form.rebuilt *,
+.signup-form-container *,
+#register_all_users * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* JS-added marker classes: 
+   .has-hide-show-button, .login-rebuilt, .signup-reconstructed,
+   .reset-reconstructed, .confirmation-enhanced, .has-reset-form
+   These are added by JavaScript for state tracking */
 /* Updated Filter Button Interactive Styles for Multiple Views */
 
 /* Default styling for multiple filter views */
@@ -2194,24 +1784,26 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a {
-    background-color: #4a7cb5 !important;
-    background: #4a7cb5 !important;
-    border-color: #4a7cb5 !important;
-    border: 2px solid #4a7cb5 !important;
-    color: #FFFFFF !important;
-    font-size: 1.1em !important;
-    padding: 7px 16px !important;
-    border-radius: 3px !important;
-    cursor: pointer !important;
-    text-decoration: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 200px !important;
-    width: auto !important;
-    margin: 2px !important;
-    transition: all 0.2s ease !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a {
+  background-color: #4a7cb5 !important;
+  background: #4a7cb5 !important;
+  border-color: #4a7cb5 !important;
+  border: 2px solid #4a7cb5 !important;
+  color: #FFFFFF !important;
+  font-size: 1.1em !important;
+  padding: 7px 16px !important;
+  border-radius: 3px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 200px !important;
+  width: auto !important;
+  margin: 2px !important;
+  transition: all 0.2s ease !important;
 }
 
 /* Force text color for inactive buttons */
@@ -2225,8 +1817,10 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span {
-    color: #FFFFFF !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span {
+  color: #FFFFFF !important;
 }
 
 /* Additional specificity for inactive button styling */
@@ -2240,10 +1834,12 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a {
-    background-color: #4a7cb5 !important;
-    background: #4a7cb5 !important;
-    color: #FFFFFF !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a {
+  background-color: #4a7cb5 !important;
+  background: #4a7cb5 !important;
+  color: #FFFFFF !important;
 }
 
 /* Active filter button styling */
@@ -2257,15 +1853,17 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a {
-    background-color: #39b54a !important;
-    background: #39b54a !important;
-    border-color: #39b54a !important;
-    border: 2px solid #39b54a !important;
-    color: #FFFFFF !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a {
+  background-color: #39b54a !important;
+  background: #39b54a !important;
+  border-color: #39b54a !important;
+  border: 2px solid #39b54a !important;
+  color: #FFFFFF !important;
 }
 
-/* Active button text color */ 
+/* Active button text color */
 #view_3503 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
 #view_4791 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
 #view_4793 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
@@ -2276,8 +1874,10 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span {
-    color: #FFFFFF !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span {
+  color: #FFFFFF !important;
 }
 
 /* Hover effects */
@@ -2291,11 +1891,13 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover {
-    background-color: #3d6699 !important;
-    border-color: #3d6699 !important;
-    transform: translateY(-1px);
-    color: #FFFFFF !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover {
+  background-color: #3d6699 !important;
+  border-color: #3d6699 !important;
+  transform: translateY(-1px);
+  color: #FFFFFF !important;
 }
 
 #view_3503 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
@@ -2308,11 +1910,13 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover {
-    background-color: #2fa040 !important;
-    border-color: #2fa040 !important;
-    transform: translateY(-1px);
-    color: #FFFFFF !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover {
+  background-color: #2fa040 !important;
+  border-color: #2fa040 !important;
+  transform: translateY(-1px);
+  color: #FFFFFF !important;
 }
 
 /* Click animation */
@@ -2326,10 +1930,12 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking {
-    transform: translateY(2px) scale(0.98);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transition: all 0.1s ease;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.1s ease;
 }
 
 #view_3503 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
@@ -2342,6 +1948,8 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4804 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
 #view_4829 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
-#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active {
-    cursor: grabbing !important;
+#view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active {
+  cursor: grabbing !important;
 }
