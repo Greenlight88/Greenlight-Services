@@ -1423,4 +1423,4 @@ window.ktlReady = function (appInfo = {}) {
         }, 100);
     }
 
-};// This closes the ktlReady function
+}; // This closes the ktlReady function
