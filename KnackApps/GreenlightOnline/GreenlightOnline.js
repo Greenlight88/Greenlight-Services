@@ -27,9 +27,6 @@ window.ktlReady = function (appInfo = {}) {
 
     loadCSS();
 
-    // Load CSS automatically when app starts
-
-
     // KTL Configuration using const for immutable config
     ktl.core.setCfg({
         developerNames: ['Michael Tierney'],
