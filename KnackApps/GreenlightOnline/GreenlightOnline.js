@@ -17,7 +17,7 @@ window.ktlReady = (appInfo = {}) => {
             link.type = 'text/css';
 
             // In dev mode, try local first
-            if (localStorage.getItem('KTLTu_fcbf_dev')) {
+            if (localStorage.getItem('Greenl_56ea_dev')) {
                 link.href = localCSS;
                 console.log('CSS loaded from localhost (dev mode)');
             } else {
