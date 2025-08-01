@@ -1,10 +1,3 @@
-KnackInitAsync = ($, callback) => {
-    window.LazyLoad = LazyLoad;
-    LazyLoad.js([`https://ctrnd.s3.amazonaws.com/Lib/KTL/KTL_Start.js?${Date.now()}`], () => {
-        loadKtl($, callback, (typeof KnackApp === 'function' ? KnackApp : null), '0.29.14');
-    });
-};
-
 window.APP_VERSION = '1.0.0';
 
 window.ktlReady = (appInfo = {}) => {
@@ -52,14 +45,14 @@ window.ktlReady = (appInfo = {}) => {
                 bulkEdit: true,
                 bulkCopy: true,
                 bulkDelete: true,
-                bulkAction: true,
-            },
+                bulkAction: true
+            }
         },
 
         popupStyle: {
             success: ';background-color:#81b378;border:5px solid #294125',
             warning: ';background-color:#fffa5e;border:2px solid #7e8060',
-            error: ';background-color:#FFB0B0;border:5px solid #660000',
+            error: ';background-color:#FFB0B0;border:5px solid #660000'
         },
 
         tooltipStyles: {
@@ -71,8 +64,8 @@ window.ktlReady = (appInfo = {}) => {
             ktlTtipIconDetailsViewColor: '#222222',
             ktlTtipTableViewBgColor: '#222222',
             ktlTtipTableViewTxtColor: '#ffffff',
-            ktlTtipIconTableViewColor: '#222222',
-        },
+            ktlTtipIconTableViewColor: '#222222'
+        }
     });
 
     ktl.scenes.setCfg({
