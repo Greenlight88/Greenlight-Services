@@ -1,7 +1,4 @@
-div.address_country.control {
-  display: none;
-}
-}
+/*Greenlight-Online css*/
 /*defining buttons*/
 .redButton {
     background:    #D9534F;
@@ -730,7 +727,7 @@ kn-form.kn-button.is-primary input[type="submit"]{
     background:    #945c0d;
     cursor: pointer;
 }
-.a.kn-button {
+.kn-button {
     --lt-color-gray-100: #f8f9fc;
     --lt-color-gray-200: #f1f3f9;
     --lt-color-gray-300: #dee3ed;
@@ -784,11 +781,11 @@ kn-form.kn-button.is-primary input[type="submit"]{
     background-color: #39b54a;
     border-color: #39b54a;
 }
-.a.kn-button:hover {
+.kn-button:hover {
     background-color: #039b17;
     border-color: #039b17;
 }
-a.kn-button.is-small {
+.kn-button.is-small {
     --lt-color-gray-100: #f8f9fc;
     --lt-color-gray-200: #f1f3f9;
     --lt-color-gray-300: #dee3ed;
@@ -842,13 +839,13 @@ a.kn-button.is-small {
     background-color: #39b54a;
     border-color: #39b54a;
 }
-a.kn-button.is-small:hover {
+.kn-button.is-small:hover {
     background-color: #039b17;
     border-color: #039b17;
 }
-a.kn-button {
+.kn-button {
     background:    #39b54a;
-    border:        0px solid ##39b54a;
+    border:        0px solid #39b54a;
     border-radius: 7px;
     padding:       10px 30px;
     color:         #ffffff;
@@ -858,236 +855,224 @@ a.kn-button {
     text-shadow:   none;
 
 }
-a.kn-button:hover {
+.kn-button:hover {
     background:    #039b17;
 }
 
-///registration google button
-a.kn-button.sso-button.sso-google:hover {
-    background: #EDEADE; !important
+/* registration google button */
+.kn-button.sso-button.sso-google:hover {
+    background: #EDEADE !important;
 }
-a.kn-button.sso-button.sso-google {
-  -moz-user-select: none; !important
-  -webkit-user-select: none; !important
-  -ms-user-select: none; !important
-  -webkit-appearance: none; !important
-  background-color: WHITE; !important !important
-  background-image: none; !important
-  border: 1px solid #747775; !important
-  -webkit-border-radius: 20px; !important
-  border-radius: 20px; !important
-  -webkit-box-sizing: border-box; !important
-  box-sizing: border-box; !important
-  color: #1f1f1f; !important
-  cursor: pointer; !important
-  font-family: 'Roboto', arial, sans-serif; !important
-  font-size: 14px; !important
-  height: 120px; !important
-  letter-spacing: 0.25px; !important
-  outline: none; !important
-  overflow: hidden; !important
-  padding: 12px 12px; !important
-  position: center; !important
-  text-align: center; !important
-  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s; !important
-  transition: background-color .218s, border-color .218s, box-shadow .218s; !important
-  vertical-align: middle; !important
-  white-space: nowrap; !important
-  width: auto; !important
-  max-width: 250px; !important
-  min-width: min-content; !important
-  min-height: 80px; !important
-}
-
-.a.kn-button.sso-button.sso-google .a.kn-button.sso-button.sso-google-icon {
-  height: 20px; !important 
-  margin-right: 12px; !important
-  min-width: 20px; !important
-  width: 20px; !important
+.kn-button.sso-button.sso-google {
+  user-select: none !important;
+  -moz-user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+  appearance: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: WHITE !important;
+  background-image: none !important;
+  border: 1px solid #747775 !important;
+  -webkit-border-radius: 20px !important;
+  border-radius: 20px !important;
+  -webkit-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+  color: #1f1f1f !important;
+  cursor: pointer !important;
+  font-family: 'Roboto', arial, sans-serif !important;
+  font-size: 14px !important;
+  height: 120px !important;
+  letter-spacing: 0.25px !important;
+  outline: none !important;
+  overflow: hidden !important;
+  padding: 12px 12px !important;
+  position: center !important;
+  text-align: center !important;
+  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s !important;
+  transition: background-color .218s, border-color .218s, box-shadow .218s !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  width: auto !important;
+  max-width: 250px !important;
+  min-width: min-content !important;
+  min-height: 80px !important;
 }
 
-.a.kn-button.sso-button.sso-google .a.kn-button.sso-button.sso-google-content-wrapper {
-  -webkit-align-items: center; !important
-  align-items: center; !important
-  display: flex; !important
-  -webkit-flex-direction: row; !important
-  flex-direction: row; !important
-  -webkit-flex-wrap: nowrap; !important
-  flex-wrap: nowrap; !important
-  height: 100%; !important
-  justify-content: space-between; !important
-  position: relative; !important
-  width: 100%; !important
+.kn-button.sso-button.sso-google .sso-google-icon {
+  height: 20px !important;
+  margin-right: 12px !important;
+  min-width: 20px !important;
+  width: 20px !important;
 }
 
-.a.kn-button.sso-button.sso-google .a.kn-button.sso-button.sso-google-contents {
-  -webkit-flex-grow: 1; !important
-  flex-grow: 1; !important
-  font-family: 'Roboto', arial, sans-serif; !important
-  font-weight: 500; !important
-  overflow: hidden; !important
-  text-overflow: ellipsis; !important
-  vertical-align: top; !important
+.kn-button.sso-button.sso-google .kn-button.sso-button.sso-google-content-wrapper {
+  -webkit-align-items: center !important;
+  align-items: center !important;
+  display: flex !important;
+  -webkit-flex-direction: row !important;
+  flex-direction: row !important;
+  -webkit-flex-wrap: nowrap !important;
+  flex-wrap: nowrap !important;
+  height: 100% !important;
+  justify-content: space-between !important;
+  position: relative !important;
+  width: 100% !important;
 }
 
-.a.kn-button.sso-button.sso-google .a.kn-button.sso-button.sso-google-state {
-  -webkit-transition: opacity .218s; !important
-  transition: opacity .218s; !important
-  bottom: 0; !important
-  left: 0; !important
-  opacity: 0; !important
-  position: absolute; !important
-  right: 0; !important
-  top: 0; !important
+.kn-button.sso-button.sso-google .kn-button.sso-button.sso-google-contents {
+  -webkit-flex-grow: 1 !important;
+  flex-grow: 1 !important;
+  font-family: 'Roboto', arial, sans-serif !important;
+  font-weight: 500 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  vertical-align: top !important;
 }
 
-.a.kn-button.sso-button.sso-google:disabled {
-  cursor: default; !important
-  background-color: #ffffff61; !important
-  border-color: #1f1f1f1f; !important
+.kn-button.sso-button.sso-google .kn-button.sso-button.sso-google-state {
+  -webkit-transition: opacity .218s !important;
+  transition: opacity .218s !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
 }
 
-.a.kn-button.sso-button.sso-google:disabled .a.kn-button.sso-button.sso-google-contents {
-  opacity: 38%; !important
+.kn-button.sso-button.sso-google:disabled {
+  cursor: default !important;
+  background-color: #ffffff61 !important;
+  border-color: #1f1f1f1f !important;
 }
-
-.a.kn-button.sso-button.sso-google:disabled .a.kn-button.sso-button.sso-google-icon {
-  opacity: 38%; !important
+.kn-button.sso-button.sso-google:disabled .a.kn-button.sso-button.sso-google-contents {
+  opacity: 38% !important;
 }
-
-.a.kn-button.sso-button.sso-google:not(:disabled):active .a.kn-button.sso-button.sso-google-state, 
-.a.kn-button.sso-button.sso-google:not(:disabled):focus .a.kn-button.sso-button.sso-google-state {
-  background-color: #303030; !important
-  opacity: 12%; !important
+.kn-button.sso-button.sso-google:disabled .a.kn-button.sso-button.sso-google-icon {
+  opacity: 38% !important;
 }
-
-.a.kn-button.sso-button.sso-google:not(:disabled):hover {
-  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15); !important
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15); !important
+.kn-button.sso-button.sso-google:not(:disabled):active .a.kn-button.sso-button.sso-google-state, 
+.kn-button.sso-button.sso-google:not(:disable):focus .a.knd-button.sso-button.sso-google-state {
+  background-color: #303030 !important;
+  opacity: 12% !important;
+}.kn-button.sso-button.sso-google:not(:disabled):hover {
+  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
 }
-
-.a.kn-button.sso-button.sso-google:not(:disabled):hover .a.kn-button.sso-button.sso-google-state {
-  background-color: #303030; !important
-  opacity: 8%; !important
+.kn-button.sso-button.sso-google:not(:disabled):hover .a.kn-button.sso-button.sso-google-state {
+  background-color: #303030 !important;
+  opacity: 8% !important;
 }
-///registration google end
-///login google start
-a.kn-button.is-sso.is-google:hover {
-    background: #EDEADE; !important
+/* registration google end */
+/* login google start */
+.kn-button.is-sso.is-google:hover {
+  background: #EDEADE !important;
 }
-a.kn-button.is-sso.is-google {
-  -moz-user-select: none; !important
-  -webkit-user-select: none; !important
-  -ms-user-select: none; !important
-  -webkit-appearance: none; !important
-  background-color: WHITE; !important !important
-  background-image: none; !important
-  border: 1px solid #747775; !important
-  -webkit-border-radius: 20px; !important
-  border-radius: 20px; !important
-  -webkit-box-sizing: border-box; !important
-  box-sizing: border-box; !important
-  color: #1f1f1f; !important
-  cursor: pointer; !important
-  font-family: 'Roboto', arial, sans-serif; !important
-  font-size: 18px; !important
-  height: 150px; !important
-  letter-spacing: 0.25px; !important
-  outline: none; !important
-  overflow: hidden; !important
-  padding: 15px 15px; !important
-  position: center; !important
-  text-align: center; !important
-  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s; !important
-  transition: background-color .218s, border-color .218s, box-shadow .218s; !important
-  vertical-align: middle; !important
-  white-space: nowrap; !important
-  width: auto; !important
-  max-width: 344px; !important
-  min-width: min-content; !important
-  min-height: 100px; !important
+.kn-button.is-sso.is-google {
+  user-select: none !important;
+  -moz-user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: WHITE !important;
+  background-image: none !important;
+  border: 1px solid #747775 !important;
+  -webkit-border-radius: 20px !important;
+  border-radius: 20px !important;
+  -webkit-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+  color: #1f1f1f !important;
+  cursor: pointer !important;
+  font-family: 'Roboto', arial, sans-serif !important;
+  font-size: 18px !important;
+  height: 150px !important;
+  letter-spacing: 0.25px !important;
+  outline: none !important;
+  overflow: hidden !important;
+  padding: 15px 15px !important;
+  position: center !important;
+  text-align: center !important;
+  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s !important;
+  transition: background-color .218s, border-color .218s, box-shadow .218s !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  width: auto !important;
+  max-width: 344px !important;
+  min-width: min-content !important;
+  min-height: 100px !important;
 }
-
-.a.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-icon {
-  height: 25px; !important 
-  margin-right: 15px; !important
-  min-width: 25px; !important
-  width: 25px; !important
+.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-icon {
+  height: 25px !important;
+  margin-right: 15px !important;
+  min-width: 25px !important;
+  width: 25px !important;
 }
-
-.a.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-content-wrapper {
-  -webkit-align-items: center; !important
-  align-items: center; !important
-  display: flex; !important
-  -webkit-flex-direction: row; !important
-  flex-direction: row; !important
-  -webkit-flex-wrap: nowrap; !important
-  flex-wrap: nowrap; !important
-  height: 100%; !important
-  justify-content: space-between; !important
-  position: relative; !important
-  width: 100%; !important
+.kn-button.is-sso.is-google .is-google-content-wrapper {
+  -webkit-align-items: center !important;
+  align-items: center !important;
+  display: flex !important;
+  -webkit-flex-direction: row !important;
+  flex-direction: row !important;
+  -webkit-flex-wrap: nowrap !important;
+  flex-wrap: nowrap !important;
+  height: 100% !important;
+  justify-content: space-between !important;
+  position: relative !important;
+  width: 100% !important;
 }
-
-.a.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-contents {
-  -webkit-flex-grow: 1; !important
-  flex-grow: 1; !important
-  font-family: 'Roboto', arial, sans-serif; !important
-  font-weight: 500; !important
-  overflow: hidden; !important
-  text-overflow: ellipsis; !important
-  vertical-align: top; !important
+.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-contents {
+  -webkit-flex-grow: 1 !important;
+  flex-grow: 1 !important;
+  font-family: 'Roboto', arial, sans-serif !important;
+  font-weight: 500 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  vertical-align: top !important;
 }
-
-.a.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-state {
-  -webkit-transition: opacity .218s; !important
-  transition: opacity .218s; !important
-  bottom: 0; !important
-  left: 0; !important
-  opacity: 0; !important
-  position: absolute; !important
-  right: 0; !important
-  top: 0; !important
+.kn-button.is-sso.is-google .a.kn-button.is-sso.is-google-state {
+  -webkit-transition: opacity .218s !important;
+  transition: opacity .218s !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
 }
-
-.a.kn-button.is-sso.is-google:disabled {
-  cursor: default; !important
-  background-color: #ffffff61; !important
-  border-color: #1f1f1f1f; !important
+.kn-button.is-sso.is-google:disabled {
+  cursor: default !important;
+  background-color: #ffffff61 !important;
+  border-color: #1f1f1f1f !important;
 }
-
-.a.kn-button.is-sso.is-google:disabled .a.kn-button.is-sso.is-google-contents {
-  opacity: 38%; !important
+.kn-button.is-sso.is-google:disabled .a.kn-button.is-sso.is-google-contents {
+  opacity: 38% !important;
 }
-
-.a.kn-button.is-sso.is-google:disabled .a.kn-button.is-sso.is-google-icon {
-  opacity: 38%; !important
+.kn-button.is-sso.is-google:disabled .a.kn-button.is-sso.is-google-icon {
+  opacity: 38% !important;
 }
-
-.a.kn-button.is-sso.is-google:not(:disabled):active .a.kn-button.is-sso.is-google-state, 
-.a.kn-button.is-sso.is-google:not(:disabled):focus .a.kn-button.is-sso.is-google-state {
-  background-color: #303030; !important
-  opacity: 12%; !important
+.kn-button.is-sso.is-google:not(:disabled):active .a.kn-button.is-sso.is-google-state, 
+.kn-button.is-sso.is-google:not(:disabled):focus .a.kn-button.is-sso.is-google-state {
+  background-color: #303030 !important;
+  opacity: 12% !important;
 }
-
-.a.kn-button.is-sso.is-google:not(:disabled):hover {
-  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15); !important
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15); !important
+.kn-button.is-sso.is-google:not(:disabled):hover {
+  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15) !important;
 }
-
-.a.kn-button.is-sso.is-google:not(:disabled):hover .a.kn-button.is-sso.is-google-state {
-  background-color: #303030; !important
-  opacity: 8%; !important
+.kn-button.is-sso.is-google:not(:disabled):hover .a.kn-button.is-sso.is-google-state {
+  background-color: #303030 !important;
+  opacity: 8% !important;
 }
-///login google end
 thead {
     position:   sticky !important; 
     top:        0px !important;
     z-index:    5 !important; 
     background-color:   #39b54a  !important; 
-    text-color:         #FFFFFF !important;
-    
+    color:         #FFFFFF !important;
 }
+
 .kn-table-wrapper {
     max-height: 700px !important;
 }
@@ -2029,7 +2014,7 @@ a.kn-button.sso-button.sso-google .icon{
 #kn-scene_258 .kn-rich_text h1 strong{
   color: hsl(0, 0%, 21%) !important;
 }
-///* Data Cards *///
+/* Data Cards */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600;700&display=swap');
 
 * {
@@ -2058,90 +2043,89 @@ a.kn-button.sso-button.sso-google .icon{
   background: white;
   margin: 1em;
   padding: 2.75em 2.5em;
-  box-shadow: 0 1.5em 2.5em -.5em rgba(#000000, .1);
+  box-shadow: 0 1.5em 2.5em -.5em rgba(0, 0, 0, .1);
   transition: transform .45s ease, background .45s ease;
-  
-  h3 {
-    color: #2E3C40;
-    font-size: 3.5em;
-    font-weight: 600;
-    line-height: 1;
-    padding-bottom: .5em;
-    margin: 0 0 0.142857143em;
-    border-bottom: 2px solid #753BBD;
-    transition: color .45s ease, border .45s ease;
-  }
+}
+.data-card h3 {
+  color: #2E3C40;
+  font-size: 3.5em;
+  font-weight: 600;
+  line-height: 1;
+  padding-bottom: .5em;
+  margin: 0 0 0.142857143em;
+  border-bottom: 2px solid #753BBD;
+  transition: color .45s ease, border .45s ease;
+}
 
-  h4 {
-    color: #627084;
-    text-transform: uppercase;
-    font-size: 1.125em;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.1em;
-    margin: 0 0 1.777777778em;
-    transition: color .45s ease;
-  }
+.data-card h4 {
+  color: #627084;
+  text-transform: uppercase;
+  font-size: 1.125em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  margin: 0 0 1.777777778em;
+  transition: color .45s ease;
+}
 
-  p {
-    opacity: 0;
-    color: #FFFFFF;
-    font-weight: 600;
-    line-height: 1.8;
-    margin: 0 0 1.25em;
-    transform: translateY(-1em);
-    transition: opacity .45s ease, transform .5s ease;
-  }
+.data-card p {
+  opacity: 0;
+  color: #FFFFFF;
+  font-weight: 600;
+  line-height: 1.8;
+  margin: 0 0 1.25em;
+  transform: translateY(-1em);
+  transition: opacity .45s ease, transform .5s ease;
+}
 
-  .link-text {
-    display: block;
-    color: #753BBD;
-    font-size: 1.125em;
-    font-weight: 600;
-    line-height: 1.2;
-    margin: auto 0 0;
-    transition: color .45s ease;
+.data-card .link-text {
+  display: block;
+  color: #753BBD;
+  font-size: 1.125em;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: auto 0 0;
+  transition: color .45s ease;
+}
 
-    svg {
-      margin-left: .5em;
-      transition: transform .6s ease;
-      
-      path {
-        transition: fill .45s ease;
-      }
-    }
-  }
-  
-  &:hover {
-    background: #753BBD;
-    transform: scale(1.02);
-    
-    h3 {
-      color: #FFFFFF;
-      border-bottom-color: #A754C4;
-    }
+.data-card .link-text svg {
+  margin-left: .5em;
+  transition: transform .6s ease;
+}
 
-    h4 {
-      color: #FFFFFF;
-    }
+.data-card .link-text svg path {
+  transition: fill .45s ease;
+}
 
-    p {
-      opacity: 1;
-      transform: none;
-    }
+.data-card:hover {
+  background: #753BBD;
+  transform: scale(1.02);
+}
 
-    .link-text {
-      color: #FFFFFF;
+.data-card:hover h3 {
+  color: #FFFFFF;
+  border-bottom-color: #A754C4;
+}
 
-      svg {
-        animation: point 1.25s infinite alternate;
-        
-        path {
-          fill: #FFFFFF;
-        }
-      }
-    }
-  }
+.data-card:hover h4 {
+  color: #FFFFFF;
+}
+
+.data-card:hover p {
+  opacity: 1;
+  transform: none;
+}
+
+.data-card:hover .link-text {
+  color: #FFFFFF;
+}
+
+.data-card:hover .link-text svg {
+  animation: point 1.25s infinite alternate;
+}
+
+.data-card:hover .link-text svg path {
+  fill: #FFFFFF;
 }
 
 @keyframes point {
@@ -2155,13 +2139,13 @@ a.kn-button.sso-button.sso-google .icon{
 #view_4857 button[type="submit"] {
   display: none;
 }
-///* Report No Action Buttons *///
+/* Report No Action Buttons */
 #view_4999 .kn-submit .kn-button {
   background-color:#D9534F !important;
   margin:10px 0px 10px 0px !important;
   zoom:150% !important;
 }
-///* Report/Proposal No Action Buttons - Consolidated *///
+/* Report/Proposal No Action Buttons - Consolidated */
 #view_4999 .kn-submit .kn-button,
 #view_5005 .kn-submit .kn-button,
 #view_5012 .kn-submit .kn-button,
@@ -2179,7 +2163,7 @@ a.kn-button.sso-button.sso-google .icon{
     background: #831f1c !important;
     cursor: pointer !important;
 }
-///* Proposal Action Buttons - Consolidated *///
+/* Proposal Action Buttons - Consolidated */
 #view_4983 .kn-submit .kn-button,
 #view_4985 .kn-submit .kn-button,
 #view_5002 .kn-submit .kn-button,

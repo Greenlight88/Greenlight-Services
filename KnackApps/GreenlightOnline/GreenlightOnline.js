@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.1';
+window.APP_VERSION = '1.0.1-DEV_TEST';
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -265,11 +265,10 @@ $(document).on('knack-scene-render.any', function(event, scene) {
     // Remove existing favicon links to avoid conflicts
     var existingLinks = document.querySelectorAll("link[rel*='icon']");
     existingLinks.forEach(function(existingLink) {
-      if (existingLink !== link) {
-        existingLink.remove();
-      }
+      existingLink.parentNode.removeChild(existingLink);
     });
-    
+
+    // Append or update favicon link
     document.getElementsByTagName('head')[0].appendChild(link);
   }
   
@@ -333,30 +332,30 @@ $(document).on('knack-page-render.any', function () {
 
 
 
-         var confirmClass = setInterval(function () {
+         var confirmClass1789 = setInterval(function () {
             $('#kn-scene_1789').closest('#knack-body').addClass('loginPage confirmPage');
             if ($('#knack-body.loginPage').length) {
-                clearInterval(confirmClass);
+                clearInterval(confirmClass1789);
             }
         }, 300);
-               var confirmClass = setInterval(function () {
+        var confirmClass1791 = setInterval(function () {
             $('#kn-scene_1791').closest('#knack-body').addClass('loginPage confirmPage');
             if ($('#knack-body.loginPage').length) {
-                clearInterval(confirmClass);
+                clearInterval(confirmClass1791);
             }
         }, 300);
 
-        var confirmClass1 = setInterval(function () {
+        var confirmClass1792 = setInterval(function () {
             $('#kn-scene_1792').closest('#knack-body').addClass('loginPage confirmPage');
             if ($('#knack-body.loginPage').length) {
-                clearInterval(confirmClass1);
+                clearInterval(confirmClass1792);
             }
         }, 300);
 
-        var confirmClass1 = setInterval(function () {
+        var confirmClass1811 = setInterval(function () {
             $('#kn-scene_1811').closest('#knack-body').addClass('loginPage confirmPage');
             if ($('#knack-body.loginPage').length) {
-                clearInterval(confirmClass1);
+                clearInterval(confirmClass1811);
             }
         }, 300);
 
@@ -459,6 +458,7 @@ function initializeFilterClicks() {
 
 // Initialize on document ready
 $(document).ready(function() {
-    initializeFilterClicks();
+    if (typeof initializeFilterClicks === 'function') {
+        initializeFilterClicks();
+    }
 });
-} 

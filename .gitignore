@@ -20,4 +20,10 @@ local-config.js
 *.log
 
 # Don't commit production secrets
-production-secrets.js 
+production-secrets.js
+
+# External libraries (keep local, don't commit)
+Lib/
+
+# CSV data files
+*.csv
