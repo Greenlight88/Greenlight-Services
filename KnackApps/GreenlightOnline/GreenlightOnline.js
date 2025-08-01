@@ -1,37 +1,34 @@
 window.APP_VERSION = '1.0.0';
 
-window.ktlReady = (appInfo = {}) => {
-    const ktl = new Ktl($, appInfo);
+window.ktlReady = function (appInfo = {}) {
+    var ktl = new Ktl($, appInfo);
 
-    window.ktlReady = function (appInfo = {}) {
-        var ktl = new Ktl($, appInfo);
+    // Smart CSS loading (dev mode aware)
+    function loadCSS() {
+        // Try local first (dev mode), fallback to GitHub (production)
+        const localCSS = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
+        const githubCSS = 'https://raw.githubusercontent.com/Greenlight88/Greenlight-Online/refs/heads/master/KnackApps/GreenlightOnline/GreenlightOnline.css';
 
-        // Smart CSS loading (dev mode aware)
-        function loadCSS() {
-            // Try local first (dev mode), fallback to GitHub (production)
-            const localCSS = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
-            const githubCSS = 'https://raw.githubusercontent.com/Greenlight88/Greenlight-Online/refs/heads/master/KnackApps/GreenlightOnline/GreenlightOnline.css';
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
 
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.type = 'text/css';
-
-            // In dev mode, try local first
-            if (localStorage.getItem('Greenl_56ea_dev')) {
-                link.href = localCSS;
-                console.log('CSS loaded from localhost (dev mode)');
-            } else {
-                link.href = githubCSS;
-                console.log('CSS loaded from GitHub (production)');
-            }
-
-            document.head.appendChild(link);
+        // In dev mode, try local first
+        if (localStorage.getItem('Greenl_56ea_dev')) {
+            link.href = localCSS;
+            console.log('CSS loaded from localhost (dev mode)');
+        } else {
+            link.href = githubCSS;
+            console.log('CSS loaded from GitHub (production)');
         }
 
-    };
+        document.head.appendChild(link);
+    }
+
+    loadCSS();
 
     // Load CSS automatically when app starts
-    loadCSS();
+
 
     // KTL Configuration using const for immutable config
     ktl.core.setCfg({
@@ -1429,4 +1426,4 @@ window.ktlReady = (appInfo = {}) => {
         }, 100);
     }
 
-}; // This closes the ktlReady function
+};// This closes the ktlReady function
