@@ -3,26 +3,54 @@ window.APP_VERSION = '1.0.0';
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
 
-    // Smart CSS loading (dev mode aware)
+
+    // Smart CSS loading with better dev mode handling
     function loadCSS() {
-        // Try local first (dev mode), fallback to GitHub (production)
         const localCSS = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
-        const githubCSS = 'https://raw.githubusercontent.com/Greenlight88/Greenlight-Online/refs/heads/master/KnackApps/GreenlightOnline/GreenlightOnline.css';
+        const productionCSS = 'https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Online@master/KnackApps/GreenlightOnline/GreenlightOnline.css';
 
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.type = 'text/css';
+        link.crossOrigin = 'anonymous';
 
-        // In dev mode, try local first
-        if (localStorage.getItem('Greenl_56ea_dev')) {
-            link.href = localCSS;
-            console.log('CSS loaded from localhost (dev mode)');
+        // Check if actually developing locally
+        const isDevMode = localStorage.getItem('Greenl_56ea_dev');
+        const loadProduction = () => {
+            link.href = productionCSS;
+            console.log('CSS loading from jsDelivr CDN');
+        };
+
+        if (isDevMode) {
+            // Test if localhost is actually available
+            fetch(localCSS, { method: 'HEAD', mode: 'cors' })
+                .then(() => {
+                    // Localhost is available and CORS is working
+                    link.href = localCSS;
+                    console.log('CSS loading from localhost (dev mode)');
+                    document.head.appendChild(link);
+
+                    // Still add fallback
+                    link.onerror = () => {
+                        console.log('Local CSS failed, falling back to jsDelivr...');
+                        link.href = productionCSS;
+                    };
+                })
+                .catch(() => {
+                    // Localhost not available or CORS failing
+                    console.log('Localhost not available, loading from jsDelivr...');
+                    loadProduction();
+                    document.head.appendChild(link);
+                });
         } else {
-            link.href = githubCSS;
-            console.log('CSS loaded from GitHub (production)');
+            loadProduction();
+            document.head.appendChild(link);
         }
 
-        document.head.appendChild(link);
+        // Success handling
+        link.onload = function () {
+            console.log('✅ CSS successfully loaded');
+        };
     }
 
     loadCSS();
