@@ -23,7 +23,8 @@ local-config.js
 production-secrets.js
 
 # External libraries (keep local, don't commit)
-Lib/
+- Lib/
++ # Lib/  (Commented out - KTL is now a tracked submodule)
 
 # CSV data files
 *.csv
