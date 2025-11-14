@@ -2777,51 +2777,57 @@ window.ktlReady = function (appInfo = {}) {
                     return Promise.reject('Webhook not configured');
                 }
 
-                // Get current user information
-                let currentUserId = null;
-                let currentUserEmail = null;
-                try {
-                    if (Knack && Knack.getUserAttributes) {
-                        const userAttrs = Knack.getUserAttributes();
-                        currentUserId = userAttrs.id || null;
-                        currentUserEmail = userAttrs.email || null;
-                        console.log(`👤 Current user: ID=${currentUserId}, Email=${currentUserEmail}`);
-                    }
-                } catch (error) {
-                    console.warn(`⚠️ Could not get current user info:`, error);
-                }
+                // Check if this is a company form
+                const isCompanyForm = (config.formType === 'company-creation' || config.formType === 'company-update');
 
-                // Extract company_id from URL hash
-                // URL format: #segment1/segment2/company_id/segment4/...
-                // Extract the third segment (index 2) after the hash
-                let companyId = null;
-                try {
-                    const hash = window.location.hash;
-                    if (hash) {
-                        // Remove leading '#' and split by '/'
-                        const segments = hash.replace(/^#/, '').split('/');
-                        // Get the third segment (index 2)
-                        if (segments.length >= 3 && segments[2]) {
-                            companyId = segments[2];
-                            console.log(`🏢 Extracted company_id from URL: ${companyId}`);
-                        } else {
-                            console.warn(`⚠️ URL hash does not have enough segments: ${hash}`);
+                let payload;
+
+                if (isCompanyForm) {
+                    // Use company-specific payload builder
+                    console.log(`🏢 Detected company form: ${config.formType}`);
+                    payload = companyFormHandler.buildPreSubmissionPayload(viewId, formData);
+                } else {
+                    // Use generic payload (for contact forms, etc.)
+                    // Get current user information
+                    let currentUserId = null;
+                    let currentUserEmail = null;
+                    try {
+                        if (Knack && Knack.getUserAttributes) {
+                            const userAttrs = Knack.getUserAttributes();
+                            currentUserId = userAttrs.id || null;
+                            currentUserEmail = userAttrs.email || null;
+                            console.log(`👤 Current user: ID=${currentUserId}, Email=${currentUserEmail}`);
                         }
+                    } catch (error) {
+                        console.warn(`⚠️ Could not get current user info:`, error);
                     }
-                } catch (error) {
-                    console.warn(`⚠️ Could not extract company_id from URL:`, error);
-                }
 
-                const payload = {
-                    view: viewId,
-                    timestamp: new Date().toISOString(),
-                    company_id: companyId,
-                    current_user: {
-                        id: currentUserId,
-                        email: currentUserEmail
-                    },
-                    formData: formData
-                };
+                    // Extract company_id from URL hash (for non-company forms that might need it)
+                    let companyId = null;
+                    try {
+                        const hash = window.location.hash;
+                        if (hash) {
+                            const segments = hash.replace(/^#/, '').split('/');
+                            if (segments.length >= 3 && segments[2]) {
+                                companyId = segments[2];
+                                console.log(`🏢 Extracted company_id from URL: ${companyId}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Could not extract company_id from URL:`, error);
+                    }
+
+                    payload = {
+                        view: viewId,
+                        timestamp: new Date().toISOString(),
+                        company_id: companyId,
+                        current_user: {
+                            id: currentUserId,
+                            email: currentUserEmail
+                        },
+                        formData: formData
+                    };
+                }
 
                 console.log(`🔗 Firing webhook with duplicate check for ${viewId} to ${config.webhook.url}`, payload);
 
