@@ -1599,14 +1599,74 @@ window.ktlReady = function (appInfo = {}) {
                         required: true
                     }
                 }
+            },
+
+            // ===== COMPANY CREATION FORM =====
+            view_4059: {
+                formType: 'company-creation',
+                webhook: {
+                    url: 'https://hook.us1.make.com/YOUR_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    enabled: true
+                },
+                postSubmissionWebhook: {
+                    url: 'https://hook.us1.make.com/YOUR_POST_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    enabled: true
+                },
+                fields: {
+                    field_4057: {
+                        rule: 'company-email',
+                        selector: '#field_4057',
+                        required: false
+                    },
+                    field_4056: {
+                        rule: 'company-phone',
+                        selector: '#field_4056',
+                        required: false
+                    }
+                }
+            },
+
+            // ===== COMPANY UPDATE FORM =====
+            view_2406: {
+                formType: 'company-update',
+                webhook: {
+                    url: 'https://hook.us1.make.com/YOUR_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    enabled: true
+                },
+                postSubmissionWebhook: {
+                    url: 'https://hook.us1.make.com/YOUR_POST_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    enabled: true
+                },
+                // Hidden view that contains the existing record IDs
+                hiddenView: {
+                    viewId: 'view_5608',  // Details view with existing data
+                    recordIds: {
+                        company_record_id: '#view_5608 .field_XXXX .kn-detail-body span span',  // TODO: Add actual field
+                        primary_email_record_id: '#view_5608 .field_YYYY .kn-detail-body span span',  // TODO: Add actual field
+                        primary_phone_record_id: '#view_5608 .field_ZZZZ .kn-detail-body span span',  // TODO: Add actual field
+                        primary_scn_record_id: '#view_5608 .field_WWWW .kn-detail-body span span'  // TODO: Add actual field
+                    },
+                    originalValues: {
+                        company_name: '#view_5608 .field_AAAA .kn-detail-body',  // TODO: Add actual field
+                        company_short_name: '#view_5608 .field_BBBB .kn-detail-body',  // TODO: Add actual field
+                        street_address: '#view_5608 .field_CCCC .kn-detail-body',  // TODO: Add actual field
+                        email: '#view_5608 .field_DDDD .kn-detail-body',  // TODO: Add actual field
+                        phone: '#view_5608 .field_EEEE .kn-detail-body'  // TODO: Add actual field
+                    }
+                },
+                fields: {
+                    field_4057: {
+                        rule: 'company-email',
+                        selector: '#field_4057',
+                        required: false
+                    },
+                    field_4056: {
+                        rule: 'company-phone',
+                        selector: '#field_4056',
+                        required: false
+                    }
+                }
             }
-            // Add more views like this:
-            // view_1234: {
-            //     webhook: { url: 'https://...', enabled: true },
-            //     fields: {
-            //         field_5678: { rule: 'mobile-number', selector: '#field_5678', required: true }
-            //     }
-            // }
         };
 
         // Track field interaction states
