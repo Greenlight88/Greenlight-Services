@@ -2384,6 +2384,332 @@ window.ktlReady = function (appInfo = {}) {
             }
         };
 
+        // ========================================================================
+        // COMPANY FORM HANDLER
+        // Specialized handler for company creation and update forms
+        // ========================================================================
+        const companyFormHandler = {
+
+            /**
+             * Normalize company name for searching
+             * Removes common suffixes and normalizes text
+             */
+            normalizeCompanyName: function(companyName) {
+                if (!companyName) return '';
+
+                return companyName
+                    .toLowerCase()
+                    .replace(/\spty\sltd/g, '')  // Remove "Pty Ltd"
+                    .replace(/\sltd\b/g, '')      // Remove "Ltd"
+                    .replace(/'/g, '')             // Remove apostrophes
+                    .replace(/\s+/g, ' ')          // Normalize spaces
+                    .trim();
+            },
+
+            /**
+             * Normalize street address for searching
+             */
+            normalizeStreetAddress: function(address) {
+                if (!address) return '';
+
+                return address
+                    .toLowerCase()
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            },
+
+            /**
+             * Normalize email
+             */
+            normalizeEmail: function(email) {
+                if (!email) return '';
+
+                return email
+                    .toLowerCase()
+                    .replace(/\s+/g, '');
+            },
+
+            /**
+             * Normalize phone number (adds +61 prefix if needed)
+             */
+            normalizePhone: function(phone) {
+                if (!phone) return '';
+
+                // Use existing validator normalization
+                const result = validator.normalizeLandlineNumber(phone);
+                let normalized = result.normalizedValue || '';
+
+                // Ensure phone has country code with + prefix
+                if (normalized) {
+                    if (result.isTollFree) {
+                        // 1300/1800 numbers: add +61 prefix
+                        normalized = `+61${normalized}`;
+                    } else if (!normalized.startsWith('+')) {
+                        // Landline without + prefix: add it
+                        normalized = normalized.startsWith('61') ? `+${normalized}` : `+61${normalized}`;
+                    }
+                }
+
+                return normalized;
+            },
+
+            /**
+             * Build payload for company forms (create or update)
+             * This is called BEFORE form submission for duplicate checking
+             */
+            buildPreSubmissionPayload: function(viewId, formData) {
+                const config = viewConfigs[viewId];
+                const formType = config.formType; // 'company-creation' or 'company-update'
+
+                console.log(`🏢 Building ${formType} payload for ${viewId}`);
+
+                // Get current user
+                let currentUserId = null;
+                let currentUserEmail = null;
+                try {
+                    if (Knack && Knack.getUserAttributes) {
+                        const userAttrs = Knack.getUserAttributes();
+                        currentUserId = userAttrs.id || null;
+                        currentUserEmail = userAttrs.email || null;
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not get current user info:`, error);
+                }
+
+                // Extract company_id from URL (for update forms)
+                let ecnRecordId = null;
+                try {
+                    const hash = window.location.hash;
+                    if (hash) {
+                        const segments = hash.replace(/^#/, '').split('/');
+                        if (segments.length >= 3 && segments[2]) {
+                            ecnRecordId = segments[2];
+                            console.log(`🏢 Extracted ECN record ID from URL: ${ecnRecordId}`);
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not extract ECN ID from URL:`, error);
+                }
+
+                // Get tenant_id (placeholder - you'll need to get this from your system)
+                const tenantId = '648a5861b632b20027d53b8b'; // TODO: Get from config or form
+
+                // Extract and normalize company data from formData
+                // TODO: Update these field selectors based on your actual form fields
+                const companyNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_992"]').val() || ''; // TODO: Update field ID
+                const companyShortNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_XXX"]').val() || ''; // TODO: Add field ID
+                const streetAddressRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_YYY"]').val() || ''; // TODO: Add field ID
+                const emailRaw = $('#field_4057').val() || '';
+                const phoneRaw = $('#field_4056').val() || '';
+
+                // Normalize all fields
+                const companyNameNormalised = companyNameRaw;
+                const companySearch = this.normalizeCompanyName(companyNameRaw);
+                const companyShortSearch = this.normalizeCompanyName(companyShortNameRaw);
+                const streetAddressSearch = this.normalizeStreetAddress(streetAddressRaw);
+                const formattedStreetAddress = streetAddressRaw; // TODO: Implement proper formatting
+                const emailNormalised = this.normalizeEmail(emailRaw);
+                const phoneNormalised = this.normalizePhone(phoneRaw);
+
+                // Build base payload (common to both create and update)
+                const payload = {
+                    view: viewId,
+                    form_type: formType,
+                    timestamp: new Date().toISOString(),
+                    tenant_id: tenantId,
+                    current_user: {
+                        id: currentUserId,
+                        email: currentUserEmail
+                    },
+                    ecn_record_id: ecnRecordId,
+                    company_name_normalised: companyNameNormalised,
+                    company_search: companySearch,
+                    company_short_search: companyShortSearch,
+                    street_address_search: streetAddressSearch,
+                    formatted_street_address: formattedStreetAddress,
+                    email_normalised: emailNormalised,
+                    phone_normalised: phoneNormalised,
+                    data: {
+                        form_type: formType,
+                        company_name_normalised: companyNameNormalised,
+                        company_search: companySearch,
+                        company_short_search: companyShortSearch,
+                        street_address_search: streetAddressSearch,
+                        formatted_street_address: formattedStreetAddress,
+                        email_normalised: emailNormalised,
+                        phone_normalised: phoneNormalised,
+                        tenant_id: tenantId
+                    }
+                };
+
+                // Add update-specific fields ONLY for company-update forms
+                if (formType === 'company-update') {
+                    // Get existing record IDs from hidden view
+                    const existingRecordIds = this.getExistingRecordIds(viewId);
+
+                    // Get original values from hidden view
+                    const originalValues = this.getOriginalValues(viewId);
+
+                    // Detect changes
+                    const changeDetection = this.detectChanges(
+                        originalValues,
+                        companyNameNormalised,
+                        companyShortNameRaw,
+                        streetAddressRaw,
+                        emailNormalised,
+                        phoneNormalised
+                    );
+
+                    // Add to top level
+                    payload.company_record_id = existingRecordIds.company_record_id;
+                    payload.primary_email_record_id = existingRecordIds.primary_email_record_id;
+                    payload.primary_phone_record_id = existingRecordIds.primary_phone_record_id;
+                    payload.primary_scn_record_id = existingRecordIds.primary_scn_record_id;
+                    payload.original_values = originalValues;
+                    payload.company_name_has_changed = changeDetection.company_name_has_changed;
+                    payload.company_short_name_has_changed = changeDetection.company_short_name_has_changed;
+                    payload.street_address_has_changed = changeDetection.street_address_has_changed;
+                    payload.email_has_changed = changeDetection.email_has_changed;
+                    payload.phone_has_changed = changeDetection.phone_has_changed;
+                    payload.email_was_deleted = changeDetection.email_was_deleted;
+                    payload.phone_was_deleted = changeDetection.phone_was_deleted;
+
+                    // Add to data object
+                    payload.data.company_record_id = existingRecordIds.company_record_id;
+                    payload.data.primary_email_record_id = existingRecordIds.primary_email_record_id;
+                    payload.data.primary_phone_record_id = existingRecordIds.primary_phone_record_id;
+                    payload.data.primary_scn_record_id = existingRecordIds.primary_scn_record_id;
+                    payload.data.original_values = originalValues;
+                    payload.data.company_name_has_changed = changeDetection.company_name_has_changed;
+                    payload.data.company_short_name_has_changed = changeDetection.company_short_name_has_changed;
+                    payload.data.street_address_has_changed = changeDetection.street_address_has_changed;
+                    payload.data.email_has_changed = changeDetection.email_has_changed;
+                    payload.data.phone_has_changed = changeDetection.phone_has_changed;
+                    payload.data.email_was_deleted = changeDetection.email_was_deleted;
+                    payload.data.phone_was_deleted = changeDetection.phone_was_deleted;
+                } else {
+                    // For creation forms, these fields should be null
+                    payload.company_record_id = null;
+                    payload.primary_email_record_id = null;
+                    payload.primary_phone_record_id = null;
+
+                    payload.data.company_record_id = null;
+                    payload.data.primary_email_record_id = null;
+                    payload.data.primary_phone_record_id = null;
+                }
+
+                console.log(`📦 Built ${formType} payload:`, payload);
+                return payload;
+            },
+
+            /**
+             * Get existing record IDs from hidden view (for update forms only)
+             */
+            getExistingRecordIds: function(viewId) {
+                const config = viewConfigs[viewId];
+                const hiddenView = config.hiddenView;
+
+                if (!hiddenView) {
+                    console.warn(`⚠️ No hidden view configured for ${viewId}`);
+                    return {
+                        company_record_id: null,
+                        primary_email_record_id: null,
+                        primary_phone_record_id: null,
+                        primary_scn_record_id: null
+                    };
+                }
+
+                const ids = {
+                    company_record_id: null,
+                    primary_email_record_id: null,
+                    primary_phone_record_id: null,
+                    primary_scn_record_id: null
+                };
+
+                try {
+                    // Extract record IDs from hidden view selectors
+                    Object.keys(hiddenView.recordIds).forEach(key => {
+                        const selector = hiddenView.recordIds[key];
+                        const $element = $(selector);
+                        if ($element.length > 0) {
+                            ids[key] = $element.text().trim() || $element.val() || null;
+                            console.log(`✅ Found ${key}: ${ids[key]}`);
+                        } else {
+                            console.log(`ℹ️ No ${key} found (may be null)`);
+                        }
+                    });
+                } catch (error) {
+                    console.error(`❌ Error getting existing record IDs:`, error);
+                }
+
+                return ids;
+            },
+
+            /**
+             * Get original values from hidden view (for update forms only)
+             */
+            getOriginalValues: function(viewId) {
+                const config = viewConfigs[viewId];
+                const hiddenView = config.hiddenView;
+
+                if (!hiddenView || !hiddenView.originalValues) {
+                    console.warn(`⚠️ No original values configured for ${viewId}`);
+                    return {};
+                }
+
+                const values = {};
+
+                try {
+                    Object.keys(hiddenView.originalValues).forEach(key => {
+                        const selector = hiddenView.originalValues[key];
+                        const $element = $(selector);
+                        if ($element.length > 0) {
+                            values[key] = $element.text().trim() || '';
+                            console.log(`📋 Original ${key}: ${values[key]}`);
+                        }
+                    });
+                } catch (error) {
+                    console.error(`❌ Error getting original values:`, error);
+                }
+
+                return values;
+            },
+
+            /**
+             * Detect changes between original and current values (for update forms only)
+             */
+            detectChanges: function(originalValues, companyName, companyShortName, streetAddress, email, phone) {
+                const originalNameSearch = this.normalizeCompanyName(originalValues.company_name || '');
+                const currentNameSearch = this.normalizeCompanyName(companyName);
+
+                const originalShortSearch = this.normalizeCompanyName(originalValues.company_short_name || '');
+                const currentShortSearch = this.normalizeCompanyName(companyShortName);
+
+                const originalAddressSearch = this.normalizeStreetAddress(originalValues.street_address || '');
+                const currentAddressSearch = this.normalizeStreetAddress(streetAddress);
+
+                const originalEmailNorm = this.normalizeEmail(originalValues.email || '');
+                const currentEmailNorm = this.normalizeEmail(email);
+
+                const originalPhoneNorm = this.normalizePhone(originalValues.phone || '');
+                const currentPhoneNorm = this.normalizePhone(phone);
+
+                const changes = {
+                    company_name_has_changed: (currentNameSearch !== originalNameSearch),
+                    company_short_name_has_changed: (currentShortSearch !== originalShortSearch),
+                    street_address_has_changed: (currentAddressSearch !== originalAddressSearch),
+                    email_has_changed: (currentEmailNorm !== originalEmailNorm),
+                    phone_has_changed: (currentPhoneNorm !== originalPhoneNorm),
+                    email_was_deleted: (originalEmailNorm !== '' && currentEmailNorm === ''),
+                    phone_was_deleted: (originalPhoneNorm !== '' && currentPhoneNorm === '')
+                };
+
+                console.log(`🔍 Change detection:`, changes);
+
+                return changes;
+            }
+        };
+
         // Webhook system
         const webhookManager = {
             /**
