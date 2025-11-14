@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.0';
+window.APP_VERSION = '1.0.1'; // CDN test deployment
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
