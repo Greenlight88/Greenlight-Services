@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.1'; // CDN test deployment
+window.APP_VERSION = '1.0.2'; // Added pause/resume button for enquiries auto-refresh
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);

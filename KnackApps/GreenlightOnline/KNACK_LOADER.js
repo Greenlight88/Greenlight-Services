@@ -1,41 +1,38 @@
 // ========================================================================
-// GREENLIGHT SERVICES - KNACK APP LOADER (CDN Version)
+// GREENLIGHT SERVICES - KNACK APP LOADER (CDN Version with Rollback Support)
 // ========================================================================
-// This minimal loader code goes in Knack Settings → Advanced → JavaScript
-//
-// The actual application code is loaded from jsDelivr CDN, which
-// automatically serves the latest version from GitHub.
+// This loader code goes in Knack Settings → Advanced → JavaScript
 //
 // GitHub Repo: https://github.com/Greenlight88/Greenlight-Services
-// CDN URLs:
-//   - JS:  https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@master/KnackApps/GreenlightOnline/GreenlightOnline.js
-//   - CSS: https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@master/KnackApps/GreenlightOnline/GreenlightOnline.css
 //
-// To deploy updates:
-//   1. Edit local file: C:\Code\KnackApps\GreenlightOnline\GreenlightOnline.js
-//   2. Commit: git add -A && git commit -m "Your message"
-//   3. Push: git push origin master
-//   4. Wait 5-10 minutes for CDN to update
-//   5. Refresh Knack app to see changes
+// ROLLBACK SUPPORT:
+// To use a specific version/commit, set the VERSION constant below.
+// To use the latest from master, set VERSION = 'master'
+//
+// Available versions (recent commits):
+//   - '0dfa2da' - Pause/resume button for auto-refresh (2024-11-20)
+//   - 'a21da0a' - Auto-refresh + company form webhook fixes (2024-11-20)
+//   - 'master'  - Always use latest (not recommended for production)
 // ========================================================================
 
-// Add cache-busting parameter for development (comment out for production)
-// const cacheBuster = `?v=${new Date().getTime()}`;
-const cacheBuster = ''; // Production mode - rely on CDN caching
+// VERSION CONTROL - Change this to roll back or use specific version
+const VERSION = '0dfa2da'; // Current version with pause/resume button
+// const VERSION = 'master'; // Use this to always get latest (riskier)
 
-// CDN URLs
-const JS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@master/KnackApps/GreenlightOnline/GreenlightOnline.js${cacheBuster}`;
-const CSS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@master/KnackApps/GreenlightOnline/GreenlightOnline.css${cacheBuster}`;
-
-// Local development URLs (for testing)
-const JS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.js';
-const CSS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
-
-// Check if in development mode (set in browser console: localStorage.setItem('Greenl_56ea_dev', 'true'))
+// Development mode check
 const isDevMode = localStorage.getItem('Greenl_56ea_dev') === 'true';
 
 console.log(`🚀 Greenlight Services Loader`);
 console.log(`📍 Mode: ${isDevMode ? 'DEVELOPMENT (localhost)' : 'PRODUCTION (CDN)'}`);
+console.log(`🔖 Version: ${VERSION}`);
+
+// CDN URLs with version
+const JS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${VERSION}/KnackApps/GreenlightOnline/GreenlightOnline.js`;
+const CSS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${VERSION}/KnackApps/GreenlightOnline/GreenlightOnline.css`;
+
+// Local development URLs
+const JS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.js';
+const CSS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
 
 // Load CSS
 function loadCSS() {
@@ -72,12 +69,14 @@ function loadJS() {
                 console.log(`📦 Loading JS from localhost...`);
                 LazyLoad.js(jsUrl, () => {
                     console.log(`✅ JS loaded from localhost`);
+                    logAppVersion();
                 });
             })
             .catch(() => {
                 console.log(`⚠️ Localhost not available, falling back to CDN...`);
                 LazyLoad.js(JS_CDN_URL, () => {
                     console.log(`✅ JS loaded from CDN (fallback)`);
+                    logAppVersion();
                 });
             });
     } else {
@@ -85,7 +84,15 @@ function loadJS() {
         console.log(`📦 Loading JS from CDN...`);
         LazyLoad.js(jsUrl, () => {
             console.log(`✅ JS loaded from CDN`);
+            logAppVersion();
         });
+    }
+}
+
+// Log the loaded app version
+function logAppVersion() {
+    if (window.APP_VERSION) {
+        console.log(`✅ App Version: ${window.APP_VERSION}`);
     }
 }
 
@@ -96,15 +103,29 @@ loadJS();
 // ========================================================================
 // DEVELOPMENT HELPERS
 // ========================================================================
-// To enable development mode (load from localhost instead of CDN):
-//   Open browser console and run:
+// To enable development mode (load from localhost):
 //   localStorage.setItem('Greenl_56ea_dev', 'true')
 //   Then refresh the page
 //
 // To disable development mode:
 //   localStorage.removeItem('Greenl_56ea_dev')
-//   Then refresh the page
 //
-// To force cache refresh from CDN:
-//   Uncomment the cacheBuster line at the top and save this in Knack
+// TO ROLL BACK TO A PREVIOUS VERSION:
+//   1. Find the commit hash from git log or GitHub
+//   2. Update VERSION constant at top of this file (line 19)
+//   3. Save in Knack Settings → Advanced → JavaScript
+//   4. Refresh the app
+//
+// TO UPDATE TO LATEST:
+//   1. Get the latest commit hash from GitHub
+//   2. Update VERSION constant to new commit hash (line 19)
+//   3. Save in Knack Settings
+//   4. Refresh the app
 // ========================================================================
+
+// KTL Initialization
+KnackInitAsync = function ($, callback) {
+    (window.LazyLoad = LazyLoad) && LazyLoad.js([`https://ctrnd.s3.amazonaws.com/Lib/KTL/KTL_Start.js?${new Date().valueOf()}`], () => {
+        loadKtl($, callback, (typeof KnackApp === 'function' ? KnackApp : null), '0.32.7' /*KTL version*/, 'full'/*min or full*/);
+    })
+};
