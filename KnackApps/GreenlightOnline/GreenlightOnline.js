@@ -6103,8 +6103,49 @@ window.ktlReady = function (appInfo = {}) {
 
     let view4829RefreshTimer = null;
     let view4829IsActive = false;
+    let view4829RefreshPaused = false;
 
-    // Monitor when view_4829 is rendered - start custom refresh
+    // Function to start the refresh timer
+    function startView4829Refresh() {
+        if (view4829RefreshTimer) {
+            clearInterval(view4829RefreshTimer);
+        }
+
+        view4829RefreshTimer = setInterval(function() {
+            // Only refresh if view is active, not paused, and on correct scene
+            if (view4829IsActive && !view4829RefreshPaused && Knack.router.current_scene_key === 'scene_1973') {
+                console.log('⏰ 10 seconds elapsed - refreshing view_4829...');
+
+                // Call KTL's refresh function
+                if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
+                    window.ktl.views.refreshView('view_4829');
+                    console.log('✅ Called ktl.views.refreshView for view_4829');
+                } else {
+                    // Fallback to Knack's native refresh
+                    console.warn('⚠️ KTL refresh not available, using Knack native refresh');
+                    Knack.views['view_4829'].model.fetch();
+                }
+            }
+        }, 10000); // 10 seconds
+
+        console.log('✅ Started 10-second auto-refresh for view_4829');
+    }
+
+    // Function to update button text and icon
+    function updateRefreshButton() {
+        const $button = $('#view_4829_refresh_toggle');
+        if ($button.length) {
+            if (view4829RefreshPaused) {
+                $button.html('▶️ Resume Auto-Refresh');
+                $button.css('background-color', '#4CAF50');
+            } else {
+                $button.html('⏸️ Pause Auto-Refresh');
+                $button.css('background-color', '#ff9800');
+            }
+        }
+    }
+
+    // Monitor when view_4829 is rendered - start custom refresh and add button
     $(document).on('knack-view-render.view_4829', function(event, view, data) {
         console.log('🔍 view_4829 (Enquiries Table) rendered');
         console.log('📍 Current scene:', Knack.router.current_scene_key);
@@ -6114,35 +6155,49 @@ window.ktlReady = function (appInfo = {}) {
         if (Knack.router.current_scene_key === 'scene_1973') {
             view4829IsActive = true;
 
-            // Clear any existing timer
-            if (view4829RefreshTimer) {
-                clearInterval(view4829RefreshTimer);
-                console.log('🔄 Cleared existing refresh timer');
+            // Add pause/resume button (only once)
+            if ($('#view_4829_refresh_toggle').length === 0) {
+                const $button = $('<button>')
+                    .attr('id', 'view_4829_refresh_toggle')
+                    .css({
+                        'position': 'fixed',
+                        'top': '80px',
+                        'right': '20px',
+                        'z-index': '9999',
+                        'padding': '10px 20px',
+                        'background-color': '#ff9800',
+                        'color': 'white',
+                        'border': 'none',
+                        'border-radius': '5px',
+                        'cursor': 'pointer',
+                        'font-weight': 'bold',
+                        'box-shadow': '0 2px 5px rgba(0,0,0,0.2)',
+                        'transition': 'all 0.3s ease'
+                    })
+                    .html('⏸️ Pause Auto-Refresh')
+                    .on('click', function() {
+                        view4829RefreshPaused = !view4829RefreshPaused;
+                        updateRefreshButton();
+
+                        if (view4829RefreshPaused) {
+                            console.log('⏸️ Auto-refresh paused by user');
+                        } else {
+                            console.log('▶️ Auto-refresh resumed by user');
+                        }
+                    })
+                    .on('mouseenter', function() {
+                        $(this).css('transform', 'scale(1.05)');
+                    })
+                    .on('mouseleave', function() {
+                        $(this).css('transform', 'scale(1)');
+                    });
+
+                $('body').append($button);
+                console.log('✅ Added pause/resume button for auto-refresh');
             }
 
-            // Start 10-second refresh interval
-            view4829RefreshTimer = setInterval(function() {
-                // Only refresh if view is still active and visible
-                if (view4829IsActive && Knack.router.current_scene_key === 'scene_1973') {
-                    console.log('⏰ 10 seconds elapsed - refreshing view_4829...');
-
-                    // Call KTL's refresh function
-                    if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
-                        window.ktl.views.refreshView('view_4829');
-                        console.log('✅ Called ktl.views.refreshView for view_4829');
-                    } else {
-                        // Fallback to Knack's native refresh
-                        console.warn('⚠️ KTL refresh not available, using Knack native refresh');
-                        Knack.views['view_4829'].model.fetch();
-                    }
-                } else {
-                    console.log('⏸️ View no longer active, stopping refresh');
-                    clearInterval(view4829RefreshTimer);
-                    view4829RefreshTimer = null;
-                }
-            }, 10000); // 10 seconds
-
-            console.log('✅ Started 10-second auto-refresh for view_4829');
+            // Start the refresh timer
+            startView4829Refresh();
         }
     });
 
@@ -6150,12 +6205,16 @@ window.ktlReady = function (appInfo = {}) {
     $(document).on('knack-scene-render', function(event, scene) {
         const currentScene = Knack.router.current_scene_key;
 
-        // If we left scene_1973, stop the refresh timer
+        // If we left scene_1973, stop the refresh timer and remove button
         if (currentScene !== 'scene_1973' && view4829RefreshTimer) {
             console.log('🛑 Left scene_1973, stopping view_4829 auto-refresh');
             clearInterval(view4829RefreshTimer);
             view4829RefreshTimer = null;
             view4829IsActive = false;
+            view4829RefreshPaused = false;
+
+            // Remove the button
+            $('#view_4829_refresh_toggle').remove();
         }
 
         // Log when we enter scene_1973
