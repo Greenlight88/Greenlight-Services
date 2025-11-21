@@ -28,6 +28,7 @@ window.ktlReady = function (appInfo = {}) {
             inlineEditColor: true,
             rowHoverHighlight: true,
             autoFocus: true,
+            autoRefresh: true,
             sortedMenus: true,
             userFilters: false,
             persistentForm: true,
@@ -38,7 +39,7 @@ window.ktlReady = function (appInfo = {}) {
             idleWatchDog: true,
             debugWnd: true,
             devInfoPopup: true,
-            devPauseAutoRefresh: true,
+            devPauseAutoRefresh: false,
             virtualKeyboard: false,
             iFrameWnd: true,
 
@@ -86,6 +87,17 @@ window.ktlReady = function (appInfo = {}) {
             pendingClass: '',
         },
 
+        // Auto-refresh configuration for enquiries table
+        autoRefresh: [
+            {
+                viewId: 'view_4829',      // Enquiries table
+                sceneId: 'scene_1973',    // Scene where the view is rendered
+                interval: 60000,          // Refresh every 60 seconds (60000ms) - KTL minimum
+                onlyIfVisible: true,      // Only refresh when view is visible
+                preserveScrollPos: true,  // Maintain scroll position after refresh
+            }
+        ],
+
         headerAlignment: true,
         ktlFlashRate: '1',
         ktlOutlineColor: '#39b54a',
@@ -94,6 +106,54 @@ window.ktlReady = function (appInfo = {}) {
         hscCollapsedColumnsWidth: '5',
         hscGlobal: false,
     });
+
+    console.log('🔄 KTL Auto-refresh configured for view_4829');
+    console.log('📋 Auto-refresh settings:', {
+        viewId: 'view_4829',
+        sceneId: 'scene_1973',
+        interval: '60 seconds (KTL minimum)',
+        onlyIfVisible: true,
+        preserveScrollPos: true
+    });
+
+    // Check if KTL accepted our configuration
+    setTimeout(function() {
+        console.log('🔍 Checking KTL auto-refresh internals...');
+
+        // Try to access KTL's internal configuration
+        if (window.ktl && window.ktl.views) {
+            console.log('✅ KTL views module exists');
+
+            // Check if getCfg exists
+            if (typeof window.ktl.views.getCfg === 'function') {
+                const viewsCfg = window.ktl.views.getCfg();
+                console.log('📦 KTL views configuration:', viewsCfg);
+
+                if (viewsCfg.autoRefresh) {
+                    console.log('✅ Auto-refresh config found:', viewsCfg.autoRefresh);
+                } else {
+                    console.warn('⚠️ No auto-refresh config in KTL views');
+                }
+            } else {
+                console.warn('⚠️ ktl.views.getCfg not available');
+            }
+
+            // Check if refreshView function exists
+            if (typeof window.ktl.views.refreshView === 'function') {
+                console.log('✅ ktl.views.refreshView function exists');
+            } else {
+                console.warn('⚠️ ktl.views.refreshView not found');
+            }
+        } else {
+            console.error('❌ KTL or ktl.views not available');
+        }
+
+        // Check KTL core config
+        if (window.ktl && window.ktl.core && typeof window.ktl.core.getCfg === 'function') {
+            const coreCfg = window.ktl.core.getCfg();
+            console.log('📦 KTL core enabled features:', coreCfg.enabled);
+        }
+    }, 2000);
 
     ktl.fields.setCfg({
         textAsNumeric: [''],
@@ -1482,7 +1542,24 @@ window.ktlReady = function (appInfo = {}) {
                     if (!fieldValue || fieldValue.trim() === '') {
                         return { isValid: true, normalizedValue: '' };
                     }
-                    return validator.normalizeMobileNumber(fieldValue.trim());
+
+                    const result = validator.normalizeMobileNumber(fieldValue.trim());
+
+                    // If validation failed, return the specific error message
+                    if (!result.isValid) {
+                        return {
+                            isValid: false,
+                            normalizedValue: '',
+                            errorMessage: result.error || 'Please enter a valid mobile number'
+                        };
+                    }
+
+                    // Apply normalized value to field
+                    if (result.normalizedValue && result.normalizedValue !== fieldValue.trim()) {
+                        $(config.selector).val(result.normalizedValue);
+                    }
+
+                    return result;
                 },
                 defaultMessage: 'Please enter a valid mobile number'
             },
@@ -1493,7 +1570,25 @@ window.ktlReady = function (appInfo = {}) {
                     if (!fieldValue || fieldValue.trim() === '') {
                         return { isValid: true, normalizedValue: '', hasAreaCodeCorrection: false };
                     }
-                    return validator.normalizeLandlineNumber(fieldValue.trim());
+
+                    const result = validator.normalizeLandlineNumber(fieldValue.trim());
+
+                    // If validation failed, return the specific error message
+                    if (!result.isValid) {
+                        return {
+                            isValid: false,
+                            normalizedValue: '',
+                            hasAreaCodeCorrection: false,
+                            errorMessage: result.error || 'Please enter a valid phone number'
+                        };
+                    }
+
+                    // Apply normalized value to field
+                    if (result.normalizedValue && result.normalizedValue !== fieldValue.trim()) {
+                        $(config.selector).val(result.normalizedValue);
+                    }
+
+                    return result;
                 },
                 defaultMessage: 'Please enter a valid phone number'
             },
@@ -1504,8 +1599,49 @@ window.ktlReady = function (appInfo = {}) {
                     const email = $(config.selectors.email).val().trim();
                     const mobile = $(config.selectors.mobile).val().trim();
                     const phone = $(config.selectors.phone).val().trim();
+
+                    // Check if at least one contact method is provided
+                    const hasAtLeastOne = email.length > 0 || mobile.length > 0 || phone.length > 0;
+
+                    if (!hasAtLeastOne) {
+                        return {
+                            isValid: false,
+                            normalizedValue: { email, mobile, phone },
+                            errorMessage: 'Please provide at least one contact method (Email, Mobile, or Phone)'
+                        };
+                    }
+
+                    // If email is provided, validate its format
+                    if (email.length > 0) {
+                        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                        if (!emailPattern.test(email)) {
+                            return {
+                                isValid: false,
+                                normalizedValue: { email, mobile, phone },
+                                errorMessage: 'Please enter a valid email address (e.g., name@company.com.au)'
+                            };
+                        }
+
+                        // Normalize email: keep local part casing, lowercase domain
+                        const atIndex = email.indexOf('@');
+                        const localPart = email.substring(0, atIndex);
+                        const domain = email.substring(atIndex + 1).toLowerCase();
+                        const normalizedEmail = localPart + '@' + domain;
+
+                        // Apply normalized email back to field if changed
+                        if (normalizedEmail !== email) {
+                            $(config.selectors.email).val(normalizedEmail);
+                        }
+
+                        return {
+                            isValid: true,
+                            normalizedValue: { email: normalizedEmail, mobile, phone }
+                        };
+                    }
+
                     return {
-                        isValid: email.length > 0 || mobile.length > 0 || phone.length > 0,
+                        isValid: true,
                         normalizedValue: { email, mobile, phone }
                     };
                 },
@@ -1546,6 +1682,441 @@ window.ktlReady = function (appInfo = {}) {
                     };
                 },
                 defaultMessage: 'Text will be automatically formatted to Proper Case'
+            },
+
+            // Short name validation (optional field, no specific rules)
+            'short-name': {
+                validate: function (config, fieldValue, $field) {
+                    // Optional field, always valid
+                    return { isValid: true, normalizedValue: fieldValue ? fieldValue.trim() : '' };
+                },
+                defaultMessage: ''
+            },
+
+            // Entity type validation (required dropdown)
+            'entity-type': {
+                validate: function (config, fieldValue, $field) {
+                    const value = $(config.selector).val();
+                    return {
+                        isValid: value && value !== '',
+                        normalizedValue: value
+                    };
+                },
+                defaultMessage: 'Please select an entity type'
+            },
+
+            // Melbourne address validation with normalization
+            'melbourne-address': {
+                validate: function (config, fieldValue, $field) {
+                    // Address fields are optional, but we normalize them if provided
+                    const streetRaw = $(config.selectors.street).val() || '';
+                    const street2Raw = $(config.selectors.street2).val() || '';
+                    const cityRaw = $(config.selectors.city).val() || '';
+                    const stateRaw = $(config.selectors.state).val() || '';
+                    const zipRaw = $(config.selectors.zip).val() || '';
+
+                    // Normalize each field
+                    const normalizedStreet = this.normalizeStreetAddress(streetRaw);
+                    const normalizedStreet2 = this.normalizeStreetAddress(street2Raw);
+                    const normalizedCity = this.normalizeSuburb(cityRaw);
+                    const normalizedState = this.normalizeState(stateRaw);
+                    const normalizedZip = zipRaw.trim();
+
+                    // Apply normalized values back to fields
+                    if (streetRaw && normalizedStreet !== streetRaw) {
+                        $(config.selectors.street).val(normalizedStreet);
+                    }
+                    if (street2Raw && normalizedStreet2 !== street2Raw) {
+                        $(config.selectors.street2).val(normalizedStreet2);
+                    }
+                    if (cityRaw && normalizedCity !== cityRaw) {
+                        $(config.selectors.city).val(normalizedCity);
+                    }
+                    if (stateRaw && normalizedState !== stateRaw) {
+                        $(config.selectors.state).val(normalizedState);
+                    }
+
+                    return {
+                        isValid: true,
+                        normalizedValue: {
+                            street: normalizedStreet,
+                            street2: normalizedStreet2,
+                            city: normalizedCity,
+                            state: normalizedState,
+                            zip: normalizedZip
+                        }
+                    };
+                },
+
+                /**
+                 * Normalize street address
+                 * - Unit numbers: "Unit 3" / "U3" / "3" -> "3/"
+                 * - Street types: "Street" -> "St", "Avenue" -> "Ave"
+                 * - Proper case with hyphenation support
+                 * - PO Box variants
+                 */
+                normalizeStreetAddress: function(address) {
+                    if (!address || address.trim() === '') return '';
+
+                    let normalized = address.trim();
+
+                    // Handle PO Box variants first
+                    // P.O. Box, P/O Box, Post Office Box -> PO Box
+                    normalized = normalized.replace(/\b(P\.?\s?O\.?\s?Box|Post\s+Office\s+Box)\b/gi, 'PO Box');
+
+                    // Handle unit number variations
+                    // "Unit 3, 16 Rice Avenue" -> "3/16 Rice Avenue"
+                    // "U3 16 Rice Avenue" -> "3/16 Rice Avenue"
+                    // "3 16 Rice Avenue" -> "3/16 Rice Avenue"
+
+                    // Pattern: "Unit 3," or "U3," or "Unit 3 " followed by street number
+                    normalized = normalized.replace(/^(?:Unit\s+|U)(\d+),?\s+(\d+)/i, '$1/$2');
+
+                    // Pattern: Just number at start followed by another number (e.g., "3 16")
+                    // Be careful - only if it looks like "single-digit(s) space digits"
+                    normalized = normalized.replace(/^(\d{1,4})\s+(\d+\s+\w)/i, '$1/$2');
+
+                    // Normalize street types to abbreviations
+                    const streetTypes = {
+                        'Street': 'St',
+                        'Avenue': 'Ave',
+                        'Road': 'Rd',
+                        'Drive': 'Dr',
+                        'Court': 'Ct',
+                        'Place': 'Pl',
+                        'Crescent': 'Cres',
+                        'Boulevard': 'Blvd',
+                        'Highway': 'Hwy',
+                        'Lane': 'Ln',
+                        'Terrace': 'Tce',
+                        'Parade': 'Pde',
+                        'Grove': 'Gve',
+                        'Close': 'Cl',
+                        'Circuit': 'Cct',
+                        'Way': 'Way',
+                        'Square': 'Sq',
+                        'Esplanade': 'Esp'
+                    };
+
+                    // Replace street types (case insensitive, word boundary)
+                    for (const [full, abbrev] of Object.entries(streetTypes)) {
+                        const regex = new RegExp('\\b' + full + '\\b', 'gi');
+                        normalized = normalized.replace(regex, abbrev);
+                    }
+
+                    // Apply proper case with hyphenation support
+                    // Split by spaces, capitalize first letter of each word
+                    normalized = normalized.replace(/\b\w+/g, function(word) {
+                        // Handle hyphenated words (e.g., Marcus-Dreyfus)
+                        if (word.includes('-')) {
+                            return word.split('-').map(part =>
+                                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                            ).join('-');
+                        }
+                        // Handle PO Box specially (keep uppercase)
+                        if (word.toUpperCase() === 'PO' || word.toUpperCase() === 'BOX') {
+                            return word.toUpperCase();
+                        }
+                        // Regular word: Proper Case
+                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    });
+
+                    return normalized;
+                },
+
+                /**
+                 * Normalize suburb name
+                 * - Convert to ALL CAPS
+                 */
+                normalizeSuburb: function(suburb) {
+                    if (!suburb || suburb.trim() === '') return '';
+                    return suburb.trim().toUpperCase();
+                },
+
+                /**
+                 * Normalize state
+                 * - Convert to uppercase abbreviation
+                 */
+                normalizeState: function(state) {
+                    if (!state || state.trim() === '') return '';
+
+                    const stateMap = {
+                        'victoria': 'VIC',
+                        'vic': 'VIC',
+                        'new south wales': 'NSW',
+                        'nsw': 'NSW',
+                        'queensland': 'QLD',
+                        'qld': 'QLD',
+                        'south australia': 'SA',
+                        'sa': 'SA',
+                        'western australia': 'WA',
+                        'wa': 'WA',
+                        'tasmania': 'TAS',
+                        'tas': 'TAS',
+                        'northern territory': 'NT',
+                        'nt': 'NT',
+                        'australian capital territory': 'ACT',
+                        'act': 'ACT'
+                    };
+
+                    const normalized = state.trim().toLowerCase();
+                    return stateMap[normalized] || state.trim().toUpperCase();
+                },
+
+                defaultMessage: ''
+            },
+
+            // Company email validation (optional, but must be valid if provided)
+            'company-email': {
+                validate: function (config, fieldValue, $field) {
+                    let value = $(config.selector).val();
+                    value = value ? value.trim() : '';
+
+                    // Log detailed validation info including character codes
+                    console.log(`📧 Validating email - Value: '${value}', Length: ${value.length}, Selector: ${config.selector}`);
+                    if (value.length > 0) {
+                        console.log(`   Character codes: ${Array.from(value).map(c => c.charCodeAt(0)).join(',')}`);
+                    }
+
+                    if (!value) {
+                        return { isValid: true, normalizedValue: '' };
+                    }
+
+                    // Email validation pattern - RFC 5322 compliant with proper TLD validation
+                    // Local part: allows standard email characters
+                    // Domain: Must end with a TLD of at least 2 characters
+                    const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+                    if (!emailPattern.test(value)) {
+                        console.log(`❌ Email validation FAILED (pattern) for: '${value}'`);
+                        return {
+                            isValid: false,
+                            normalizedValue: value,
+                            errorMessage: 'Please enter a valid email address (e.g., name@company.com.au)'
+                        };
+                    }
+
+                    // Additional validation: Check that TLD (last part after final dot) is at least 2 characters
+                    const atIndex = value.indexOf('@');
+                    const domain = value.substring(atIndex + 1);
+                    const lastDotIndex = domain.lastIndexOf('.');
+
+                    if (lastDotIndex === -1) {
+                        console.log(`❌ Email validation FAILED (no TLD) for: '${value}'`);
+                        return {
+                            isValid: false,
+                            normalizedValue: value,
+                            errorMessage: 'Please enter a valid email address with a domain extension (e.g., .com, .com.au)'
+                        };
+                    }
+
+                    const tld = domain.substring(lastDotIndex + 1);
+
+                    // TLD validation:
+                    // - Must be 2-24 characters (longest real TLD is .cancerresearch at 14 chars)
+                    // - Must contain only letters (no numbers or special chars)
+                    // - Cannot be all the same letter (e.g., .xx, .aaa)
+                    if (tld.length < 2 || tld.length > 24) {
+                        console.log(`❌ Email validation FAILED (TLD length invalid: '${tld}') for: '${value}'`);
+                        return {
+                            isValid: false,
+                            normalizedValue: value,
+                            errorMessage: 'Invalid domain extension - must be 2-24 letters (e.g., .com, .com.au)'
+                        };
+                    }
+
+                    // Check TLD contains only letters
+                    if (!/^[a-zA-Z]+$/.test(tld)) {
+                        console.log(`❌ Email validation FAILED (TLD contains non-letters: '${tld}') for: '${value}'`);
+                        return {
+                            isValid: false,
+                            normalizedValue: value,
+                            errorMessage: 'Invalid domain extension - must contain only letters (e.g., .com, .au, not .x1)'
+                        };
+                    }
+
+                    // Validate against known valid TLD patterns
+                    // This comprehensive check catches fake TLDs like .xx, .xc, .zz, etc.
+                    const invalidTLDPatterns = [
+                        /^([a-z])\1+$/i,  // All same letter: xx, aaa, zzzz
+                        /^[xyzq]{2}$/i,   // Two letter combos unlikely to be real: xx, xy, xz, qq, zz, etc.
+                        /^[bcdfghjklmnpqrstvwxyz]{2}$/i  // Two consonants only (most 2-letter TLDs have at least one vowel)
+                    ];
+
+                    // Known valid 2-letter TLDs (country codes) - partial list of common ones
+                    const validTwoLetterTLDs = [
+                        'au', 'us', 'uk', 'ca', 'de', 'fr', 'it', 'es', 'nl', 'be', 'ch', 'at',
+                        'se', 'no', 'dk', 'fi', 'ie', 'nz', 'jp', 'cn', 'kr', 'in', 'sg', 'hk',
+                        'tw', 'th', 'my', 'ph', 'id', 'vn', 'ae', 'sa', 'il', 'tr', 'ru', 'ua',
+                        'pl', 'cz', 'ro', 'gr', 'pt', 'hu', 'bg', 'hr', 'si', 'sk', 'lt', 'lv',
+                        'ee', 'is', 'lu', 'mt', 'cy', 'mx', 'br', 'ar', 'cl', 'co', 'pe', 'za'
+                    ];
+
+                    const tldLower = tld.toLowerCase();
+
+                    // For 2-letter TLDs, check against whitelist
+                    if (tld.length === 2) {
+                        if (!validTwoLetterTLDs.includes(tldLower)) {
+                            console.log(`❌ Email validation FAILED (invalid 2-letter TLD: '${tld}') for: '${value}'`);
+                            return {
+                                isValid: false,
+                                normalizedValue: value,
+                                errorMessage: 'Invalid country code - please use valid domain extensions (e.g., .au, .com, .net, .org)'
+                            };
+                        }
+                    }
+
+                    // For any length, check against invalid patterns
+                    for (const pattern of invalidTLDPatterns) {
+                        if (pattern.test(tld)) {
+                            console.log(`❌ Email validation FAILED (TLD matches invalid pattern: '${tld}') for: '${value}'`);
+                            return {
+                                isValid: false,
+                                normalizedValue: value,
+                                errorMessage: 'Invalid domain extension (e.g., use .com, .com.au, .net, .org, .edu, .gov)'
+                            };
+                        }
+                    }
+
+                    console.log(`✅ Email validation PASSED for: '${value}' (TLD: '${tld}')`);
+
+                    // Split email into local part (before @) and domain (after @)
+                    // (atIndex already declared above)
+                    const localPart = value.substring(0, atIndex); // Keep original casing
+                    const domainLower = domain.toLowerCase(); // Force lowercase
+
+                    const normalizedEmail = localPart + '@' + domainLower;
+
+                    // Apply normalized value to field if it changed
+                    if (normalizedEmail !== value) {
+                        $(config.selector).val(normalizedEmail);
+                    }
+
+                    return {
+                        isValid: true,
+                        normalizedValue: normalizedEmail
+                    };
+                },
+                defaultMessage: 'Please enter a valid email address'
+            },
+
+            // Company phone validation (optional)
+            'company-phone': {
+                validate: function (config, fieldValue, $field) {
+                    if (!fieldValue || fieldValue.trim() === '') {
+                        return { isValid: true, normalizedValue: '' };
+                    }
+
+                    const result = validator.normalizeLandlineNumber(fieldValue.trim());
+
+                    // If validation failed, return the specific error message
+                    if (!result.isValid) {
+                        return {
+                            isValid: false,
+                            normalizedValue: '',
+                            hasAreaCodeCorrection: false,
+                            errorMessage: result.error || 'Please enter a valid phone number'
+                        };
+                    }
+
+                    // Apply normalized value to field
+                    if (result.normalizedValue && result.normalizedValue !== fieldValue.trim()) {
+                        $(config.selector).val(result.normalizedValue);
+                    }
+
+                    return result;
+                },
+                defaultMessage: 'Please enter a valid phone number'
+            },
+
+            // Company name validation (allows any casing, normalizes Pty Ltd variants)
+            'company-name': {
+                validate: function (config, fieldValue, $field) {
+                    if (!fieldValue || fieldValue.trim() === '') {
+                        return { isValid: false, normalizedValue: '', hasWarning: false };
+                    }
+
+                    const originalValue = fieldValue.trim();
+
+                    // Normalize Pty Ltd and Ltd variants
+                    let normalized = originalValue
+                        // Normalize "P/L" to "Pty Ltd"
+                        .replace(/\bP\/L\b/gi, 'Pty Ltd')
+                        // Normalize "pty. ltd." to "Pty Ltd"
+                        .replace(/\bpty\.\s*ltd\.?\b/gi, 'Pty Ltd')
+                        // Normalize "pty ltd" to "Pty Ltd"
+                        .replace(/\bpty\s+ltd\b/gi, 'Pty Ltd')
+                        // Normalize standalone "limited" to "Ltd"
+                        .replace(/\blimited\b/gi, 'Ltd')
+                        // Normalize standalone "ltd." to "Ltd"
+                        .replace(/\bltd\.\b/gi, 'Ltd')
+                        // Clean up any double spaces
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    // Detect unusual casing patterns
+                    let hasWarning = false;
+                    let warningMessage = '';
+
+                    // Check if entirely lowercase
+                    if (normalized === normalized.toLowerCase()) {
+                        hasWarning = true;
+                        warningMessage = 'Company name is all lowercase - this is unusual but allowed';
+                    }
+                    // Check if entirely uppercase (except for Pty Ltd)
+                    else if (normalized.replace(/\bPty Ltd\b/g, '').replace(/\bLtd\b/g, '').trim() === normalized.replace(/\bPty Ltd\b/g, '').replace(/\bLtd\b/g, '').trim().toUpperCase()) {
+                        hasWarning = true;
+                        warningMessage = 'Company name is all uppercase - this is unusual but allowed';
+                    }
+                    // Check if mixed case in unusual way (e.g., "aBc")
+                    else {
+                        const words = normalized.split(/\s+/);
+                        for (const word of words) {
+                            if (word.length > 1 && word !== 'Pty' && word !== 'Ltd') {
+                                const firstChar = word.charAt(0);
+                                const rest = word.slice(1);
+                                // If first char is lowercase and rest has uppercase, it's unusual
+                                if (firstChar === firstChar.toLowerCase() && rest !== rest.toLowerCase()) {
+                                    hasWarning = true;
+                                    warningMessage = 'Unusual capitalization detected - please verify company name';
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Update field if normalization changed the value
+                    const changed = normalized !== originalValue;
+                    if (changed) {
+                        $field.val(normalized);
+                        console.log(`📝 Company name normalized: '${originalValue}' → '${normalized}'`);
+                    }
+
+                    return {
+                        isValid: true,
+                        normalizedValue: normalized,
+                        hasWarning: hasWarning,
+                        warningMessage: warningMessage,
+                        changed: changed
+                    };
+                },
+                defaultMessage: 'Please enter a company name',
+                displayWarning: function (fieldId, message, utils) {
+                    const $container = $('input[name="' + fieldId + '"]').closest('.kn-input');
+                    let $warningDiv = $container.find('.validation-warning-message');
+
+                    if ($warningDiv.length === 0) {
+                        $warningDiv = $('<div class="kn-message validation-warning-message" style="margin-top: 5px; background-color: #39b54a; color: white; padding: 10px; border-radius: 4px;"><span class="kn-message-body"></span></div>');
+                        $container.append($warningDiv);
+                    }
+
+                    $warningDiv.find('.kn-message-body').text('ℹ️ ' + message);
+                    $warningDiv.show();
+                },
+                clearWarning: function (fieldId, utils) {
+                    const $container = $('input[name="' + fieldId + '"]').closest('.kn-input');
+                    $container.find('.validation-warning-message').remove();
+                }
             }
         };
 
@@ -1605,17 +2176,43 @@ window.ktlReady = function (appInfo = {}) {
             view_4059: {
                 formType: 'company-creation',
                 webhook: {
-                    url: 'https://hook.us1.make.com/YOUR_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    url: 'https://hook.us1.make.com/k5x6x9cgrnxeotdocoqmkvfspe495am4',
                     enabled: true
                 },
                 postSubmissionWebhook: {
-                    url: 'https://hook.us1.make.com/YOUR_POST_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    url: 'https://hook.us1.make.com/kncqr2skxuof3i5swdbnk2o9bbcoeqvw',
                     enabled: true
                 },
                 fields: {
+                    field_992: {
+                        rule: 'company-name',
+                        selector: '#field_992',
+                        required: true
+                    },
+                    field_3783: {
+                        rule: 'short-name',
+                        selector: '#field_3783',
+                        required: false
+                    },
+                    field_3845: {
+                        rule: 'entity-type',
+                        selector: '#view_4059-field_3845',
+                        required: true
+                    },
+                    address: {
+                        rule: 'melbourne-address',
+                        selectors: {
+                            street: '#street',
+                            street2: '#street2',
+                            city: '#city',
+                            state: '#state',
+                            zip: '#zip'
+                        },
+                        required: false
+                    },
                     field_4057: {
                         rule: 'company-email',
-                        selector: '#field_4057',
+                        selector: '#view_4059 input[name="email"]',
                         required: false
                     },
                     field_4056: {
@@ -1630,11 +2227,11 @@ window.ktlReady = function (appInfo = {}) {
             view_2406: {
                 formType: 'company-update',
                 webhook: {
-                    url: 'https://hook.us1.make.com/YOUR_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    url: 'https://hook.us1.make.com/k5x6x9cgrnxeotdocoqmkvfspe495am4',
                     enabled: true
                 },
                 postSubmissionWebhook: {
-                    url: 'https://hook.us1.make.com/YOUR_POST_WEBHOOK_URL_HERE',  // TODO: Add actual webhook URL
+                    url: 'https://hook.us1.make.com/kncqr2skxuof3i5swdbnk2o9bbcoeqvw',
                     enabled: true
                 },
                 // Hidden view that contains the existing record IDs
@@ -1657,7 +2254,7 @@ window.ktlReady = function (appInfo = {}) {
                 fields: {
                     field_4057: {
                         rule: 'company-email',
-                        selector: '#field_4057',
+                        selector: '#view_2406 input[name="email"]',
                         required: false
                     },
                     field_4056: {
@@ -1688,14 +2285,18 @@ window.ktlReady = function (appInfo = {}) {
                 // Create or update error message below the field using native Knack styling
                 let $errorDiv = $field.find('.validation-error-message');
                 if ($errorDiv.length === 0) {
-                    $errorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px;"><span class="kn-message-body"></span></div>');
+                    $errorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px; display: block !important; visibility: visible !important; opacity: 1 !important;"><span class="kn-message-body"></span></div>');
                     $field.append($errorDiv);
                     console.log(`➕ Created new error div for ${fieldId}`);
                 } else {
                     console.log(`🔄 Updating existing error div for ${fieldId}`);
                 }
                 $errorDiv.find('.kn-message-body').text(message);
-                $errorDiv.show();
+                $errorDiv.css({
+                    'display': 'block',
+                    'visibility': 'visible',
+                    'opacity': '1'
+                }).show();
 
                 console.log(`❌ Validation error added to ${fieldId}: ${message}`);
             },
@@ -1942,8 +2543,10 @@ window.ktlReady = function (appInfo = {}) {
                             console.log(`❌ AU mobile validation failed - Length: ${localNumber.length}, Starts with 0: ${localNumber.startsWith('0')}, Pattern: ${australianMobilePattern.test(localNumber.substring(1))}`);
                             return { isValid: false, error: 'Invalid mobile number - should be 10 digits starting with 04 or 05', normalizedValue: '' };
                         }
-                        console.log(`✅ AU mobile validation passed`);
-                        return { isValid: true, normalizedValue: localNumber, error: '' };
+                        console.log(`✅ AU mobile validation passed - normalizing to +61 format`);
+                        // Convert to international format: remove leading 0, add +61
+                        const normalized = '+61' + localNumber.substring(1);
+                        return { isValid: true, normalizedValue: normalized, error: '' };
                     }
                 } else {
                     // International number - basic length validation
@@ -1962,38 +2565,31 @@ window.ktlReady = function (appInfo = {}) {
                 console.log(`🏠 Cleaning landline input: '${input}'`);
 
                 // Step 1: Check for extension delimiters
-                const extensionDelimiters = /\s+(ext|extension|x)\s*\.?\s*:?\s*(\d{1,5})$/i;
-                const otherDelimiters = /[,\/;|:]\s*(\d{1,5})$/;
-                const colonDelimiters = /\s+Extension:\s*(\d{1,5})$/i;
+                // Supports: ext 456, extension 456, x 456, X 456, :456, ,456, etc.
+                // NOTE: Space alone is NOT a delimiter (to avoid matching "03 9048 4411")
+                const wordExtensions = /\s+(ext|extension|x)\s*\.?\s*:?\s*(\d{1,5})$/i;
+                const symbolExtensions = /[,\/;|:]\s*(\d{1,5})$/;
 
                 let mainNumber = input;
                 let extension = '';
                 let hasExtension = false;
 
-                // Check for word-based extensions (ext, extension, x)
-                let extMatch = input.match(extensionDelimiters);
+                // Check for word-based extensions (ext, extension, x, X)
+                let extMatch = input.match(wordExtensions);
                 if (extMatch) {
-                    mainNumber = input.replace(extensionDelimiters, '').trim();
+                    mainNumber = input.replace(wordExtensions, '').trim();
                     extension = extMatch[2];
                     hasExtension = true;
-                    console.log(`📞 Found extension with word delimiter: '${extMatch[1]}${extMatch[2]}', Main: '${mainNumber}', Ext: '${extension}'`);
+                    console.log(`📞 Found extension with word delimiter '${extMatch[1]}': Main='${mainNumber}', Ext='${extension}'`);
                 } else {
-                    // Check for "Extension:" format
-                    extMatch = input.match(colonDelimiters);
+                    // Check for symbol-based extensions (, / ; | :)
+                    // This will catch: "03 9048 4411:456", "03 9048 4411,456", etc.
+                    extMatch = input.match(symbolExtensions);
                     if (extMatch) {
-                        mainNumber = input.replace(colonDelimiters, '').trim();
+                        mainNumber = input.replace(symbolExtensions, '').trim();
                         extension = extMatch[1];
                         hasExtension = true;
-                        console.log(`📞 Found extension with colon: 'Extension: ${extMatch[1]}', Main: '${mainNumber}', Ext: '${extension}'`);
-                    } else {
-                        // Check for symbol-based extensions (, / ; |)
-                        extMatch = input.match(otherDelimiters);
-                        if (extMatch) {
-                            mainNumber = input.replace(otherDelimiters, '').trim();
-                            extension = extMatch[1];
-                            hasExtension = true;
-                            console.log(`📞 Found extension with symbol: '${extMatch[0]}', Main: '${mainNumber}', Ext: '${extension}'`);
-                        }
+                        console.log(`📞 Found extension with symbol delimiter: Main='${mainNumber}', Ext='${extension}'`);
                     }
                 }
 
@@ -2035,30 +2631,61 @@ window.ktlReady = function (appInfo = {}) {
 
                     console.log(`🇦🇺 International +61 - Local part: '${localPart}', Length: ${localPart.length}`);
 
-                    // Handle missing area code for Australian numbers
-                    if (localPart.length === 8) {
-                        // Missing area code - add 03 (Melbourne default)
-                        localPart = '3' + localPart; // International format doesn't have leading 0
-                        hasAreaCodeCorrection = true;
-                        console.log(`🎯 Added area code 3 to international: '${localPart}'`);
-                    }
+                    // Check for 1300/1800 service numbers
+                    const firstFourDigits = localPart.substring(0, 4);
+                    if (firstFourDigits === '1300' || firstFourDigits === '1800') {
+                        // 1300/1800 numbers: 4 digits prefix + 2 or 6 more digits = 6 or 10 total
+                        if (localPart.length !== 6 && localPart.length !== 10) {
+                            return {
+                                isValid: false,
+                                error: `${firstFourDigits} numbers must be either 6 digits or 10 digits`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        // Convert to domestic format (remove +61, no leading zero for service numbers)
+                        normalizedNumber = localPart;
+                        console.log(`📞 ${firstFourDigits} service number accepted (converted from +61): '${normalizedNumber}'`);
+                    } else {
+                        // Standard landlines should be exactly 9 digits after +61 (area code + 8-digit local number)
+                        // Do NOT auto-correct international format - validate as-is
+                        if (localPart.length < 9) {
+                            return {
+                                isValid: false,
+                                error: `Phone number too short - need ${9 - localPart.length} more digit(s) (e.g., +61390484411)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        if (localPart.length > 9) {
+                            return {
+                                isValid: false,
+                                error: `Phone number too long - remove ${localPart.length - 9} digit(s) (e.g., +61390484411)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
 
-                    // Australian landlines should be 9 digits after +61
-                    if (localPart.length < 9) {
-                        return { isValid: false, error: 'Australian phone number too short', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-                    if (localPart.length > 9) {
-                        return { isValid: false, error: 'Australian phone number too long', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
+                        // Check if it's a mobile number (starts with 4 or 5, which is 04/05 in domestic format)
+                        const firstDigit = localPart.substring(0, 1);
+                        if (firstDigit === '4' || firstDigit === '5') {
+                            return {
+                                isValid: false,
+                                error: 'Mobiles not permitted in this field - landlines only (mobiles are for personal contacts)',
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
 
-                    // Check if it starts with valid area code (without leading 0)
-                    const areaCode = localPart.substring(0, 1); // First digit after +61
-                    const validFirstDigits = ['2', '3', '7', '8']; // Corresponds to 02, 03, 07, 08
-                    if (!validFirstDigits.includes(areaCode)) {
-                        return { isValid: false, error: `Invalid Australian area code`, normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
+                        // Check if it starts with valid area code (without leading 0)
+                        const areaCode = firstDigit; // First digit after +61
+                        const validFirstDigits = ['2', '3', '7', '8']; // Corresponds to 02, 03, 07, 08
+                        if (!validFirstDigits.includes(areaCode)) {
+                            return { isValid: false, error: `Invalid Australian area code`, normalizedValue: '', hasAreaCodeCorrection: false };
+                        }
 
-                    normalizedNumber = '+61' + localPart;
+                        normalizedNumber = '+61' + localPart;
+                    }
                 } else if (cleaned.startsWith('+') && !cleaned.startsWith('+61')) {
                     // Other international numbers - just normalize format, no validation
                     console.log(`🌍 Non-Australian international number: '${cleaned}'`);
@@ -2077,27 +2704,46 @@ window.ktlReady = function (appInfo = {}) {
 
                     console.log(`🇦🇺 International 0061 - Local part: '${localPart}', Length: ${localPart.length}`);
 
-                    // Handle missing area code for Australian numbers
-                    if (localPart.length === 8) {
-                        localPart = '3' + localPart; // Add 03 equivalent
-                        hasAreaCodeCorrection = true;
-                        console.log(`🎯 Added area code 3 to international 0061: '${localPart}'`);
-                    }
+                    // Check for 1300/1800 service numbers
+                    const firstFourDigits = localPart.substring(0, 4);
+                    if (firstFourDigits === '1300' || firstFourDigits === '1800') {
+                        if (localPart.length !== 6 && localPart.length !== 10) {
+                            return {
+                                isValid: false,
+                                error: `${firstFourDigits} numbers must be either 6 digits or 10 digits`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        normalizedNumber = localPart;
+                        console.log(`📞 ${firstFourDigits} service number accepted (converted from 0061): '${normalizedNumber}'`);
+                    } else {
+                        // Australian landlines should be exactly 9 digits - do NOT auto-correct
+                        if (localPart.length < 9) {
+                            return {
+                                isValid: false,
+                                error: `Phone number too short - need ${9 - localPart.length} more digit(s) (e.g., 0061390484411)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        if (localPart.length > 9) {
+                            return {
+                                isValid: false,
+                                error: `Phone number too long - remove ${localPart.length - 9} digit(s) (e.g., 0061390484411)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
 
-                    if (localPart.length < 9) {
-                        return { isValid: false, error: 'Australian phone number too short', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-                    if (localPart.length > 9) {
-                        return { isValid: false, error: 'Australian phone number too long', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
+                        const areaCode = localPart.substring(0, 1);
+                        const validFirstDigits = ['2', '3', '7', '8'];
+                        if (!validFirstDigits.includes(areaCode)) {
+                            return { isValid: false, error: `Invalid Australian area code`, normalizedValue: '', hasAreaCodeCorrection: false };
+                        }
 
-                    const areaCode = localPart.substring(0, 1);
-                    const validFirstDigits = ['2', '3', '7', '8'];
-                    if (!validFirstDigits.includes(areaCode)) {
-                        return { isValid: false, error: `Invalid Australian area code`, normalizedValue: '', hasAreaCodeCorrection: false };
+                        normalizedNumber = '+61' + localPart;
                     }
-
-                    normalizedNumber = '+61' + localPart;
                 } else if (cleaned.match(/^61[0-9]/)) {
                     // 61 without + at start - treat as Australian international
                     let localPart = cleaned.substring(2);
@@ -2108,59 +2754,110 @@ window.ktlReady = function (appInfo = {}) {
 
                     console.log(`🇦🇺 International 61 - Local part: '${localPart}', Length: ${localPart.length}`);
 
-                    // Handle missing area code for Australian numbers
-                    if (localPart.length === 8) {
-                        localPart = '3' + localPart; // Add 03 equivalent
-                        hasAreaCodeCorrection = true;
-                        console.log(`🎯 Added area code 3 to international 61: '${localPart}'`);
-                    }
-
-                    if (localPart.length < 9) {
-                        return { isValid: false, error: 'Australian phone number too short', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-                    if (localPart.length > 9) {
-                        return { isValid: false, error: 'Australian phone number too long', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-
-                    const areaCode = localPart.substring(0, 1);
-                    const validFirstDigits = ['2', '3', '7', '8'];
-                    if (!validFirstDigits.includes(areaCode)) {
-                        return { isValid: false, error: `Invalid Australian area code`, normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-
-                    normalizedNumber = '+61' + localPart;
-                } else if (cleaned.startsWith('0')) {
-                    // Australian number with area code
-                    if (cleaned.length < 10) {
-                        return { isValid: false, error: 'Phone number too short - should be 10 digits including area code', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-                    if (cleaned.length > 10) {
-                        return { isValid: false, error: 'Too many numbers in phone number', normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-
-                    // Validate Australian area codes
-                    const areaCode = cleaned.substring(0, 2);
-                    const validAreaCodes = ['02', '03', '07', '08'];
-                    if (!validAreaCodes.includes(areaCode)) {
-                        return { isValid: false, error: `Invalid Australian area code: ${areaCode}`, normalizedValue: '', hasAreaCodeCorrection: false };
-                    }
-
-                    normalizedNumber = cleaned;
-                } else {
-                    // No area code - assume Melbourne (03) and add it
-                    if (cleaned.length === 8) {
-                        normalizedNumber = '03' + cleaned;
-                        hasAreaCodeCorrection = true;
-                        console.log(`🎯 Added area code 03 to: '${cleaned}' → '${normalizedNumber}'`);
-                    } else if (cleaned.length < 8) {
-                        return { isValid: false, error: 'Phone number too short', normalizedValue: '', hasAreaCodeCorrection: false };
+                    // Check for 1300/1800 service numbers
+                    const firstFourDigits = localPart.substring(0, 4);
+                    if (firstFourDigits === '1300' || firstFourDigits === '1800') {
+                        if (localPart.length !== 6 && localPart.length !== 10) {
+                            return {
+                                isValid: false,
+                                error: `${firstFourDigits} numbers must be either 6 digits or 10 digits`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        normalizedNumber = localPart;
+                        console.log(`📞 ${firstFourDigits} service number accepted (converted from 61): '${normalizedNumber}'`);
                     } else {
-                        return { isValid: false, error: 'Too many numbers in phone number', normalizedValue: '', hasAreaCodeCorrection: false };
+                        // Australian landlines should be exactly 9 digits - do NOT auto-correct
+                        if (localPart.length < 9) {
+                            return {
+                                isValid: false,
+                                error: `Phone number too short - need ${9 - localPart.length} more digit(s) (e.g., 61390484411)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        if (localPart.length > 9) {
+                            return {
+                                isValid: false,
+                                error: `Phone number too long - remove ${localPart.length - 9} digit(s) (e.g., 61390484411)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+
+                        const areaCode = localPart.substring(0, 1);
+                        const validFirstDigits = ['2', '3', '7', '8'];
+                        if (!validFirstDigits.includes(areaCode)) {
+                            return { isValid: false, error: `Invalid Australian area code`, normalizedValue: '', hasAreaCodeCorrection: false };
+                        }
+
+                        normalizedNumber = '+61' + localPart;
+                    }
+                } else if (cleaned.startsWith('0')) {
+                    // Australian number with area code or service number (1300/1800)
+
+                    // Check for 1300 and 1800 service numbers first
+                    const firstFourDigits = cleaned.substring(0, 4);
+                    if (firstFourDigits === '1300' || firstFourDigits === '1800') {
+                        // 1300/1800 numbers can be 6 or 10 digits total
+                        if (cleaned.length !== 6 && cleaned.length !== 10) {
+                            return {
+                                isValid: false,
+                                error: `${firstFourDigits} numbers must be either 6 digits (${firstFourDigits.substring(0,4)} XX) or 10 digits (${firstFourDigits} XXX XXX)`,
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+                        // Keep 1300/1800 numbers in domestic format (don't convert to +61)
+                        normalizedNumber = cleaned;
+                        console.log(`📞 ${firstFourDigits} service number accepted: '${normalizedNumber}'`);
+                    } else {
+                        // Standard landline numbers
+                        if (cleaned.length < 10) {
+                            return { isValid: false, error: 'Phone number too short - Australian landlines require 10 digits including area code (e.g., 03 9048 4411)', normalizedValue: '', hasAreaCodeCorrection: false };
+                        }
+                        if (cleaned.length > 10) {
+                            return { isValid: false, error: 'Too many digits - Australian landlines require 10 digits including area code (e.g., 03 9048 4411)', normalizedValue: '', hasAreaCodeCorrection: false };
+                        }
+
+                        // Check if it's a mobile number (starts with 04 or 05)
+                        const firstTwoDigits = cleaned.substring(0, 2);
+                        if (firstTwoDigits === '04' || firstTwoDigits === '05') {
+                            return {
+                                isValid: false,
+                                error: 'Mobiles not permitted in this field - landlines only (mobiles are for personal contacts)',
+                                normalizedValue: '',
+                                hasAreaCodeCorrection: false
+                            };
+                        }
+
+                        // Validate Australian area codes
+                        const areaCode = cleaned.substring(0, 2);
+                        const validAreaCodes = ['02', '03', '07', '08'];
+                        if (!validAreaCodes.includes(areaCode)) {
+                            return { isValid: false, error: `Invalid Australian area code: ${areaCode} - must be 02, 03, 07, or 08`, normalizedValue: '', hasAreaCodeCorrection: false };
+                        }
+
+                        // Convert to +61 format: remove leading 0, add +61
+                        normalizedNumber = '+61' + cleaned.substring(1);
+                    }
+                } else {
+                    // No area code - assume Victoria (03) and add it
+                    if (cleaned.length === 8) {
+                        // Add area code 03 then convert to +61 format
+                        normalizedNumber = '+61' + '3' + cleaned;
+                        hasAreaCodeCorrection = true;
+                        console.log(`🎯 Added Victorian area code 03 to: '${cleaned}' → '${normalizedNumber}'`);
+                    } else if (cleaned.length < 8) {
+                        return { isValid: false, error: 'Phone number too short - need 8 digits (area code will be added automatically)', normalizedValue: '', hasAreaCodeCorrection: false };
+                    } else {
+                        return { isValid: false, error: 'Too many digits - expecting 8 digits (area code will be added automatically)', normalizedValue: '', hasAreaCodeCorrection: false };
                     }
                 }
 
-                // Step 7: Add extension back if present
-                const finalNumber = hasExtension ? `${normalizedNumber} ext ${extension}` : normalizedNumber;
+                // Step 7: Add extension back if present (using comma format)
+                const finalNumber = hasExtension ? `${normalizedNumber},${extension}` : normalizedNumber;
 
                 console.log(`🏠 Landline validation complete: '${finalNumber}', Area code correction: ${hasAreaCodeCorrection}`);
 
@@ -2308,12 +3005,48 @@ window.ktlReady = function (appInfo = {}) {
                     } else {
                         // Without country code: should be 10 digits starting with 04 or 05
                         console.log(`🇦🇺 AU validation without country code - Local: '${localNumber}', Length: ${localNumber.length}, Starts with 0: ${localNumber.startsWith('0')}, Pattern test: ${australianMobilePattern.test(localNumber.substring(1))}`);
-                        if (localNumber.length !== 10 || !localNumber.startsWith('0') || !australianMobilePattern.test(localNumber.substring(1))) {
-                            console.log(`❌ AU mobile validation failed - Length: ${localNumber.length}, Starts with 0: ${localNumber.startsWith('0')}, Pattern: ${australianMobilePattern.test(localNumber.substring(1))}`);
-                            return { isValid: false, error: 'Invalid mobile number - should be 10 digits starting with 04 or 05', normalizedValue: '' };
+
+                        // Check if valid Australian mobile format with detailed error messages
+                        if (localNumber.length < 10) {
+                            console.log(`❌ AU mobile validation failed - Not enough digits (${localNumber.length} digits, need 10)`);
+                            return {
+                                isValid: false,
+                                error: `Not enough digits - Australian mobile numbers require 10 digits (you entered ${localNumber.length})`,
+                                normalizedValue: ''
+                            };
                         }
-                        console.log(`✅ AU mobile validation passed`);
-                        return { isValid: true, normalizedValue: localNumber, error: '' };
+
+                        if (localNumber.length > 10) {
+                            console.log(`❌ AU mobile validation failed - Too many digits (${localNumber.length} digits, max 10)`);
+                            return {
+                                isValid: false,
+                                error: `Too many digits - Australian mobile numbers require 10 digits (you entered ${localNumber.length})`,
+                                normalizedValue: ''
+                            };
+                        }
+
+                        if (!localNumber.startsWith('0')) {
+                            console.log(`❌ AU mobile validation failed - Doesn't start with 0`);
+                            return {
+                                isValid: false,
+                                error: 'Australian mobile numbers must start with 0 (e.g., 0416 123 456)',
+                                normalizedValue: ''
+                            };
+                        }
+
+                        if (!australianMobilePattern.test(localNumber.substring(1))) {
+                            console.log(`❌ AU mobile validation failed - Not a mobile number (doesn't start with 04 or 05)`);
+                            return {
+                                isValid: false,
+                                error: 'Not a mobile number - Australian mobiles must start with 04 or 05 (e.g., 0416 123 456)',
+                                normalizedValue: ''
+                            };
+                        }
+
+                        console.log(`✅ AU mobile validation passed - normalizing to +61 format`);
+                        // Convert to international format: remove leading 0, add +61
+                        const normalized = '+61' + localNumber.substring(1);
+                        return { isValid: true, normalizedValue: normalized, error: '' };
                     }
                 } else {
                     // International number - basic length validation
@@ -2353,7 +3086,7 @@ window.ktlReady = function (appInfo = {}) {
                     const fieldValid = result.isValid;
 
                     if (!fieldValid) {
-                        const errorMessage = fieldConfig.message || ruleDefinition.defaultMessage;
+                        const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
                         utils.addFieldError(fieldId, errorMessage);
                         errors.push(errorMessage);
                         console.log(`❌ ${fieldConfig.rule} validation failed for ${fieldId}: ${errorMessage}`);
@@ -2373,6 +3106,20 @@ window.ktlReady = function (appInfo = {}) {
                             if (result.hasAreaCodeCorrection) {
                                 utils.addConfirmationMessage(fieldId, 'Please confirm area code');
                                 console.log(`🟢 Area code confirmation shown for ${fieldId}`);
+                            }
+                        }
+
+                        // Handle warnings for company-name rule
+                        if (fieldConfig.rule === 'company-name') {
+                            if (result.hasWarning && result.warningMessage) {
+                                if (ruleDefinition.displayWarning) {
+                                    ruleDefinition.displayWarning(fieldId, result.warningMessage, utils);
+                                    console.log(`⚠️ Warning shown for ${fieldId}: ${result.warningMessage}`);
+                                }
+                            } else {
+                                if (ruleDefinition.clearWarning) {
+                                    ruleDefinition.clearWarning(fieldId, utils);
+                                }
                             }
                         }
 
@@ -2420,13 +3167,28 @@ window.ktlReady = function (appInfo = {}) {
 
             /**
              * Normalize email
+             * - Preserves local part (before @) casing as entered
+             * - Converts domain (after @) to lowercase
+             * - Removes all whitespace
              */
             normalizeEmail: function(email) {
                 if (!email) return '';
 
-                return email
-                    .toLowerCase()
-                    .replace(/\s+/g, '');
+                // Remove all whitespace first
+                const trimmed = email.replace(/\s+/g, '');
+
+                // Find @ symbol
+                const atIndex = trimmed.indexOf('@');
+                if (atIndex === -1) {
+                    // No @ found, just return trimmed (invalid email, but preserve for validation)
+                    return trimmed;
+                }
+
+                // Split into local part and domain
+                const localPart = trimmed.substring(0, atIndex); // Keep original casing
+                const domain = trimmed.substring(atIndex + 1).toLowerCase(); // Force lowercase
+
+                return localPart + '@' + domain;
             },
 
             /**
@@ -2598,6 +3360,13 @@ window.ktlReady = function (appInfo = {}) {
                     payload.data.primary_phone_record_id = null;
                 }
 
+                // Store original values and change detection for post-submission webhook
+                if (formType === 'company-update') {
+                    window._originalFormValues = originalValues;
+                    window._preSubmissionChangeDetection = changeDetection;
+                    console.log(`📋 Stored original values and change detection for post-submission webhook`);
+                }
+
                 console.log(`📦 Built ${formType} payload:`, payload);
                 return payload;
             },
@@ -2707,6 +3476,367 @@ window.ktlReady = function (appInfo = {}) {
                 console.log(`🔍 Change detection:`, changes);
 
                 return changes;
+            },
+
+            /**
+             * Build post-submission payload with actual company_id
+             * This is called AFTER form submission completes
+             */
+            buildPostSubmissionPayload: function(viewId, submissionResponse) {
+                const config = viewConfigs[viewId];
+                const formType = config.formType;
+
+                console.log(`🏢 Building post-submission payload for ${formType} (${viewId})`);
+
+                // Get current user
+                let currentUserId = null;
+                let currentUserEmail = null;
+                try {
+                    if (Knack && Knack.getUserAttributes) {
+                        const userAttrs = Knack.getUserAttributes();
+                        currentUserId = userAttrs.id || null;
+                        currentUserEmail = userAttrs.email || null;
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not get current user info:`, error);
+                }
+
+                // Extract company_id (ENT record ID) from submission response
+                let companyId = null;
+                try {
+                    // Knack returns the record ID directly in response.id for form submissions
+                    if (submissionResponse && submissionResponse.id) {
+                        companyId = submissionResponse.id;
+                        console.log(`✅ Extracted company_id from submission response.id: ${companyId}`);
+                    } else if (submissionResponse && submissionResponse.record && submissionResponse.record.id) {
+                        companyId = submissionResponse.record.id;
+                        console.log(`✅ Extracted company_id from submission response.record.id: ${companyId}`);
+                    } else {
+                        console.warn(`⚠️ Could not find company_id in submission response. Keys:`, submissionResponse ? Object.keys(submissionResponse) : 'null');
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not extract company_id from submission:`, error);
+                }
+
+                // Get ECN record ID from Knack response (stored during post-submission event handler)
+                let ecnRecordId = window._ecnRecordId || null;
+
+                if (ecnRecordId) {
+                    console.log(`✅ Using ECN record ID from Knack response: ${ecnRecordId}`);
+                } else {
+                    // Fallback: Extract ECN record ID from URL
+                    try {
+                        const hash = window.location.hash;
+                        if (hash) {
+                            const segments = hash.replace(/^#/, '').split('/');
+                            if (segments.length >= 3 && segments[2]) {
+                                ecnRecordId = segments[2];
+                                console.log(`🔗 Extracted ECN record ID from URL: ${ecnRecordId}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Could not extract ECN ID from URL:`, error);
+                    }
+                }
+
+                // Get tenant_id
+                const tenantId = '648a5861b632b20027d53b8b'; // TODO: Get from config
+
+                // Use stored form data (captured just before submission)
+                // Form fields are no longer accessible after redirect
+                const storedFormData = window._preSubmissionFormData || {};
+                console.log(`📂 Using stored form data (keys):`, Object.keys(storedFormData));
+                console.log(`📂 Stored form data (full):`, JSON.stringify(storedFormData, null, 2));
+
+                // Extract values from stored form data
+                const companyNameRaw = storedFormData.field_992 || '';
+                const companyShortNameRaw = storedFormData.field_3783 || '';
+                const emailRaw = storedFormData.field_4057 || '';
+                const phoneRaw = storedFormData.field_4056 || '';
+
+                // Extract address fields from stored data
+                let streetAddressRaw = '';
+                let street2Raw = '';
+                let cityRaw = '';
+                let stateRaw = '';
+                let zipRaw = '';
+
+                if (storedFormData.address) {
+                    streetAddressRaw = storedFormData.address.street || '';
+                    street2Raw = storedFormData.address.street2 || '';
+                    cityRaw = storedFormData.address.city || '';
+                    stateRaw = storedFormData.address.state || '';
+                    zipRaw = storedFormData.address.zip || '';
+                }
+
+                // Normalize all fields
+                const companyNameNormalised = companyNameRaw;
+                const companySearch = this.normalizeCompanyName(companyNameRaw);
+                const companyShortSearch = this.normalizeCompanyName(companyShortNameRaw);
+
+                // Build full address string for search and formatted display
+                let formattedStreetAddress = '';
+                let streetAddressSearch = '';
+
+                if (streetAddressRaw || cityRaw || stateRaw || zipRaw) {
+                    const addressParts = [];
+                    if (streetAddressRaw) addressParts.push(streetAddressRaw);
+                    if (street2Raw) addressParts.push(street2Raw);
+                    if (cityRaw) addressParts.push(cityRaw);
+                    if (stateRaw) addressParts.push(stateRaw);
+                    if (zipRaw) addressParts.push(zipRaw);
+
+                    formattedStreetAddress = addressParts.join(', ');
+                    streetAddressSearch = this.normalizeStreetAddress(formattedStreetAddress);
+                }
+
+                const emailNormalised = this.normalizeEmail(emailRaw);
+                const phoneNormalised = this.normalizePhone(phoneRaw);
+
+                // Retrieve original values from window storage (set during pre-submission)
+                const originalFormValues = window._originalFormValues || {};
+                const preSubmissionChangeDetection = window._preSubmissionChangeDetection || {};
+
+                // Recalculate change detection based on FINAL submitted values
+                let finalChangeDetection = {
+                    company_name_has_changed: false,
+                    company_short_name_has_changed: false,
+                    street_address_has_changed: false,
+                    email_has_changed: false,
+                    phone_has_changed: false,
+                    email_was_deleted: false,
+                    phone_was_deleted: false
+                };
+
+                if (formType === 'company-update' && Object.keys(originalFormValues).length > 0) {
+                    console.log(`📊 Recalculating change detection based on FINAL submitted values`);
+                    finalChangeDetection = this.detectChanges(
+                        originalFormValues,
+                        companyNameNormalised,
+                        companyShortNameRaw,
+                        streetAddressRaw,
+                        emailNormalised,
+                        phoneNormalised
+                    );
+                }
+
+                // Use stored values from pre-submission webhook response, or build defaults
+                let knackApiPayloads = [];
+                let comActionType = 'create_all';
+                let sharedComIds = '';
+                let isTest = false;
+
+                // Check if we have stored payloads from pre-submission webhook
+                if (window._knackApiPayloads) {
+                    // Use the payloads from Make.com
+                    knackApiPayloads = window._knackApiPayloads;
+                    console.log(`✅ Using knack_api_payloads from pre-submission response`);
+                } else {
+                    // Fallback: Build payloads from form data
+                    const emailHasValue = emailNormalised && emailNormalised.trim() !== '';
+                    const phoneHasValue = phoneNormalised && phoneNormalised.trim() !== '';
+
+                    if (emailHasValue) {
+                        knackApiPayloads.push({
+                            field_4047: emailNormalised,
+                            field_4048: tenantId
+                        });
+                    }
+
+                    if (phoneHasValue) {
+                        knackApiPayloads.push({
+                            field_4047: phoneNormalised,
+                            field_4048: tenantId
+                        });
+                    }
+                    console.log(`⚠️ Built knack_api_payloads from form data (pre-submission response not available)`);
+                }
+
+                // Get other values from pre-submission response or use defaults
+                if (typeof window._isTest !== 'undefined') {
+                    isTest = window._isTest;
+                    console.log(`✅ Using is_test from pre-submission response: ${isTest}`);
+                } else {
+                    console.log(`⚠️ Using default is_test: ${isTest}`);
+                }
+
+                if (window._comActionType) {
+                    comActionType = window._comActionType;
+                    console.log(`✅ Using com_action_type from pre-submission response: ${comActionType}`);
+                } else {
+                    console.log(`⚠️ Using default com_action_type: ${comActionType}`);
+                }
+
+                if (window._sharedComIds) {
+                    sharedComIds = window._sharedComIds;
+                    console.log(`✅ Using shared_com_ids from pre-submission response: ${sharedComIds}`);
+                }
+
+                // Build base payload
+                const payload = {
+                    view: viewId,
+                    form_type: formType,
+                    timestamp: new Date().toISOString(),
+                    company_id: companyId,
+                    entity_id: companyId,
+                    tenant_id: tenantId,
+                    current_user: {
+                        id: currentUserId,
+                        email: currentUserEmail
+                    },
+                    ecn_record_id: ecnRecordId,
+                    company_name_normalised: companyNameNormalised,
+                    company_search: companySearch,
+                    company_short_search: companyShortSearch,
+                    street_address_search: streetAddressSearch,
+                    formatted_street_address: formattedStreetAddress,
+                    address_street: streetAddressRaw,
+                    address_street2: street2Raw,
+                    address_city: cityRaw,
+                    address_state: stateRaw,
+                    address_zip: zipRaw,
+                    email_normalised: emailNormalised,
+                    phone_normalised: phoneNormalised,
+                    knack_api_payloads: JSON.stringify(knackApiPayloads),
+                    shared_com_ids: sharedComIds,
+                    com_action_type: comActionType,
+                    is_test: isTest,
+                    is_post_submission: true,
+                    data: {
+                        form_type: formType,
+                        company_name_normalised: companyNameNormalised,
+                        company_search: companySearch,
+                        company_short_search: companyShortSearch,
+                        street_address_search: streetAddressSearch,
+                        formatted_street_address: formattedStreetAddress,
+                        address_street: streetAddressRaw,
+                        address_street2: street2Raw,
+                        address_city: cityRaw,
+                        address_state: stateRaw,
+                        address_zip: zipRaw,
+                        email_normalised: emailNormalised,
+                        phone_normalised: phoneNormalised,
+                        tenant_id: tenantId
+                    }
+                };
+
+                // Add update-specific fields ONLY for company-update forms
+                if (formType === 'company-update') {
+                    // Get existing record IDs from hidden view
+                    const existingRecordIds = this.getExistingRecordIds(viewId);
+
+                    // Add to top level
+                    payload.company_record_id = existingRecordIds.company_record_id;
+                    payload.primary_email_record_id = existingRecordIds.primary_email_record_id;
+                    payload.primary_phone_record_id = existingRecordIds.primary_phone_record_id;
+                    payload.primary_scn_record_id = existingRecordIds.primary_scn_record_id;
+                    payload.original_values = originalFormValues;
+                    payload.company_name_has_changed = finalChangeDetection.company_name_has_changed;
+                    payload.company_short_name_has_changed = finalChangeDetection.company_short_name_has_changed;
+                    payload.street_address_has_changed = finalChangeDetection.street_address_has_changed;
+                    payload.email_has_changed = finalChangeDetection.email_has_changed;
+                    payload.phone_has_changed = finalChangeDetection.phone_has_changed;
+                    payload.email_was_deleted = finalChangeDetection.email_was_deleted;
+                    payload.phone_was_deleted = finalChangeDetection.phone_was_deleted;
+
+                    // Add to data object
+                    payload.data.company_record_id = existingRecordIds.company_record_id;
+                    payload.data.primary_email_record_id = existingRecordIds.primary_email_record_id;
+                    payload.data.primary_phone_record_id = existingRecordIds.primary_phone_record_id;
+                    payload.data.primary_scn_record_id = existingRecordIds.primary_scn_record_id;
+                    payload.data.original_values = originalFormValues;
+                    payload.data.company_name_has_changed = finalChangeDetection.company_name_has_changed;
+                    payload.data.company_short_name_has_changed = finalChangeDetection.company_short_name_has_changed;
+                    payload.data.street_address_has_changed = finalChangeDetection.street_address_has_changed;
+                    payload.data.email_has_changed = finalChangeDetection.email_has_changed;
+                    payload.data.phone_has_changed = finalChangeDetection.phone_has_changed;
+                    payload.data.email_was_deleted = finalChangeDetection.email_was_deleted;
+                    payload.data.phone_was_deleted = finalChangeDetection.phone_was_deleted;
+                } else {
+                    // For creation forms, these fields should be null
+                    payload.company_record_id = null;
+                    payload.primary_email_record_id = null;
+                    payload.primary_phone_record_id = null;
+
+                    payload.data.company_record_id = null;
+                    payload.data.primary_email_record_id = null;
+                    payload.data.primary_phone_record_id = null;
+                }
+
+                console.log(`📦 Built post-submission ${formType} payload:`, payload);
+                return payload;
+            },
+
+            /**
+             * Fire post-submission webhook
+             */
+            firePostSubmissionWebhook: function(viewId, submissionResponse) {
+                const config = viewConfigs[viewId];
+
+                if (!config || !config.postSubmissionWebhook || !config.postSubmissionWebhook.enabled) {
+                    console.log(`🔗 Post-submission webhook not configured for ${viewId}`);
+                    return;
+                }
+
+                const webhookUrl = config.postSubmissionWebhook.url;
+                if (!webhookUrl || webhookUrl.includes('YOUR_POST_WEBHOOK_URL_HERE')) {
+                    console.log(`⚠️ Post-submission webhook URL not configured for ${viewId}`);
+                    return;
+                }
+
+                console.log(`🚀 Firing post-submission webhook for ${viewId}`);
+
+                // Build the payload
+                const payload = this.buildPostSubmissionPayload(viewId, submissionResponse);
+
+                // Send the webhook
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log(`✅ Post-submission webhook fired successfully for ${viewId}`);
+                        console.log(`📦 Post-submission webhook response:`, result);
+
+                        // Extract ECN ID from webhook response
+                        let ecnId = null;
+                        if (result && result.ecn_id) {
+                            ecnId = result.ecn_id;
+                            console.log(`✅ Extracted ECN ID from webhook response: ${ecnId}`);
+                        } else if (result && result.ecn_record_id) {
+                            ecnId = result.ecn_record_id;
+                            console.log(`✅ Extracted ECN ID from webhook response (ecn_record_id): ${ecnId}`);
+                        }
+
+                        // Redirect to contact view if we have ECN ID
+                        if (ecnId && viewId === 'view_4059') {
+                            const redirectUrl = `#contacts6/view-contact3/${ecnId}`;
+                            console.log(`🔀 Redirecting to contact view: ${redirectUrl}`);
+                            window.location.hash = redirectUrl;
+                        } else if (!ecnId) {
+                            console.warn(`⚠️ No ECN ID in webhook response - cannot redirect`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`❌ Post-submission webhook error for ${viewId}:`, error);
+                    })
+                    .finally(() => {
+                        // Cleanup window variables
+                        delete window._originalFormValues;
+                        delete window._preSubmissionChangeDetection;
+                        delete window._comActionType;
+                        delete window._sharedComIds;
+                        delete window._preSubmissionFormData;
+                        delete window._companyId;
+                        delete window._ecnRecordId;
+                        delete window._isTest;
+                        delete window._knackApiPayloads;
+                        console.log(`🧹 Cleaned up post-submission variables`);
+                    });
             }
         };
 
@@ -2775,6 +3905,12 @@ window.ktlReady = function (appInfo = {}) {
                 if (!config || !config.webhook.enabled || !config.webhook.url) {
                     console.log(`🔗 Webhook not configured for ${viewId}`);
                     return Promise.reject('Webhook not configured');
+                }
+
+                // Check for placeholder URL
+                if (config.webhook.url.includes('YOUR_WEBHOOK_URL_HERE')) {
+                    console.error(`❌ Webhook URL is still a placeholder for ${viewId}. Please update the webhook URL in viewConfigs.`);
+                    return Promise.reject('Webhook URL not configured - please contact system administrator');
                 }
 
                 // Check if this is a company form
@@ -2881,6 +4017,36 @@ window.ktlReady = function (appInfo = {}) {
                 const result = Array.isArray(response) ? response[0] : response;
                 const action = result.action_required;
 
+                // Store data from pre-submission response (for company forms)
+                if (result.ecn_record_id) {
+                    window._ecnRecordId = result.ecn_record_id;
+                    console.log(`📌 Stored ECN record ID from pre-submission response: ${result.ecn_record_id}`);
+                } else if (result.ecn_id) {
+                    window._ecnRecordId = result.ecn_id;
+                    console.log(`📌 Stored ECN record ID from pre-submission response: ${result.ecn_id}`);
+                }
+
+                // Store other values from pre-submission response
+                if (typeof result.is_test !== 'undefined') {
+                    window._isTest = result.is_test;
+                    console.log(`📌 Stored is_test from pre-submission response: ${result.is_test}`);
+                }
+
+                if (result.com_action_type) {
+                    window._comActionType = result.com_action_type;
+                    console.log(`📌 Stored com_action_type from pre-submission response: ${result.com_action_type}`);
+                }
+
+                if (result.shared_com_ids) {
+                    window._sharedComIds = result.shared_com_ids;
+                    console.log(`📌 Stored shared_com_ids from pre-submission response: ${result.shared_com_ids}`);
+                }
+
+                if (result.knack_api_payloads) {
+                    window._knackApiPayloads = result.knack_api_payloads;
+                    console.log(`📌 Stored knack_api_payloads from pre-submission response`);
+                }
+
                 switch (action) {
                     case 'block':
                         this.blockSubmission(result, viewId, $form, $submitBtn, originalText);
@@ -2891,7 +4057,7 @@ window.ktlReady = function (appInfo = {}) {
                         break;
 
                     case 'proceed':
-                        this.proceedWithSubmission(formData, viewId);
+                        this.proceedWithSubmission(formData, viewId, result);
                         break;
 
                     default:
@@ -3052,6 +4218,12 @@ window.ktlReady = function (appInfo = {}) {
             submitForm: function (viewId) {
                 console.log(`📤 Submitting form for ${viewId}`);
 
+                // IMPORTANT: Capture current form data before submission
+                // This data will be used in post-submission webhook since form will be gone after redirect
+                const formData = eventListeners.extractFormData(viewId);
+                window._preSubmissionFormData = formData;
+                console.log(`💾 Stored form data for post-submission webhook:`, formData);
+
                 // Set a flag to skip validation since we already validated
                 window.skipValidationForSubmit = true;
 
@@ -3163,8 +4335,44 @@ window.ktlReady = function (appInfo = {}) {
                 'Christopher', 'Jessica', 'Andrew', 'Isabella', 'Joshua', 'Charlotte', 'Ryan', 'Mia', 'Thomas', 'Grace'],
             lastNames: ['Smith', 'Jones', 'Williams', 'Brown', 'Wilson', 'Taylor', 'Anderson', 'Thomas', 'Roberts', 'Johnson',
                 'Davis', 'Miller', 'White', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Lee'],
-            companies: ['Ace Industries', 'Beta Solutions', 'Coastal Services', 'Delta Group', 'Elite Systems',
-                'Frontier Tech', 'Global Partners', 'Horizon Enterprises', 'Innovation Labs', 'Keystone Co'],
+            companies: [
+                'AA Group', 'Ace Industries', 'Advanced Building Solutions', 'Alpha Construction',
+                'Apex Property Services', 'Atlas Developments', 'Beta Solutions', 'Bright Star Cleaning',
+                'BuildRight Constructions', 'Castle Rock Builders', 'Coastal Services', 'Crown Property Group',
+                'Delta Group', 'Diamond Facilities', 'Elite Systems', 'Emerald Maintenance',
+                'Empire Building Services', 'First Choice Solutions', 'Fortress Security', 'Frontier Tech',
+                'Global Partners', 'Golden Gate Properties', 'Greenlight Services', 'Guardian Facilities',
+                'Heritage Constructions', 'Horizon Enterprises', 'Industrial Solutions Ltd', 'Innovation Labs',
+                'Jupiter Corporation', 'Keystone Co', 'Landmark Developments', 'Liberty Construction',
+                'Maximus Property Services', 'Metro Facilities', 'Mountain View Builders', 'Nationwide Solutions',
+                'Nova Construction Group', 'Omega Services', 'Pacific Building Solutions', 'Peak Performance Facilities',
+                'Pinnacle Property Group', 'Premier Building Services', 'Prime Constructions', 'Quantum Solutions',
+                'Redstone Developments', 'Royal Building Group', 'Sapphire Services', 'Silverline Construction',
+                'Skyline Property Services', 'Summit Facilities', 'Supreme Building Solutions', 'Titan Construction Group',
+                'United Property Services', 'Universal Facilities', 'Victory Building Group', 'Zenith Developments'
+            ],
+            melbourneAddresses: [
+                { street: '123 Collins Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '456 Bourke Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '789 Swanston Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '45 Exhibition Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '67 La Trobe Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '234 Queen Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '567 Lonsdale Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '890 Flinders Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '12 Spencer Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '345 William Street', city: 'Melbourne', state: 'VIC', zip: '3000' },
+                { street: '78 Chapel Street', city: 'South Yarra', state: 'VIC', zip: '3141' },
+                { street: '156 Toorak Road', city: 'South Yarra', state: 'VIC', zip: '3141' },
+                { street: '234 Bridge Road', city: 'Richmond', state: 'VIC', zip: '3121' },
+                { street: '89 Brunswick Street', city: 'Fitzroy', state: 'VIC', zip: '3065' },
+                { street: '456 Sydney Road', city: 'Brunswick', state: 'VIC', zip: '3056' },
+                { street: '123 High Street', city: 'Northcote', state: 'VIC', zip: '3070' },
+                { street: '678 Glen Eira Road', city: 'Caulfield', state: 'VIC', zip: '3162' },
+                { street: '234 Nepean Highway', city: 'Brighton', state: 'VIC', zip: '3186' },
+                { street: '567 Heidelberg Road', city: 'Alphington', state: 'VIC', zip: '3078' },
+                { street: '890 Plenty Road', city: 'Preston', state: 'VIC', zip: '3072' }
+            ],
 
             /**
              * Generates random first name
@@ -3185,6 +4393,38 @@ window.ktlReady = function (appInfo = {}) {
              */
             randomCompany: function () {
                 return this.companies[Math.floor(Math.random() * this.companies.length)];
+            },
+
+            /**
+             * Generates random Melbourne address
+             */
+            randomMelbourneAddress: function () {
+                return this.melbourneAddresses[Math.floor(Math.random() * this.melbourneAddresses.length)];
+            },
+
+            /**
+             * Generates company short name from full name
+             */
+            generateShortName: function (companyName) {
+                // Remove common suffixes
+                const cleanName = companyName
+                    .replace(/\s+(Pty\s+)?Ltd\.?$/i, '')
+                    .replace(/\s+Group$/i, '')
+                    .replace(/\s+Services$/i, '')
+                    .replace(/\s+Solutions$/i, '')
+                    .replace(/\s+Construction$/i, '')
+                    .replace(/\s+Constructions$/i, '')
+                    .trim();
+
+                // Create initials or truncated name
+                const words = cleanName.split(' ');
+                if (words.length > 1) {
+                    // Use initials for multi-word names
+                    return words.map(w => w[0]).join('').toUpperCase();
+                } else {
+                    // Use first 3-5 characters for single word
+                    return cleanName.substring(0, Math.min(5, cleanName.length));
+                }
             },
 
             /**
@@ -3229,6 +4469,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 const firstName = this.randomFirstName();
                 const lastName = this.randomLastName();
+                let companyName = null;  // Store for use in short-name rule
 
                 // Prefill each field based on its rule type
                 for (const fieldId in config.fields) {
@@ -3266,9 +4507,46 @@ window.ktlReady = function (appInfo = {}) {
                             break;
 
                         case 'proper-case-text':
-                            const company = this.randomCompany();
-                            $(fieldConfig.selector).val(company).trigger('blur');
-                            console.log(`✓ Prefilled text: ${company}`);
+                            companyName = this.randomCompany();
+                            $(fieldConfig.selector).val(companyName).trigger('blur');
+                            console.log(`✓ Prefilled text: ${companyName}`);
+                            break;
+
+                        case 'short-name':
+                            if (companyName) {
+                                const shortName = this.generateShortName(companyName);
+                                $(fieldConfig.selector).val(shortName).trigger('blur');
+                                console.log(`✓ Prefilled short name: ${shortName}`);
+                            }
+                            break;
+
+                        case 'entity-type':
+                            // Always set to "Company" for test purposes
+                            $(fieldConfig.selector).val('Company').trigger('change');
+                            console.log(`✓ Set entity type: Company`);
+                            break;
+
+                        case 'melbourne-address':
+                            const address = this.randomMelbourneAddress();
+                            $(fieldConfig.selectors.street).val(address.street).trigger('input');
+                            $(fieldConfig.selectors.city).val(address.city).trigger('input');
+                            $(fieldConfig.selectors.state).val(address.state).trigger('input');
+                            $(fieldConfig.selectors.zip).val(address.zip).trigger('input');
+                            console.log(`✓ Prefilled address: ${address.street}, ${address.city} ${address.state} ${address.zip}`);
+                            break;
+
+                        case 'company-email':
+                            const compEmail = companyName ?
+                                `info@${companyName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com.au` :
+                                `info@${this.randomCompany().toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com.au`;
+                            $(fieldConfig.selector).val(compEmail).trigger('input');
+                            console.log(`✓ Prefilled company email: ${compEmail}`);
+                            break;
+
+                        case 'company-phone':
+                            const compPhone = this.randomLandline();
+                            $(fieldConfig.selector).val(compPhone).trigger('blur');
+                            console.log(`✓ Prefilled company phone: ${compPhone}`);
                             break;
 
                         case 'contact-group':
@@ -3310,9 +4588,14 @@ window.ktlReady = function (appInfo = {}) {
                     </div>
                 `);
 
-                // Add click handler
-                $button.find('.test-data-prefill-btn').on('click', () => {
-                    this.prefillForm(viewId);
+                // Add click handler - use testDataGenerator object directly
+                $button.find('.test-data-prefill-btn').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`🎲 Fill Test Data button clicked for ${viewId}`);
+
+                    // Call prefillForm directly on the testDataGenerator object
+                    testDataGenerator.prefillForm(viewId);
                 });
 
                 // Insert at top of form
@@ -3379,7 +4662,12 @@ window.ktlReady = function (appInfo = {}) {
 
                                 // On failure, show error and re-enable form
                                 $submitBtn.prop('disabled', false).text(originalText);
-                                duplicateHandler.showError('Unable to process form submission. Please try again.');
+
+                                // Show more specific error message
+                                const errorMessage = typeof error === 'string' && error.includes('not configured')
+                                    ? error
+                                    : 'Unable to process form submission. Please try again.';
+                                duplicateHandler.showError(errorMessage);
                             });
 
                         return false;
@@ -3428,12 +4716,64 @@ window.ktlReady = function (appInfo = {}) {
 
                                 // On failure, show error and re-enable form
                                 $submitBtn.prop('disabled', false).text(originalText);
-                                duplicateHandler.showError('Unable to process form submission. Please try again.');
+
+                                // Show more specific error message
+                                const errorMessage = typeof error === 'string' && error.includes('not configured')
+                                    ? error
+                                    : 'Unable to process form submission. Please try again.';
+                                duplicateHandler.showError(errorMessage);
                             });
 
                         return false;
                     });
                 });
+            },
+
+            /**
+             * Validates prefilled fields on initial render
+             */
+            validatePrefilledFields: function (viewId) {
+                const config = viewConfigs[viewId];
+                if (!config || !config.fields) return;
+
+                console.log(`🔍 Checking prefilled fields for ${viewId}`);
+
+                for (const fieldId in config.fields) {
+                    const fieldConfig = config.fields[fieldId];
+                    if (!fieldConfig.rule) continue;
+
+                    const ruleDefinition = validationRuleTypes[fieldConfig.rule];
+                    if (!ruleDefinition) continue;
+
+                    // Get field value
+                    const $field = fieldConfig.selector ? $(fieldConfig.selector) : null;
+                    if (!$field || $field.length === 0) continue;
+
+                    const fieldValue = $field.val() || '';
+
+                    // Only validate if field has a value (is prefilled)
+                    if (!fieldValue || fieldValue.trim() === '') continue;
+
+                    console.log(`🔍 Validating prefilled field ${fieldId} with value: '${fieldValue}'`);
+
+                    // Run validation
+                    const result = ruleDefinition.validate(fieldConfig, fieldValue, $field);
+
+                    // Handle warnings for company-name
+                    if (fieldConfig.rule === 'company-name' && result.isValid) {
+                        if (result.hasWarning && result.warningMessage && ruleDefinition.displayWarning) {
+                            ruleDefinition.displayWarning(fieldId, result.warningMessage, utils);
+                            console.log(`⚠️ Warning shown for prefilled ${fieldId}: ${result.warningMessage}`);
+                        }
+                    }
+
+                    // Show errors for invalid prefilled fields
+                    if (!result.isValid) {
+                        const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
+                        utils.addFieldError(fieldId, errorMessage);
+                        console.log(`❌ Error shown for prefilled ${fieldId}: ${errorMessage}`);
+                    }
+                }
             },
 
             /**
@@ -3465,9 +4805,21 @@ window.ktlReady = function (appInfo = {}) {
                                 break;
                             case 'mobile-number':
                             case 'landline-number':
+                            case 'company-phone':
                             case 'proper-case-text':
+                            case 'company-name':
+                            case 'short-name':
+                            case 'entity-type':
                                 events = 'blur';
                                 selectors = fieldConfig.selector;
+                                break;
+                            case 'company-email':
+                                events = 'blur';
+                                selectors = fieldConfig.selector;
+                                break;
+                            case 'melbourne-address':
+                                events = 'blur';
+                                selectors = Object.values(fieldConfig.selectors).join(', ');
                                 break;
                             case 'contact-group':
                                 events = 'input blur';
@@ -3481,9 +4833,11 @@ window.ktlReady = function (appInfo = {}) {
                         $(document).on(events, selectors, function () {
                             fieldTracker.markFieldInteracted(viewId, fieldId);
                             if (fieldTracker.hasFieldBeenInteracted(viewId, fieldId)) {
-                                // Get field value
-                                const $field = $(fieldConfig.selector);
+                                // Get field value - handle both single selector and multiple selectors
+                                const $field = fieldConfig.selector ? $(fieldConfig.selector) : $(this);
                                 const fieldValue = $field.val() || '';
+
+                                console.log(`🔍 Validating ${fieldId} (${fieldConfig.rule}) on ${events}`);
 
                                 // Run validation
                                 const result = ruleDefinition.validate(fieldConfig, fieldValue, $field);
@@ -3492,13 +4846,17 @@ window.ktlReady = function (appInfo = {}) {
                                     utils.removeFieldError(fieldId);
 
                                     // Update field with normalized value if provided
-                                    if (result.normalizedValue && result.normalizedValue !== fieldValue) {
+                                    // Skip for address fields (they handle normalization internally)
+                                    if (result.normalizedValue &&
+                                        result.normalizedValue !== fieldValue &&
+                                        fieldConfig.rule !== 'melbourne-address' &&
+                                        typeof result.normalizedValue === 'string') {
                                         $field.val(result.normalizedValue);
                                         console.log(`🔄 Field ${fieldId} normalized on interaction: ${result.normalizedValue}`);
                                     }
 
                                     // Handle special cases for certain rule types
-                                    if (fieldConfig.rule === 'landline-number') {
+                                    if (fieldConfig.rule === 'landline-number' || fieldConfig.rule === 'company-phone') {
                                         utils.removeConfirmationMessage(fieldId);
                                         if (result.hasAreaCodeCorrection) {
                                             utils.addConfirmationMessage(fieldId, 'Please confirm area code');
@@ -3506,7 +4864,22 @@ window.ktlReady = function (appInfo = {}) {
                                         }
                                     }
 
+                                    // Handle warnings for company-name
+                                    if (fieldConfig.rule === 'company-name') {
+                                        if (result.hasWarning && result.warningMessage && ruleDefinition.displayWarning) {
+                                            ruleDefinition.displayWarning(fieldId, result.warningMessage, utils);
+                                            console.log(`⚠️ Warning shown for ${fieldId}: ${result.warningMessage}`);
+                                        } else if (ruleDefinition.clearWarning) {
+                                            ruleDefinition.clearWarning(fieldId, utils);
+                                        }
+                                    }
+
                                     console.log(`✅ Real-time validation passed for ${fieldId}`);
+                                } else {
+                                    // Validation failed - show error
+                                    const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
+                                    utils.addFieldError(fieldId, errorMessage);
+                                    console.log(`❌ Real-time validation failed for ${fieldId}: ${errorMessage}`);
                                 }
                             }
                         });
@@ -3515,16 +4888,96 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
+             * Sets up listeners to normalize address fields after Google Maps autocomplete
+             * Knack uses Google Places API which fills fields without triggering blur events
+             */
+            setupAddressAutocompleteListeners: function () {
+                Object.keys(viewConfigs).forEach(viewId => {
+                    const config = viewConfigs[viewId];
+                    if (!config || !config.fields) return;
+
+                    // Find address fields
+                    for (const fieldId in config.fields) {
+                        const fieldConfig = config.fields[fieldId];
+                        if (fieldConfig.rule !== 'melbourne-address') continue;
+
+                        const selectors = fieldConfig.selectors;
+                        console.log(`🗺️ Setting up autocomplete listeners for address in ${viewId}`);
+
+                        // Monitor all address input fields for changes using MutationObserver
+                        // This catches Google Maps autocomplete which changes value without triggering events
+                        Object.keys(selectors).forEach(subField => {
+                            const selector = selectors[subField];
+                            const $field = $(selector);
+
+                            if ($field.length === 0) {
+                                console.log(`⚠️ Address field ${subField} not found: ${selector}`);
+                                return;
+                            }
+
+                            // Use input event to catch autocomplete changes
+                            // Google autocomplete triggers 'input' event when filling fields
+                            $(document).on('input change', selector, function() {
+                                console.log(`🗺️ Address field ${subField} changed, scheduling normalization`);
+
+                                // Debounce the normalization to avoid multiple rapid triggers
+                                clearTimeout(window.addressNormalizationTimer);
+                                window.addressNormalizationTimer = setTimeout(() => {
+                                    console.log(`🗺️ Running address normalization after autocomplete for ${viewId}`);
+                                    eventListeners.normalizeAddressFieldsAfterAutocomplete(viewId, fieldId, fieldConfig);
+                                }, 500); // Wait 500ms after last change
+                            });
+
+                            console.log(`✓ Autocomplete listener added for ${subField}: ${selector}`);
+                        });
+                    }
+                });
+            },
+
+            /**
+             * Normalizes address fields after autocomplete fills them
+             */
+            normalizeAddressFieldsAfterAutocomplete: function(viewId, fieldId, fieldConfig) {
+                const ruleDefinition = validationRuleTypes['melbourne-address'];
+                if (!ruleDefinition) return;
+
+                // Get current field values
+                const selectors = fieldConfig.selectors;
+                const streetRaw = $(selectors.street).val() || '';
+                const street2Raw = $(selectors.street2).val() || '';
+                const cityRaw = $(selectors.city).val() || '';
+                const stateRaw = $(selectors.state).val() || '';
+                const zipRaw = $(selectors.zip).val() || '';
+
+                console.log(`🗺️ Autocomplete filled values - Street: '${streetRaw}', City: '${cityRaw}', State: '${stateRaw}'`);
+
+                // Run the validation which also normalizes
+                const result = ruleDefinition.validate(fieldConfig, null, null);
+
+                if (result.isValid && result.normalizedValue) {
+                    console.log(`✅ Address normalized after autocomplete`);
+                    // The normalization is already applied by the validate function
+                } else {
+                    console.log(`⚠️ Address normalization skipped - empty or invalid`);
+                }
+            },
+
+            /**
              * Extracts form data for webhook payload
              */
             extractFormData: function (viewId) {
+                console.log(`📋 Extracting form data for ${viewId}`);
                 const formData = {};
                 const config = viewConfigs[viewId];
 
-                if (!config || !config.fields) return formData;
+                if (!config || !config.fields) {
+                    console.warn(`⚠️ No config or fields found for ${viewId}`);
+                    return formData;
+                }
 
                 for (const fieldId in config.fields) {
                     const fieldConfig = config.fields[fieldId];
+                    console.log(`  - Field ${fieldId} (${fieldConfig.rule})`);
 
                     switch (fieldConfig.rule) {
                         case 'checkbox-required':
@@ -3533,6 +4986,7 @@ window.ktlReady = function (appInfo = {}) {
                                 selectedValues.push($(this).val());
                             });
                             formData[fieldId] = selectedValues;
+                            console.log(`    ✓ Extracted checkbox values:`, selectedValues);
                             break;
 
                         case 'name-fields':
@@ -3540,18 +4994,35 @@ window.ktlReady = function (appInfo = {}) {
                                 first: $(fieldConfig.selectors.first).val().trim(),
                                 last: $(fieldConfig.selectors.last).val().trim()
                             };
+                            console.log(`    ✓ Extracted name:`, formData[fieldId]);
                             break;
 
                         case 'mobile-number':
-                            formData[fieldId] = $(fieldConfig.selector).val().trim();
-                            break;
-
                         case 'landline-number':
-                            formData[fieldId] = $(fieldConfig.selector).val().trim();
+                        case 'proper-case-text':
+                        case 'short-name':
+                        case 'company-email':
+                        case 'company-phone':
+                        case 'company-name':
+                            const value = $(fieldConfig.selector).val();
+                            formData[fieldId] = value ? value.trim() : '';
+                            console.log(`    ✓ Extracted value: '${formData[fieldId]}'`);
                             break;
 
-                        case 'proper-case-text':
-                            formData[fieldId] = $(fieldConfig.selector).val().trim();
+                        case 'entity-type':
+                            formData[fieldId] = $(fieldConfig.selector).val() || '';
+                            console.log(`    ✓ Extracted entity-type: '${formData[fieldId]}'`);
+                            break;
+
+                        case 'melbourne-address':
+                            formData[fieldId] = {
+                                street: $(fieldConfig.selectors.street).val() || '',
+                                street2: $(fieldConfig.selectors.street2).val() || '',
+                                city: $(fieldConfig.selectors.city).val() || '',
+                                state: $(fieldConfig.selectors.state).val() || '',
+                                zip: $(fieldConfig.selectors.zip).val() || ''
+                            };
+                            console.log(`    ✓ Extracted address:`, formData[fieldId]);
                             break;
 
                         case 'contact-group':
@@ -3560,13 +5031,18 @@ window.ktlReady = function (appInfo = {}) {
                                 mobile: $(fieldConfig.selectors.mobile).val().trim(),
                                 phone: $(fieldConfig.selectors.phone).val().trim()
                             };
+                            console.log(`    ✓ Extracted contact_info:`, formData.contact_info);
                             break;
 
                         default:
-                            formData[fieldId] = $(fieldConfig.selector).val().trim();
+                            // Safe default handling
+                            const defaultValue = $(fieldConfig.selector).val();
+                            formData[fieldId] = defaultValue ? defaultValue.trim() : '';
+                            console.log(`    ✓ Extracted (default): '${formData[fieldId]}'`);
                     }
                 }
 
+                console.log(`📦 Extracted complete form data:`, formData);
                 return formData;
             }
         };
@@ -3580,6 +5056,45 @@ window.ktlReady = function (appInfo = {}) {
                 console.log('🚀 Initializing Form Validation and Webhook Control System');
                 eventListeners.setupFormSubmissionListeners();
                 eventListeners.setupFieldInteractionListeners();
+                eventListeners.setupAddressAutocompleteListeners();
+
+                // Set up post-submission webhook listeners for company forms
+                $(document).on('knack-form-submit.view_4059', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_4059 (company-creation)`);
+                    console.log(`📦 Submission response:`, response);
+
+                    // Fire post-submission webhook immediately
+                    // The webhook will create the ECN and return the ecn_id for redirect
+                    console.log(`🚀 Firing post-submission webhook (will redirect after response)`);
+                    companyFormHandler.firePostSubmissionWebhook('view_4059', response);
+                });
+
+                $(document).on('knack-form-submit.view_2406', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_2406 (company-update)`);
+                    console.log(`📦 Submission response:`, response);
+
+                    // Extract ECN ID from Knack's response
+                    let ecnId = null;
+                    try {
+                        if (response && response.record && response.record.id) {
+                            ecnId = response.record.id;
+                            console.log(`✅ Extracted ECN ID from Knack response: ${ecnId}`);
+                        }
+                    } catch (error) {
+                        console.error(`❌ Could not extract ECN ID from response:`, error);
+                    }
+
+                    // Store ECN ID for post-submission webhook
+                    if (ecnId) {
+                        window._ecnRecordId = ecnId;
+                    }
+
+                    // Fire post-submission webhook (update forms may not need redirect)
+                    setTimeout(() => {
+                        console.log(`⏱️ Firing post-submission webhook for update form`);
+                        companyFormHandler.firePostSubmissionWebhook('view_2406', response);
+                    }, 1000);
+                });
 
                 // Add test data prefill buttons to configured views
                 $(document).on('knack-view-render.any', function (event, view, data) {
@@ -3589,6 +5104,14 @@ window.ktlReady = function (appInfo = {}) {
                         setTimeout(() => {
                             testDataGenerator.addPrefillButton(viewId);
                         }, 100);
+
+                        // Validate prefilled fields for company forms
+                        if (viewId === 'view_4059' || viewId === 'view_2406') {
+                            console.log(`📋 Company form (${viewId}) rendered - checking for prefilled fields`);
+                            setTimeout(() => {
+                                eventListeners.validatePrefilledFields(viewId);
+                            }, 500);
+                        }
                     }
                 });
 
@@ -3694,6 +5217,957 @@ window.ktlReady = function (appInfo = {}) {
 
         console.log('👀 Knack error interceptor initialized');
     }
+
+    // ========================================================================
+    // XERO-STYLE SEARCH-TO-CREATE MODULE
+    // ========================================================================
+
+    /**
+     * Universal Xero-style search module
+     * Provides search-as-you-type with "+ New" link functionality
+     * Includes smart duplicate detection for contacts vs companies
+     */
+    const XeroStyleSearch = {
+        registrations: {},
+
+        /**
+         * Normalize spaces: preserve trailing space, collapse multiples, remove leading
+         */
+        normalizeSpaces: function(str) {
+            if (!str) return '';
+
+            // Check if original has trailing space
+            const hasTrailingSpace = str !== str.trimEnd();
+
+            // Remove leading spaces, collapse multiple spaces to one
+            let normalized = str.trimStart().replace(/\s+/g, ' ');
+
+            // Preserve single trailing space if original had one
+            if (hasTrailingSpace && !normalized.endsWith(' ')) {
+                normalized += ' ';
+            }
+
+            return normalized;
+        },
+
+        /**
+         * Convert string to Proper Case
+         */
+        toProperCase: function(str) {
+            if (!str) return '';
+            return str
+                .toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        },
+
+        /**
+         * Register a new entity for search-to-create
+         */
+        register: function(config) {
+            const {
+                entityName,
+                listViewId,
+                addButtonViewId,
+                nameFieldId,
+                minChars = 2,
+                checkForExactMatch = false,
+                connectionTypeFieldId = null, // For duplicate detection
+                showModal = false, // If true, show modal choice between company/contact
+                modalButtons = null // {company: 'Add Company', contact: 'Add Contact'}
+            } = config;
+
+            this.registrations[listViewId] = {
+                entityName,
+                listViewId,
+                addButtonViewId,
+                nameFieldId,
+                minChars,
+                checkForExactMatch,
+                connectionTypeFieldId,
+                showModal,
+                modalButtons
+            };
+
+            console.log(`✅ Registered XeroStyleSearch for "${entityName}" on ${listViewId}`);
+
+            // Initialize if view is already on page
+            this.init(this.registrations[listViewId]);
+        },
+
+        /**
+         * Initialize search for a registered view
+         */
+        init: function(cfg) {
+            console.log(`🔍 Initializing Xero-style search for ${cfg.entityName}...`);
+
+            // Wait for view to be ready
+            $(document).on(`knack-view-render.${cfg.listViewId}`, () => {
+                console.log(`   ✓ View ${cfg.listViewId} rendered`);
+
+                // Check if view exists
+                const $view = $(`#${cfg.listViewId}`);
+                if ($view.length) {
+                    this.setupLiveSearch(cfg);
+                }
+            });
+
+            // Try immediate setup in case view already rendered
+            const $view = $(`#${cfg.listViewId}`);
+            if ($view.length) {
+                console.log(`   ✓ Found ${cfg.listViewId} already on page, setting up now...`);
+                this.setupLiveSearch(cfg);
+            }
+        },
+
+        /**
+         * Set up live search functionality
+         */
+        setupLiveSearch: function(cfg) {
+            const $searchInput = $(`#${cfg.listViewId} input[name="keyword"]`);
+            const $searchForm = $(`#${cfg.listViewId} .table-keyword-search`);
+            const $searchContainer = $searchForm.length ? $searchForm : $(`#${cfg.listViewId} .kn-records-nav`);
+
+            if (!$searchInput.length || !$searchContainer.length) {
+                console.log(`   ⚠ Search input or container not found for ${cfg.listViewId}`);
+                return;
+            }
+
+            // Check if already initialized
+            if ($searchInput.data('xero-initialized')) {
+                console.log(`   ⚠ Already initialized, skipping...`);
+                return;
+            }
+
+            $searchInput.data('xero-initialized', true);
+            console.log(`   ✓ Found search input and container`);
+
+            // Update placeholder text
+            $searchInput.attr('placeholder', 'Search to Add Contacts');
+
+            let debounceTimer = null;
+            let lastSearchTerm = '';
+            let lastSearchHadResults = true;
+            let searchInProgress = false;
+
+            // Prevent form submission on Enter key
+            $searchInput.on('keydown', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    console.log(`   ⏎ Enter key pressed - preventing form submission`);
+
+                    // Clear any pending debounce timer to prevent double search
+                    if (debounceTimer) {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = null;
+                    }
+
+                    // Trigger search immediately instead of waiting for debounce
+                    const searchTerm = XeroStyleSearch.normalizeSpaces($(this).val());
+                    if (searchTerm.length >= cfg.minChars) {
+                        XeroStyleSearch.filterTableDirectly(cfg.listViewId, searchTerm);
+
+                        // Check if search has results
+                        setTimeout(() => {
+                            const rowCount = $(`#${cfg.listViewId} tbody tr`).length;
+                            lastSearchHadResults = rowCount > 0;
+                            lastSearchTerm = searchTerm;
+                        }, 300);
+
+                        XeroStyleSearch.showAddNewLink(cfg, searchTerm, $searchContainer);
+                    }
+
+                    return false;
+                }
+            });
+
+            // Input handler with debouncing
+            $searchInput.on('input', function() {
+                const rawValue = $(this).val();
+                const searchTerm = XeroStyleSearch.normalizeSpaces(rawValue);
+
+                console.log(`   🔍 Search term: "${searchTerm}"`);
+
+                // Clear any existing timer
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                }
+
+                // Optimization: Skip search if adding characters to a zero-result search
+                if (!lastSearchHadResults &&
+                    lastSearchTerm.length > 0 &&
+                    searchTerm.startsWith(lastSearchTerm) &&
+                    searchTerm.length > lastSearchTerm.length) {
+                    console.log(`   ⚡ Skipping search - previous search had no results and term is longer`);
+
+                    // Still show the "+ New" link
+                    const trimmedTerm = searchTerm.trim();
+                    if (trimmedTerm.length >= cfg.minChars) {
+                        XeroStyleSearch.showAddNewLink(cfg, trimmedTerm, $searchContainer);
+                    }
+                    return;
+                }
+
+                // Debounce - wait 900ms after user stops typing (increased from 600ms)
+                debounceTimer = setTimeout(() => {
+                    // Prevent duplicate searches
+                    if (searchInProgress) {
+                        console.log(`   ⚠️ Search already in progress, skipping...`);
+                        return;
+                    }
+
+                    searchInProgress = true;
+                    console.log(`   ⏱️ Pause detected (900ms), filtering for: "${searchTerm}"`);
+
+                    // Normalize the input value in place
+                    if (rawValue !== searchTerm) {
+                        $(this).val(searchTerm);
+                    }
+
+                    // Filter table using server-side search (button will be shown by MutationObserver)
+                    XeroStyleSearch.filterTableDirectly(cfg.listViewId, searchTerm);
+
+                    // After search completes, check if we got results and reset flag
+                    setTimeout(() => {
+                        const rowCount = $(`#${cfg.listViewId} tbody tr`).length;
+                        lastSearchHadResults = rowCount > 0;
+                        lastSearchTerm = searchTerm;
+                        searchInProgress = false;
+                        console.log(`   📊 Search results: ${rowCount} rows found`);
+                    }, 1000);
+
+                    // DON'T show button here - let MutationObserver handle it after re-render
+                }, 900);
+            });
+
+            // Clear button handler
+            $searchContainer.find('.search-clear').on('click', function() {
+                XeroStyleSearch.hideAddNewLink($searchContainer);
+            });
+
+            console.log(`   ✅ Live search initialized for ${cfg.entityName}`);
+        },
+
+        /**
+         * Filter table using server-side search with MutationObserver
+         */
+        filterTableDirectly: function(viewId, searchTerm) {
+            const $searchInput = $(`#${viewId} input[name="keyword"]`);
+            const $searchButton = $(`#${viewId} a.kn-button.search`);
+
+            if (!$searchButton.length) {
+                console.log(`   ⚠ Search button not found for ${viewId}`);
+                return;
+            }
+
+            // Ensure search input has the value
+            $searchInput.val(searchTerm);
+
+            console.log(`   🔄 Triggering server-side search for: "${searchTerm}"`);
+
+            // Set up a MutationObserver to watch for the new input element after re-render
+            const observer = new MutationObserver((mutations) => {
+                const $newInput = $(`#${viewId} input[name="keyword"]`);
+                const $newSearchForm = $(`#${viewId} .table-keyword-search`);
+                const $newContainer = $newSearchForm.length ? $newSearchForm : $(`#${viewId} .kn-records-nav`);
+
+                if ($newInput.length && $newInput[0] !== $searchInput[0]) {
+                    console.log(`   🔄 New input detected, restoring state...`);
+
+                    // New input detected - restore value and focus
+                    $newInput.val(searchTerm);
+                    $newInput.focus();
+
+                    // Set cursor to end
+                    const len = searchTerm.length;
+                    if ($newInput[0].setSelectionRange) {
+                        $newInput[0].setSelectionRange(len, len);
+                    }
+
+                    console.log(`   ✅ Focus and value restored`);
+
+                    observer.disconnect();
+
+                    // Re-show the "+ New" link after re-render (use correct container)
+                    const cfg = XeroStyleSearch.registrations[viewId];
+                    if (cfg && searchTerm.trim().length >= cfg.minChars && $newContainer.length) {
+                        setTimeout(() => {
+                            XeroStyleSearch.showAddNewLink(cfg, searchTerm.trim(), $newContainer);
+                        }, 100);
+                    }
+                }
+            });
+
+            // Start observing the view container for changes
+            const viewContainer = document.getElementById(viewId);
+            if (viewContainer) {
+                observer.observe(viewContainer, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+
+            // Click the search button to trigger server-side search
+            console.log(`   🔘 Clicking search button...`);
+            $searchButton[0].click();
+
+            // Disconnect observer after 2 seconds as a safety measure
+            setTimeout(() => {
+                observer.disconnect();
+            }, 2000);
+        },
+
+        /**
+         * Normalize company name by removing "Pty Ltd" and "Ltd" variations
+         */
+        normalizeCompanyName: function(name) {
+            if (!name) return '';
+
+            return name.toLowerCase().trim()
+                .replace(/\s*pty\.?\s*ltd\.?\s*$/i, '')  // Remove "Pty Ltd" at end
+                .replace(/\s*pty\.?\s*$/i, '')           // Remove "Pty" at end
+                .replace(/\s*ltd\.?\s*$/i, '')           // Remove "Ltd" at end
+                .trim();
+        },
+
+        /**
+         * Check for exact match and determine if it's a contact or company
+         */
+        checkForDuplicate: function(cfg, searchTerm) {
+            if (!cfg.checkForExactMatch || !cfg.connectionTypeFieldId) {
+                return null;
+            }
+
+            const $tableRows = $(`#${cfg.listViewId} tbody tr`);
+            let exactMatch = null;
+            const searchTermLower = searchTerm.toLowerCase().trim();
+            const searchTermNormalized = this.normalizeCompanyName(searchTerm);
+
+            console.log(`   🔍 Checking for duplicates. Search term: "${searchTermLower}", Normalized: "${searchTermNormalized}", Rows found: ${$tableRows.length}`);
+
+            $tableRows.each(function(index) {
+                const $row = $(this);
+                const $cells = $row.find('td');
+
+                // Check ALL cells to find the name (first cell might be ID)
+                let foundMatchInRow = false;
+                let matchedCellIndex = -1;
+
+                $cells.each(function(cellIndex) {
+                    const cellText = $(this).text().trim();
+                    const cellTextLower = cellText.toLowerCase();
+                    const cellTextNormalized = XeroStyleSearch.normalizeCompanyName(cellText);
+
+                    // Check for EXACT match (exact or normalized match for company names)
+                    const exactTextMatch = cellTextLower === searchTermLower;
+                    const normalizedMatch = (searchTermNormalized.length > 0) &&
+                                          (cellTextNormalized === searchTermNormalized);
+
+                    if (exactTextMatch || normalizedMatch) {
+                        foundMatchInRow = true;
+                        matchedCellIndex = cellIndex;
+                        const matchType = exactTextMatch ? 'exact' : 'normalized (Pty/Ltd)';
+                        console.log(`   🎯 ${matchType} match found in Row ${index}, Cell ${cellIndex}: "${cellText}"`);
+                        return false; // Break cell loop
+                    }
+                });
+
+                // If we found a match in this row, check for Connection Type
+                if (foundMatchInRow) {
+                    console.log(`   📋 Checking cells in matched row ${index}:`);
+
+                    $cells.each(function(cellIndex) {
+                        const cellText = $(this).text().trim();
+                        console.log(`      Cell ${cellIndex}: "${cellText}"`);
+
+                        // Check if this is a "Self - Contact" (person) vs other types (company)
+                        if (cellText.includes('Self - Contact')) {
+                            exactMatch = {
+                                type: 'contact',
+                                allowDuplicate: true,
+                                $row: $row
+                            };
+                            console.log(`   👤 Match is a Contact (Person) - allowing duplicate`);
+                            return false; // Break
+                        } else if (cellText.includes('Self - ')) {
+                            exactMatch = {
+                                type: 'company',
+                                allowDuplicate: false,
+                                $row: $row
+                            };
+                            console.log(`   🏢 Match is a Company - blocking duplicate`);
+                            return false; // Break
+                        }
+                    });
+
+                    if (exactMatch) {
+                        return false; // Break outer loop
+                    }
+                }
+            });
+
+            if (!exactMatch) {
+                console.log(`   ✅ No exact match found - showing create button`);
+            }
+
+            return exactMatch;
+        },
+
+        /**
+         * Show the "+ New" link (or update existing)
+         */
+        showAddNewLink: function(cfg, searchTerm, $container) {
+            // Clear any previous highlights first
+            const $view = $container.closest(`[id^="view_"]`);
+            $view.find('.xero-exact-match-highlight').removeClass('xero-exact-match-highlight');
+
+            // Check for duplicates if enabled
+            const duplicate = this.checkForDuplicate(cfg, searchTerm);
+
+            // If duplicate is a company, hide button and highlight the row
+            if (duplicate && !duplicate.allowDuplicate) {
+                console.log(`   ⚠ Exact company match found, highlighting row and hiding button`);
+                duplicate.$row.addClass('xero-exact-match-highlight');
+                console.log(`   🎨 Added highlight class to row. Classes: ${duplicate.$row.attr('class')}`);
+                this.hideAddNewLink($container);
+                return;
+            }
+
+            // If duplicate is a contact (person), highlight the row but still show the button
+            if (duplicate && duplicate.allowDuplicate) {
+                console.log(`   ℹ️ Exact contact match found, highlighting row but allowing duplicate`);
+                duplicate.$row.addClass('xero-exact-match-highlight');
+                console.log(`   🎨 Added highlight class to row. Classes: ${duplicate.$row.attr('class')}`);
+                // Continue to show the button below
+            }
+
+            // Determine if this looks like a phone/email (searching, not creating)
+            const isPhone = /^[\d\s\+\(\)\-]+$/.test(searchTerm);
+            const isEmail = /@/.test(searchTerm);
+
+            if (isPhone || isEmail) {
+                console.log(`   ⚠ Search term looks like ${isPhone ? 'phone' : 'email'}, not showing create button`);
+                this.hideAddNewLink($container);
+                return;
+            }
+
+            // Find existing link or create new one
+            let $link = $container.find('.xero-add-new-link');
+
+            if ($link.length === 0) {
+                // Create the link once
+                $link = $(`
+                    <a href="#" class="xero-add-new-link xero-hidden" data-term="">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span class="xero-link-text"></span>
+                    </a>
+                `);
+
+                // Click handler (set once)
+                $link.on('click', (e) => {
+                    e.preventDefault();
+                    const term = $link.attr('data-term');
+
+                    if (cfg.showModal && cfg.modalButtons) {
+                        XeroStyleSearch.showEntityTypeModal(cfg, term);
+                    } else {
+                        XeroStyleSearch.openFormWithPrefill(cfg, term);
+                    }
+                });
+
+                $container.append($link);
+                console.log(`   ✓ Created "+ New ${cfg.entityName}" button`);
+            }
+
+            // Update the text and data attribute (fast, no re-render)
+            // Convert to proper case for display
+            const properCaseTerm = this.toProperCase(searchTerm);
+            $link.attr('data-term', properCaseTerm);  // Store proper case version
+            $link.find('.xero-link-text').text(`Add '${properCaseTerm}' as new ${cfg.entityName}`);
+            $link.removeClass('xero-hidden');
+
+            console.log(`   ✓ Updated button text: "${properCaseTerm}"`);
+        },
+
+        /**
+         * Convert text to Proper Case (Title Case)
+         */
+        toProperCase: function(text) {
+            if (!text) return '';
+            return text
+                .toLowerCase()
+                .split(' ')
+                .map(word => {
+                    if (word.length === 0) return word;
+                    // Handle hyphenated words
+                    if (word.includes('-')) {
+                        return word.split('-').map(part =>
+                            part.charAt(0).toUpperCase() + part.slice(1)
+                        ).join('-');
+                    }
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                .join(' ');
+        },
+
+        /**
+         * Show modal to choose between Company and Contact
+         */
+        showEntityTypeModal: function(cfg, searchTerm) {
+            const properCaseTerm = this.toProperCase(searchTerm);
+            console.log(`   📋 Showing entity type modal for: "${properCaseTerm}"`);
+
+            // Create modal HTML
+            const modalHtml = `
+                <div class="xero-entity-modal-overlay">
+                    <div class="xero-entity-modal">
+                        <h3>What would you like to add?</h3>
+                        <p class="xero-entity-modal-search-term">'${properCaseTerm}'</p>
+                        <div class="xero-entity-modal-buttons">
+                            <button class="xero-entity-modal-btn xero-entity-company">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                <span>Add New Company</span>
+                            </button>
+                            <button class="xero-entity-modal-btn xero-entity-contact">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <span>Add New Contact</span>
+                            </button>
+                        </div>
+                        <button class="xero-entity-modal-cancel">Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            const $modal = $(modalHtml);
+            $('body').append($modal);
+
+            // Add Company button
+            $modal.find('.xero-entity-company').on('click', () => {
+                console.log(`   ✅ User chose: Add Company`);
+                this.clickHiddenButton(cfg.modalButtons.company, searchTerm);
+                $modal.remove();
+            });
+
+            // Add Contact button
+            $modal.find('.xero-entity-contact').on('click', () => {
+                console.log(`   ✅ User chose: Add Contact`);
+                this.clickHiddenButton(cfg.modalButtons.contact, searchTerm);
+                $modal.remove();
+            });
+
+            // Cancel button
+            $modal.find('.xero-entity-modal-cancel').on('click', () => {
+                console.log(`   ❌ User cancelled`);
+                $modal.remove();
+            });
+
+            // Click outside to close
+            $modal.on('click', function(e) {
+                if ($(e.target).hasClass('xero-entity-modal-overlay')) {
+                    $modal.remove();
+                }
+            });
+
+            // Show modal with animation
+            setTimeout(() => {
+                $modal.addClass('xero-entity-modal-show');
+            }, 10);
+        },
+
+        /**
+         * Click a hidden button on view_5576 by button text
+         */
+        clickHiddenButton: function(buttonText, searchTerm) {
+            console.log(`   🔘 Clicking hidden button: "${buttonText}"`);
+
+            const $button = $(`#view_5576 a:contains("${buttonText}")`);
+
+            if ($button.length) {
+                // Store search term and button type for prefill
+                window.xeroSearchTerm = searchTerm;
+                window.xeroButtonType = buttonText.toLowerCase().includes('company') ? 'company' : 'contact';
+                $button[0].click();
+                console.log(`   ✅ Button clicked: "${buttonText}" (type: ${window.xeroButtonType})`);
+
+                // Set up prefill handler
+                this.setupPrefillHandler();
+            } else {
+                console.error(`   ❌ Hidden button not found: "${buttonText}"`);
+            }
+        },
+
+        /**
+         * Hide the "+ New" link (don't remove, just hide)
+         */
+        hideAddNewLink: function($container) {
+            const $link = $container.find('.xero-add-new-link');
+            if ($link.length) {
+                $link.addClass('xero-hidden');
+            }
+            // Note: We don't remove highlights here anymore - they're managed in showAddNewLink
+        },
+
+        /**
+         * Open form and prefill name field
+         */
+        openFormWithPrefill: function(cfg, searchTerm) {
+            console.log(`   📝 Opening form for: "${searchTerm}"`);
+
+            // Find and click the hidden "Add" button
+            const $addButton = $(`#${cfg.addButtonViewId} a`).first();
+
+            if ($addButton.length) {
+                // Store the search term for prefill
+                window.xeroSearchTerm = searchTerm;
+
+                // Click the button
+                $addButton[0].click();
+
+                console.log(`   ✅ Form opened, prefill pending...`);
+
+                // Prefill will happen via form render handler
+                this.setupPrefillHandler();
+            } else {
+                console.error(`   ❌ Add button not found on ${cfg.addButtonViewId}`);
+            }
+        },
+
+        /**
+         * Set up prefill handler for forms
+         */
+        setupPrefillHandler: function() {
+            // Listen for any view render
+            const prefillHandler = function() {
+                // Check if the search term is still stored
+                if (window.xeroSearchTerm && window.xeroButtonType) {
+                    const term = window.xeroSearchTerm;
+                    const buttonType = window.xeroButtonType;
+
+                    console.log(`   📝 Prefilling ${buttonType} form with: "${term}"`);
+
+                    // Clear immediately to prevent duplicate prefills
+                    delete window.xeroSearchTerm;
+                    delete window.xeroButtonType;
+
+                    if (buttonType === 'company') {
+                        // Company form (view_4059)
+                        XeroStyleSearch.prefillCompanyForm(term);
+                    } else if (buttonType === 'contact') {
+                        // Contact form
+                        XeroStyleSearch.prefillContactForm(term);
+                    }
+
+                    // Remove this handler
+                    $(document).off('knack-view-render.any', prefillHandler);
+                }
+            };
+
+            // Listen for any view render
+            $(document).on('knack-view-render.any', prefillHandler);
+
+            // Safety timeout to remove handler
+            setTimeout(() => {
+                $(document).off('knack-view-render.any', prefillHandler);
+            }, 5000);
+        },
+
+        /**
+         * Convert text to Proper Case (Title Case)
+         */
+        toProperCase: function(text) {
+            if (!text) return text;
+
+            // Words that should remain lowercase (unless first word)
+            const smallWords = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with'];
+
+            return text.split(/\s+/).map((word, index) => {
+                // Preserve all-caps words (like "AA" in "AA Group")
+                if (word === word.toUpperCase() && word.length > 1) {
+                    return word;
+                }
+
+                // Lowercase small words (unless first word)
+                if (index > 0 && smallWords.includes(word.toLowerCase())) {
+                    return word.toLowerCase();
+                }
+
+                // Proper case for other words
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            }).join(' ');
+        },
+
+        /**
+         * Prefill company form (view_4059, scene_1653)
+         */
+        prefillCompanyForm: function(searchTerm) {
+            // Convert to proper case for display and prefilling
+            const properCaseTerm = this.toProperCase(searchTerm);
+            console.log(`   📝 Prefilling company form with: "${properCaseTerm}" (from search: "${searchTerm}")`);
+            console.log(`   🔍 Looking for company form fields in view_4059, scene_1653...`);
+
+            // Retry mechanism to wait for modal/form to fully render
+            const prefillCompanyName = (attempt = 1, maxAttempts = 10) => {
+                console.log(`   🔍 Attempt ${attempt} to find Company Name field (field_992)...`);
+
+                // Look specifically in view_4059 and scene_1653
+                const viewSelector = '#view_4059';
+                const sceneSelector = '.kn-scene-1653';
+
+                // Use simple selector like test data does - just #field_992
+                let $companyNameField = $('#field_992');
+
+                if (!$companyNameField.length) {
+                    $companyNameField = $('input[name="field_992"]');
+                }
+
+                console.log(`   🔍 Company Name field search (attempt ${attempt}): found ${$companyNameField.length} elements`);
+                if (attempt === 1 || attempt === maxAttempts) {
+                    console.log(`   🔍 Looking in: ${viewSelector}, ${sceneSelector}, .kn-modal`);
+                }
+
+                if ($companyNameField.length) {
+                    $companyNameField.val(properCaseTerm);  // Use proper case version
+                    $companyNameField.trigger('change');
+                    $companyNameField.trigger('input');
+                    console.log(`   ✅ Prefilled Company Name (field_992) with: "${properCaseTerm}" on attempt ${attempt}`);
+
+                    // Now focus the Short Name field
+                    setTimeout(() => focusShortName(), 200);
+
+                } else if (attempt < maxAttempts) {
+                    // Try again after a delay
+                    console.log(`   ⏳ Field not found, retrying in ${150 * attempt}ms...`);
+                    setTimeout(() => prefillCompanyName(attempt + 1, maxAttempts), 150 * attempt);
+                } else {
+                    console.warn(`   ⚠ Company Name field (field_992) not found after ${maxAttempts} attempts`);
+                    console.log(`   🔍 Available visible inputs in modal:`);
+                    $('.kn-modal input:visible, #view_4059 input:visible, .kn-scene-1653 input:visible').each(function(i) {
+                        console.log(`      Input ${i}: id="${this.id}", name="${this.name}", type="${this.type}"`);
+                    });
+                    // Still try to focus the Short Name field
+                    setTimeout(() => focusShortName(), 200);
+                }
+            };
+
+            // Focus Short Name field function
+            const focusShortName = (attempt = 1, maxAttempts = 5) => {
+                console.log(`   🔍 Attempt ${attempt} to find Short Name field (field_3783)...`);
+
+                // Use simple selector like test data does - just #field_3783
+                let $shortNameField = $('#field_3783');
+
+                if (!$shortNameField.length) {
+                    $shortNameField = $('input[name="field_3783"]');
+                }
+
+                console.log(`   🔍 Short Name field search (attempt ${attempt}): found ${$shortNameField.length} elements`);
+
+                if ($shortNameField.length) {
+                    $shortNameField.focus();
+                    console.log(`   ✅ Focus set to Short Name (field_3783) on attempt ${attempt}`);
+
+                    // Verify focus actually worked
+                    setTimeout(() => {
+                        if (document.activeElement && document.activeElement.id === 'field_3783') {
+                            console.log(`   ✅ Focus verified - field_3783 is now active`);
+                        } else {
+                            console.warn(`   ⚠ Focus may not have worked. Active element: ${document.activeElement ? document.activeElement.id : 'none'}`);
+                        }
+                    }, 50);
+
+                } else if (attempt < maxAttempts) {
+                    // Try again after a delay
+                    console.log(`   ⏳ Field not found, retrying in ${100 * attempt}ms...`);
+                    setTimeout(() => focusShortName(attempt + 1, maxAttempts), 100 * attempt);
+                } else {
+                    console.warn(`   ⚠ Short Name field (field_3783) not found after ${maxAttempts} attempts`);
+                }
+            };
+
+            // Start the prefill attempts
+            setTimeout(() => prefillCompanyName(), 300);
+        },
+
+        /**
+         * Prefill contact form with name field
+         */
+        prefillContactForm: function(searchTerm) {
+            console.log(`   🔍 Looking for contact form fields...`);
+
+            // Wait a bit for form to fully render
+            setTimeout(() => {
+                // Convert to proper case
+                const properCaseTerm = this.toProperCase(searchTerm.trim());
+                const words = properCaseTerm.split(/\s+/);
+
+                // Find the name field inputs (field_3967) - try multiple selectors
+                let $firstNameInput = $('#kn-input-field_3967 input#first');
+                let $lastNameInput = $('#kn-input-field_3967 input#last');
+
+                if (!$firstNameInput.length) {
+                    $firstNameInput = $('#kn-input-field_3967 input[name="first"]');
+                }
+                if (!$lastNameInput.length) {
+                    $lastNameInput = $('#kn-input-field_3967 input[name="last"]');
+                }
+
+                console.log(`   🔍 Name field search: First=${$firstNameInput.length}, Last=${$lastNameInput.length}`);
+
+                if ($firstNameInput.length && $lastNameInput.length) {
+                    if (words.length >= 2) {
+                        // Two or more words - first word to First, rest to Last
+                        const firstName = words[0];
+                        const lastName = words.slice(1).join(' ');
+
+                        $firstNameInput.val(firstName);
+                        $lastNameInput.val(lastName);
+                        $firstNameInput.trigger('change');
+                        $lastNameInput.trigger('change');
+
+                        console.log(`   ✅ Prefilled Name (Proper Case): First="${firstName}", Last="${lastName}"`);
+
+                        // Focus on field_3984
+                        setTimeout(() => {
+                            let $nextField = $('#field_3984');
+                            if (!$nextField.length) {
+                                $nextField = $('input[name="field_3984"]');
+                            }
+                            if (!$nextField.length) {
+                                $nextField = $('#kn-input-field_3984 input');
+                            }
+
+                            console.log(`   🔍 Next field (field_3984) search: found ${$nextField.length} elements`);
+
+                            if ($nextField.length) {
+                                $nextField.focus();
+                                console.log(`   ✅ Focus set to field_3984`);
+                            } else {
+                                console.warn(`   ⚠ field_3984 not found`);
+                            }
+                        }, 100);
+                    } else {
+                        // Single word - goes to First, focus on Last
+                        $firstNameInput.val(properCaseTerm);
+                        $firstNameInput.trigger('change');
+
+                        console.log(`   ✅ Prefilled First Name (Proper Case) with: "${properCaseTerm}"`);
+
+                        // Focus on Last name field
+                        setTimeout(() => {
+                            $lastNameInput.focus();
+                            console.log(`   ✅ Focus set to Last Name field`);
+                        }, 100);
+                    }
+                } else {
+                    console.warn(`   ⚠ Name field inputs not found (field_3967). Available inputs:`);
+                    $('input[type="text"]').each(function(i) {
+                        console.log(`      Input ${i}: id="${this.id}", name="${this.name}", placeholder="${$(this).attr('placeholder')}"`);
+                    });
+                }
+            }, 500);
+        }
+    };
+
+    // Register the entity search on view_5581
+    XeroStyleSearch.register({
+        entityName: 'Contact',
+        listViewId: 'view_5581',
+        addButtonViewId: 'view_5576',
+        minChars: 2,
+        checkForExactMatch: true,
+        connectionTypeFieldId: 'field_3852', // Hidden column 'Connection Type'
+        showModal: true,
+        modalButtons: {
+            company: 'Add Company',
+            contact: 'Add Contact'
+        }
+    });
+
+    // ========================================================================
+    // END XERO-STYLE SEARCH-TO-CREATE MODULE
+    // ========================================================================
+
+    // ========================================================================
+    // CUSTOM AUTO-REFRESH FOR VIEW_4829 (ENQUIRIES TABLE) - 10 SECOND INTERVAL
+    // ========================================================================
+
+    let view4829RefreshTimer = null;
+    let view4829IsActive = false;
+
+    // Monitor when view_4829 is rendered - start custom refresh
+    $(document).on('knack-view-render.view_4829', function(event, view, data) {
+        console.log('🔍 view_4829 (Enquiries Table) rendered');
+        console.log('📍 Current scene:', Knack.router.current_scene_key);
+        console.log('📊 Number of records:', data && data.length ? data.length : 'unknown');
+
+        // Only start refresh if we're on the correct scene
+        if (Knack.router.current_scene_key === 'scene_1973') {
+            view4829IsActive = true;
+
+            // Clear any existing timer
+            if (view4829RefreshTimer) {
+                clearInterval(view4829RefreshTimer);
+                console.log('🔄 Cleared existing refresh timer');
+            }
+
+            // Start 10-second refresh interval
+            view4829RefreshTimer = setInterval(function() {
+                // Only refresh if view is still active and visible
+                if (view4829IsActive && Knack.router.current_scene_key === 'scene_1973') {
+                    console.log('⏰ 10 seconds elapsed - refreshing view_4829...');
+
+                    // Call KTL's refresh function
+                    if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
+                        window.ktl.views.refreshView('view_4829');
+                        console.log('✅ Called ktl.views.refreshView for view_4829');
+                    } else {
+                        // Fallback to Knack's native refresh
+                        console.warn('⚠️ KTL refresh not available, using Knack native refresh');
+                        Knack.views['view_4829'].model.fetch();
+                    }
+                } else {
+                    console.log('⏸️ View no longer active, stopping refresh');
+                    clearInterval(view4829RefreshTimer);
+                    view4829RefreshTimer = null;
+                }
+            }, 10000); // 10 seconds
+
+            console.log('✅ Started 10-second auto-refresh for view_4829');
+        }
+    });
+
+    // Stop refresh when leaving scene_1973
+    $(document).on('knack-scene-render', function(event, scene) {
+        const currentScene = Knack.router.current_scene_key;
+
+        // If we left scene_1973, stop the refresh timer
+        if (currentScene !== 'scene_1973' && view4829RefreshTimer) {
+            console.log('🛑 Left scene_1973, stopping view_4829 auto-refresh');
+            clearInterval(view4829RefreshTimer);
+            view4829RefreshTimer = null;
+            view4829IsActive = false;
+        }
+
+        // Log when we enter scene_1973
+        if (currentScene === 'scene_1973') {
+            console.log('🏠 scene_1973 (Enquiries Scene) rendered');
+            console.log('✅ Custom 10-second auto-refresh will start when view_4829 renders');
+        }
+    });
+
+    // ========================================================================
+    // END CUSTOM AUTO-REFRESH
+    // ========================================================================
 
     // ========================================================================
     // END FORM VALIDATION AND WEBHOOK CONTROL SYSTEM
