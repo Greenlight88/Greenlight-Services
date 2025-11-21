@@ -6250,20 +6250,20 @@ window.ktlReady = function (appInfo = {}) {
         }
     });
 
-    // Stop refresh when leaving scene_1973
+    // Stop refresh when leaving scene_1973 or any scene change
     $(document).on('knack-scene-render', function(event, scene) {
         const currentScene = Knack.router.current_scene_key;
 
-        // If we left scene_1973, stop the refresh timer and remove button
+        // Always remove button on scene change (will be re-added if view_4829 renders)
+        $('#view_4829_refresh_toggle').remove();
+
+        // If we left scene_1973, stop the refresh timer
         if (currentScene !== 'scene_1973' && view4829RefreshTimer) {
             console.log('🛑 Left scene_1973, stopping view_4829 auto-refresh');
             clearInterval(view4829RefreshTimer);
             view4829RefreshTimer = null;
             view4829IsActive = false;
             view4829RefreshPaused = false;
-
-            // Remove the button
-            $('#view_4829_refresh_toggle').remove();
         }
 
         // Log when we enter scene_1973
