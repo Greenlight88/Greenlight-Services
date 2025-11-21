@@ -1,0 +1,20 @@
+{
+  "versions": {
+    "1.0.2": {
+      "commit": "e5c06da",
+      "date": "2024-11-20",
+      "description": "Pause/resume button for auto-refresh + company webhook fixes"
+    },
+    "1.0.1": {
+      "commit": "a21da0a",
+      "date": "2024-11-20",
+      "description": "Custom 10-second auto-refresh for enquiries table"
+    },
+    "1.0.0": {
+      "commit": "0bfaf03",
+      "date": "2024-11-14",
+      "description": "Initial CDN deployment"
+    }
+  },
+  "latest": "1.0.2"
+}

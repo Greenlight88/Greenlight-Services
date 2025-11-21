@@ -6,29 +6,43 @@
 // GitHub Repo: https://github.com/Greenlight88/Greenlight-Services
 //
 // ROLLBACK SUPPORT:
-// To use a specific version/commit, set the VERSION constant below.
-// To use the latest from master, set VERSION = 'master'
+// Change APP_VERSION below to use a specific version or latest
 //
-// Available versions (recent commits):
-//   - '0dfa2da' - Pause/resume button for auto-refresh (2024-11-20)
-//   - 'a21da0a' - Auto-refresh + company form webhook fixes (2024-11-20)
-//   - 'master'  - Always use latest (not recommended for production)
+// Available versions:
+//   - '1.0.2' - Pause/resume button for auto-refresh (2024-11-20) [CURRENT]
+//   - '1.0.1' - Custom 10-second auto-refresh (2024-11-20)
+//   - '1.0.0' - Initial CDN deployment (2024-11-14)
+//   - 'latest' - Always use latest version (not recommended for production)
+//
+// See full version history: VERSION_HISTORY.md
 // ========================================================================
 
 // VERSION CONTROL - Change this to roll back or use specific version
-const VERSION = '0dfa2da'; // Current version with pause/resume button
-// const VERSION = 'master'; // Use this to always get latest (riskier)
+const APP_VERSION = '1.0.2'; // Current version (recommended)
+// const APP_VERSION = 'latest'; // Use this to always get latest (riskier)
+
+// Version to commit hash mapping
+const VERSION_MAP = {
+    '1.0.2': 'e5c06da',
+    '1.0.1': 'a21da0a',
+    '1.0.0': '0bfaf03',
+    'latest': 'master'
+};
+
+// Get the commit hash for the specified version
+const COMMIT = VERSION_MAP[APP_VERSION] || VERSION_MAP['latest'];
 
 // Development mode check
 const isDevMode = localStorage.getItem('Greenl_56ea_dev') === 'true';
 
 console.log(`🚀 Greenlight Services Loader`);
 console.log(`📍 Mode: ${isDevMode ? 'DEVELOPMENT (localhost)' : 'PRODUCTION (CDN)'}`);
-console.log(`🔖 Version: ${VERSION}`);
+console.log(`🔖 App Version: ${APP_VERSION}`);
+console.log(`📌 Commit: ${COMMIT}`);
 
-// CDN URLs with version
-const JS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${VERSION}/KnackApps/GreenlightOnline/GreenlightOnline.js`;
-const CSS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${VERSION}/KnackApps/GreenlightOnline/GreenlightOnline.css`;
+// CDN URLs with commit hash
+const JS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${COMMIT}/KnackApps/GreenlightOnline/GreenlightOnline.js`;
+const CSS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${COMMIT}/KnackApps/GreenlightOnline/GreenlightOnline.css`;
 
 // Local development URLs
 const JS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.js';
@@ -111,16 +125,20 @@ loadJS();
 //   localStorage.removeItem('Greenl_56ea_dev')
 //
 // TO ROLL BACK TO A PREVIOUS VERSION:
-//   1. Find the commit hash from git log or GitHub
-//   2. Update VERSION constant at top of this file (line 19)
-//   3. Save in Knack Settings → Advanced → JavaScript
-//   4. Refresh the app
+//   1. Change APP_VERSION at line 21 to a previous version (e.g., '1.0.1')
+//   2. Save in Knack Settings → Advanced → JavaScript
+//   3. Refresh the app
 //
-// TO UPDATE TO LATEST:
-//   1. Get the latest commit hash from GitHub
-//   2. Update VERSION constant to new commit hash (line 19)
-//   3. Save in Knack Settings
-//   4. Refresh the app
+// TO UPDATE TO LATEST VERSION:
+//   1. Claude will provide the new version number (e.g., '1.0.3')
+//   2. Update VERSION_MAP at line 25-30 with new version/commit
+//   3. Change APP_VERSION at line 21 to new version
+//   4. Save in Knack Settings
+//   5. Refresh the app
+//
+// EMERGENCY ROLLBACK:
+//   Change line 21 to: const APP_VERSION = '1.0.1';
+//   This reverts to the last known stable version
 // ========================================================================
 
 // KTL Initialization
