@@ -9,7 +9,8 @@
 // Change APP_VERSION below to use a specific version or latest
 //
 // Available versions:
-//   - '1.0.2' - Pause/resume button for auto-refresh (2024-11-20) [CURRENT]
+//   - '1.0.3' - Timestamp pulse animation on refresh (2024-11-21) [CURRENT]
+//   - '1.0.2' - Pause/resume button for auto-refresh (2024-11-20)
 //   - '1.0.1' - Custom 10-second auto-refresh (2024-11-20)
 //   - '1.0.0' - Initial CDN deployment (2024-11-14)
 //   - 'latest' - Always use latest version (not recommended for production)
@@ -18,11 +19,12 @@
 // ========================================================================
 
 // VERSION CONTROL - Change this to roll back or use specific version
-const APP_VERSION = '1.0.2'; // Current version (recommended)
+const APP_VERSION = '1.0.3'; // Current version (recommended)
 // const APP_VERSION = 'latest'; // Use this to always get latest (riskier)
 
 // Version to commit hash mapping
 const VERSION_MAP = {
+    '1.0.3': '0ddf537',
     '1.0.2': 'e5c06da',
     '1.0.1': 'a21da0a',
     '1.0.0': '0bfaf03',
@@ -137,7 +139,7 @@ loadJS();
 //   5. Refresh the app
 //
 // EMERGENCY ROLLBACK:
-//   Change line 21 to: const APP_VERSION = '1.0.1';
+//   Change line 22 to: const APP_VERSION = '1.0.2';
 //   This reverts to the last known stable version
 // ========================================================================
 

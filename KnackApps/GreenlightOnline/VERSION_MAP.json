@@ -1,5 +1,10 @@
 {
   "versions": {
+    "1.0.3": {
+      "commit": "0ddf537",
+      "date": "2024-11-21",
+      "description": "Timestamp pulse animation on enquiries table refresh"
+    },
     "1.0.2": {
       "commit": "e5c06da",
       "date": "2024-11-20",
@@ -16,5 +21,5 @@
       "description": "Initial CDN deployment"
     }
   },
-  "latest": "1.0.2"
+  "latest": "1.0.3"
 }

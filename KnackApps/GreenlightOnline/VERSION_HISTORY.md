@@ -1,5 +1,14 @@
 # Greenlight Online - Version History
 
+## Version 1.0.3 (2024-11-21) - Commit: 0ddf537
+**Features:**
+- Added timestamp pulse animation on enquiries table (view_4829)
+- Timestamp scales to 1.15x, turns green, and bolds text after each refresh
+- 1-second smooth animation provides visual feedback
+- Automatically triggers every 10 seconds with auto-refresh
+
+---
+
 ## Version 1.0.2 (2024-11-20) - Commit: e5c06da
 **Features:**
 - Added pause/resume button for enquiries table auto-refresh
