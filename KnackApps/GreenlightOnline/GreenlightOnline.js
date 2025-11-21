@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.2'; // Added pause/resume button for enquiries auto-refresh
+window.APP_VERSION = '1.0.3'; // Added timestamp pulse animation on enquiries table refresh
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -6145,15 +6145,64 @@ window.ktlReady = function (appInfo = {}) {
         }
     }
 
+    // Function to pulse the timestamp
+    function pulseTimestamp() {
+        const $timestamp = $('#view_4829-timestamp-id');
+        if ($timestamp.length) {
+            console.log('⏱️ Pulsing timestamp after refresh');
+
+            // Add pulse animation
+            $timestamp.css({
+                'animation': 'ktl-timestamp-pulse 1s ease-out',
+                'animation-fill-mode': 'forwards'
+            });
+
+            // Remove animation after it completes
+            setTimeout(function() {
+                $timestamp.css('animation', '');
+            }, 1000);
+        }
+    }
+
     // Monitor when view_4829 is rendered - start custom refresh and add button
     $(document).on('knack-view-render.view_4829', function(event, view, data) {
         console.log('🔍 view_4829 (Enquiries Table) rendered');
         console.log('📍 Current scene:', Knack.router.current_scene_key);
         console.log('📊 Number of records:', data && data.length ? data.length : 'unknown');
 
+        // Pulse the timestamp when view renders (indicates refresh)
+        setTimeout(pulseTimestamp, 100);
+
         // Only start refresh if we're on the correct scene
         if (Knack.router.current_scene_key === 'scene_1973') {
             view4829IsActive = true;
+
+            // Add pulse animation CSS if not already added
+            if ($('#ktl-timestamp-pulse-style').length === 0) {
+                $('<style>')
+                    .attr('id', 'ktl-timestamp-pulse-style')
+                    .html(`
+                        @keyframes ktl-timestamp-pulse {
+                            0% {
+                                transform: scale(1);
+                                color: inherit;
+                                font-weight: normal;
+                            }
+                            50% {
+                                transform: scale(1.15);
+                                color: #4CAF50;
+                                font-weight: bold;
+                            }
+                            100% {
+                                transform: scale(1);
+                                color: inherit;
+                                font-weight: normal;
+                            }
+                        }
+                    `)
+                    .appendTo('head');
+                console.log('✅ Added timestamp pulse animation CSS');
+            }
 
             // Add pause/resume button (only once)
             if ($('#view_4829_refresh_toggle').length === 0) {
