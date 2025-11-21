@@ -5,34 +5,18 @@
 //
 // GitHub Repo: https://github.com/Greenlight88/Greenlight-Services
 //
-// ROLLBACK SUPPORT:
-// Change APP_VERSION below to use a specific version or latest
+// SIMPLE VERSION CONTROL:
+// Just change APP_VERSION below - no mapping needed!
+//   - 'latest' - Always use latest version (pulls from master branch)
+//   - '1.0.4' - Use specific version (pulls from VERSION_MAP.json)
+//   - '1.0.3', '1.0.2', etc. - Any version number
 //
-// Available versions:
-//   - '1.0.3' - Timestamp pulse animation on refresh (2024-11-21) [CURRENT]
-//   - '1.0.2' - Pause/resume button for auto-refresh (2024-11-20)
-//   - '1.0.1' - Custom 10-second auto-refresh (2024-11-20)
-//   - '1.0.0' - Initial CDN deployment (2024-11-14)
-//   - 'latest' - Always use latest version (not recommended for production)
-//
+// Version mappings are maintained in VERSION_MAP.json on GitHub
 // See full version history: VERSION_HISTORY.md
 // ========================================================================
 
 // VERSION CONTROL - Change this to roll back or use specific version
-const APP_VERSION = '1.0.3'; // Current version (recommended)
-// const APP_VERSION = 'latest'; // Use this to always get latest (riskier)
-
-// Version to commit hash mapping
-const VERSION_MAP = {
-    '1.0.3': '0ddf537',
-    '1.0.2': 'e5c06da',
-    '1.0.1': 'a21da0a',
-    '1.0.0': '0bfaf03',
-    'latest': 'master'
-};
-
-// Get the commit hash for the specified version
-const COMMIT = VERSION_MAP[APP_VERSION] || VERSION_MAP['latest'];
+const APP_VERSION = 'latest'; // Use 'latest' or a version like '1.0.4'
 
 // Development mode check
 const isDevMode = localStorage.getItem('Greenl_56ea_dev') === 'true';
@@ -40,34 +24,63 @@ const isDevMode = localStorage.getItem('Greenl_56ea_dev') === 'true';
 console.log(`🚀 Greenlight Services Loader`);
 console.log(`📍 Mode: ${isDevMode ? 'DEVELOPMENT (localhost)' : 'PRODUCTION (CDN)'}`);
 console.log(`🔖 App Version: ${APP_VERSION}`);
-console.log(`📌 Commit: ${COMMIT}`);
-
-// CDN URLs with commit hash
-const JS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${COMMIT}/KnackApps/GreenlightOnline/GreenlightOnline.js`;
-const CSS_CDN_URL = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${COMMIT}/KnackApps/GreenlightOnline/GreenlightOnline.css`;
 
 // Local development URLs
 const JS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.js';
 const CSS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
 
+// Function to get commit hash for version
+async function getCommitHash(version) {
+    if (version === 'latest') {
+        return 'master';
+    }
+
+    // In dev mode, skip version lookup since we're loading from localhost anyway
+    if (isDevMode) {
+        console.log(`📝 Dev mode: skipping version lookup (loading from localhost)`);
+        return 'master'; // Not used in dev mode, but needed for fallback
+    }
+
+    // Fetch VERSION_MAP.json from GitHub (production only)
+    try {
+        const response = await fetch('https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@master/KnackApps/GreenlightOnline/VERSION_MAP.json');
+        const versionMap = await response.json();
+
+        if (versionMap.versions && versionMap.versions[version]) {
+            return versionMap.versions[version].commit;
+        } else {
+            console.warn(`⚠️ Version ${version} not found in VERSION_MAP.json, using master`);
+            return 'master';
+        }
+    } catch (error) {
+        console.error(`❌ Failed to fetch VERSION_MAP.json:`, error);
+        console.log(`⚠️ Falling back to master branch`);
+        return 'master';
+    }
+}
+
 // Load CSS
-function loadCSS() {
-    const cssUrl = isDevMode ? CSS_LOCAL_URL : CSS_CDN_URL;
+function loadCSS(commit) {
+    const cssUrl = isDevMode
+        ? CSS_LOCAL_URL
+        : `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${commit}/KnackApps/GreenlightOnline/GreenlightOnline.css`;
+
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.type = 'text/css';
     link.href = cssUrl;
     link.crossOrigin = 'anonymous';
 
-    link.onload = function() {
+    link.onload = function () {
         console.log(`✅ CSS loaded from ${isDevMode ? 'localhost' : 'CDN'}`);
     };
 
-    link.onerror = function() {
+    link.onerror = function () {
         console.error(`❌ CSS failed to load from ${cssUrl}`);
         if (isDevMode) {
             console.log(`⚠️ Falling back to CDN...`);
-            link.href = CSS_CDN_URL;
+            const fallbackUrl = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@master/KnackApps/GreenlightOnline/GreenlightOnline.css`;
+            link.href = fallbackUrl;
         }
     };
 
@@ -75,8 +88,10 @@ function loadCSS() {
 }
 
 // Load JavaScript
-function loadJS() {
-    const jsUrl = isDevMode ? JS_LOCAL_URL : JS_CDN_URL;
+function loadJS(commit) {
+    const jsUrl = isDevMode
+        ? JS_LOCAL_URL
+        : `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${commit}/KnackApps/GreenlightOnline/GreenlightOnline.js`;
 
     if (isDevMode) {
         // In dev mode, try localhost first, fallback to CDN
@@ -90,7 +105,8 @@ function loadJS() {
             })
             .catch(() => {
                 console.log(`⚠️ Localhost not available, falling back to CDN...`);
-                LazyLoad.js(JS_CDN_URL, () => {
+                const fallbackUrl = `https://cdn.jsdelivr.net/gh/Greenlight88/Greenlight-Services@${commit}/KnackApps/GreenlightOnline/GreenlightOnline.js`;
+                LazyLoad.js(fallbackUrl, () => {
                     console.log(`✅ JS loaded from CDN (fallback)`);
                     logAppVersion();
                 });
@@ -112,9 +128,17 @@ function logAppVersion() {
     }
 }
 
-// Load CSS and JS
-loadCSS();
-loadJS();
+// Initialize loader
+async function initLoader() {
+    const commit = await getCommitHash(APP_VERSION);
+    console.log(`📌 Commit: ${commit}`);
+
+    loadCSS(commit);
+    loadJS(commit);
+}
+
+// Start loading
+initLoader();
 
 // ========================================================================
 // DEVELOPMENT HELPERS
@@ -127,25 +151,18 @@ loadJS();
 //   localStorage.removeItem('Greenl_56ea_dev')
 //
 // TO ROLL BACK TO A PREVIOUS VERSION:
-//   1. Change APP_VERSION at line 21 to a previous version (e.g., '1.0.1')
+//   1. Change APP_VERSION at line 22 to a previous version (e.g., '1.0.2')
 //   2. Save in Knack Settings → Advanced → JavaScript
 //   3. Refresh the app
 //
 // TO UPDATE TO LATEST VERSION:
-//   1. Claude will provide the new version number (e.g., '1.0.3')
-//   2. Update VERSION_MAP at line 25-30 with new version/commit
-//   3. Change APP_VERSION at line 21 to new version
-//   4. Save in Knack Settings
-//   5. Refresh the app
+//   1. Change APP_VERSION at line 22 to 'latest'
+//   2. Save in Knack Settings
+//   3. Refresh the app
 //
 // EMERGENCY ROLLBACK:
-//   Change line 22 to: const APP_VERSION = '1.0.2';
+//   Change line 22 to: const APP_VERSION = '1.0.3';
 //   This reverts to the last known stable version
 // ========================================================================
 
-// KTL Initialization
-KnackInitAsync = function ($, callback) {
-    (window.LazyLoad = LazyLoad) && LazyLoad.js([`https://ctrnd.s3.amazonaws.com/Lib/KTL/KTL_Start.js?${new Date().valueOf()}`], () => {
-        loadKtl($, callback, (typeof KnackApp === 'function' ? KnackApp : null), '0.32.7' /*KTL version*/, 'full'/*min or full*/);
-    })
-};
+

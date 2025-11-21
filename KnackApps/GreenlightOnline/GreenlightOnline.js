@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.3'; // Added timestamp pulse animation on enquiries table refresh
+window.APP_VERSION = '1.0.4'; // Fixed pause/resume button visibility - only shows when view_4829 is active
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -107,11 +107,11 @@ window.ktlReady = function (appInfo = {}) {
         hscGlobal: false,
     });
 
-    console.log('🔄 KTL Auto-refresh configured for view_4829');
+    console.log('🔄 Custom auto-refresh configured for view_4829');
     console.log('📋 Auto-refresh settings:', {
         viewId: 'view_4829',
         sceneId: 'scene_1973',
-        interval: '60 seconds (KTL minimum)',
+        interval: '10 seconds (custom implementation)',
         onlyIfVisible: true,
         preserveScrollPos: true
     });
@@ -6164,6 +6164,17 @@ window.ktlReady = function (appInfo = {}) {
         }
     }
 
+    // Remove button when ANY view renders (if it's not view_4829)
+    $(document).on('knack-view-render', function(event, view, data) {
+        if (view.key !== 'view_4829') {
+            const $button = $('#view_4829_refresh_toggle');
+            if ($button.length) {
+                $button.remove();
+                console.log(`🗑️ Removed pause button (navigated to ${view.key})`);
+            }
+        }
+    });
+
     // Monitor when view_4829 is rendered - start custom refresh and add button
     $(document).on('knack-view-render.view_4829', function(event, view, data) {
         console.log('🔍 view_4829 (Enquiries Table) rendered');
@@ -6250,26 +6261,17 @@ window.ktlReady = function (appInfo = {}) {
         }
     });
 
-    // Stop refresh when leaving scene_1973 or any scene change
+    // Stop refresh timer when leaving scene_1973
     $(document).on('knack-scene-render', function(event, scene) {
         const currentScene = Knack.router.current_scene_key;
 
-        // Always remove button on scene change (will be re-added if view_4829 renders)
-        $('#view_4829_refresh_toggle').remove();
-
-        // If we left scene_1973, stop the refresh timer
+        // If we're not on scene_1973, stop the refresh timer
         if (currentScene !== 'scene_1973' && view4829RefreshTimer) {
             console.log('🛑 Left scene_1973, stopping view_4829 auto-refresh');
             clearInterval(view4829RefreshTimer);
             view4829RefreshTimer = null;
             view4829IsActive = false;
             view4829RefreshPaused = false;
-        }
-
-        // Log when we enter scene_1973
-        if (currentScene === 'scene_1973') {
-            console.log('🏠 scene_1973 (Enquiries Scene) rendered');
-            console.log('✅ Custom 10-second auto-refresh will start when view_4829 renders');
         }
     });
 
