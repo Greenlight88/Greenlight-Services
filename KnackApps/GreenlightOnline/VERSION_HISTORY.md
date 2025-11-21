@@ -1,5 +1,19 @@
 # Greenlight Online - Version History
 
+## Version 1.0.4 (2024-11-21) - Commit: 283cd64
+**Fixes:**
+- Fixed pause/resume button appearing on all pages
+- Button now properly removed when navigating away from view_4829
+- Uses knack-view-render event to detect view changes
+
+**Improvements:**
+- Loader now fetches VERSION_MAP.json dynamically from GitHub
+- No more hardcoded version mappings in loader code
+- Simpler version control: just set APP_VERSION to 'latest' or version number
+- Fixed misleading "60 seconds" log to correctly show "10 seconds"
+
+---
+
 ## Version 1.0.3 (2024-11-21) - Commit: 0ddf537
 **Features:**
 - Added timestamp pulse animation on enquiries table (view_4829)

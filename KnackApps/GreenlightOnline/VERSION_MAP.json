@@ -1,5 +1,10 @@
 {
   "versions": {
+    "1.0.4": {
+      "commit": "283cd64",
+      "date": "2024-11-21",
+      "description": "Fixed pause/resume button visibility + improved loader"
+    },
     "1.0.3": {
       "commit": "0ddf537",
       "date": "2024-11-21",
@@ -21,5 +26,5 @@
       "description": "Initial CDN deployment"
     }
   },
-  "latest": "1.0.3"
+  "latest": "1.0.4"
 }
