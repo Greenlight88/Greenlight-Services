@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.4'; // Fixed pause/resume button visibility - only shows when view_4829 is active
+window.APP_VERSION = '1.0.6'; // Unified notification system with inline notifications and brand colors
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -1270,25 +1270,23 @@ window.ktlReady = function (appInfo = {}) {
             var startValue = parseFloat($('#field_3606').val()) || 0;
             var finishValue = parseFloat($('#field_3607').val()) || 0;
 
-            // Remove any existing error messages
-            $('.odometer-error').remove();
-
             if (startValue > finishValue && finishValue !== 0) {
-                // Create error message
-                var errorHtml = '<div class="kn-message is-error odometer-error" style="margin: 10px 0;">' +
-                    '<span class="kn-message-body">Odometer Start cannot be greater than Odometer Finish</span>' +
-                    '</div>';
+                // Show error using unified notification system
+                notificationSystem.showFieldNotification(
+                    'view_5444',
+                    'field_3607',
+                    'Odometer Start cannot be greater than Odometer Finish',
+                    'error'
+                );
 
-                // Insert error after the finish field
-                $('#kn-input-field_3607').after(errorHtml);
-
-                // Disable submit button
-                $('#view_5444 .kn-submit button[type="submit"]').prop('disabled', true).css('opacity', '0.5');
+                // Disable submit button using unified system
+                notificationSystem.submitButton.setState('view_5444', 'disabled');
 
                 return false;
             } else {
-                // Enable submit button if validation passes
-                $('#view_5444 .kn-submit button[type="submit"]').prop('disabled', false).css('opacity', '1');
+                // Clear error and enable submit button
+                notificationSystem.clearFieldNotification('view_5444', 'field_3607');
+                notificationSystem.submitButton.setState('view_5444', 'ready');
                 return true;
             }
         }
@@ -1882,106 +1880,75 @@ window.ktlReady = function (appInfo = {}) {
                         return { isValid: true, normalizedValue: '' };
                     }
 
-                    // Email validation pattern - RFC 5322 compliant with proper TLD validation
-                    // Local part: allows standard email characters
-                    // Domain: Must end with a TLD of at least 2 characters
-                    const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+                    // Simplified email validation - basic format checking
+                    // Full validation will be done by webhook (pre/post submission)
+
+                    // Basic pattern: localpart@domain.tld or localpart@domain.tld.tld
+                    // Local part: allows letters, numbers, and common special chars
+                    // Domain: letters, numbers, hyphens, and dots
+                    // TLD: at least 2 letters
+                    const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
                     if (!emailPattern.test(value)) {
-                        console.log(`❌ Email validation FAILED (pattern) for: '${value}'`);
+                        console.log(`❌ Email validation FAILED (invalid format) for: '${value}'`);
                         return {
                             isValid: false,
                             normalizedValue: value,
-                            errorMessage: 'Please enter a valid email address (e.g., name@company.com.au)'
+                            errorMessage: 'Please enter a valid email address (e.g., name@company.com)'
                         };
                     }
 
-                    // Additional validation: Check that TLD (last part after final dot) is at least 2 characters
+                    // Check for @ symbol
                     const atIndex = value.indexOf('@');
-                    const domain = value.substring(atIndex + 1);
-                    const lastDotIndex = domain.lastIndexOf('.');
-
-                    if (lastDotIndex === -1) {
-                        console.log(`❌ Email validation FAILED (no TLD) for: '${value}'`);
+                    if (atIndex === -1) {
+                        console.log(`❌ Email validation FAILED (no @ symbol) for: '${value}'`);
                         return {
                             isValid: false,
                             normalizedValue: value,
-                            errorMessage: 'Please enter a valid email address with a domain extension (e.g., .com, .com.au)'
+                            errorMessage: 'Email must contain @ symbol (e.g., name@company.com)'
                         };
                     }
 
+                    // Get domain part (everything after @)
+                    const domain = value.substring(atIndex + 1);
+
+                    // Check domain has at least one dot
+                    if (!domain.includes('.')) {
+                        console.log(`❌ Email validation FAILED (no domain extension) for: '${value}'`);
+                        return {
+                            isValid: false,
+                            normalizedValue: value,
+                            errorMessage: 'Email must include a domain extension (e.g., name@company.com)'
+                        };
+                    }
+
+                    // Get the last part after the final dot (the TLD)
+                    const lastDotIndex = domain.lastIndexOf('.');
                     const tld = domain.substring(lastDotIndex + 1);
 
-                    // TLD validation:
-                    // - Must be 2-24 characters (longest real TLD is .cancerresearch at 14 chars)
-                    // - Must contain only letters (no numbers or special chars)
-                    // - Cannot be all the same letter (e.g., .xx, .aaa)
-                    if (tld.length < 2 || tld.length > 24) {
-                        console.log(`❌ Email validation FAILED (TLD length invalid: '${tld}') for: '${value}'`);
+                    // TLD must be at least 2 characters (e.g., .au, .uk, .com)
+                    if (tld.length < 2) {
+                        console.log(`❌ Email validation FAILED (TLD too short: '${tld}') for: '${value}'`);
                         return {
                             isValid: false,
                             normalizedValue: value,
-                            errorMessage: 'Invalid domain extension - must be 2-24 letters (e.g., .com, .com.au)'
+                            errorMessage: 'Domain extension must be at least 2 characters (e.g., .com, .au)'
                         };
                     }
 
-                    // Check TLD contains only letters
+                    // Check TLD contains only letters (no numbers or special chars in TLD)
                     if (!/^[a-zA-Z]+$/.test(tld)) {
-                        console.log(`❌ Email validation FAILED (TLD contains non-letters: '${tld}') for: '${value}'`);
+                        console.log(`❌ Email validation FAILED (TLD contains invalid characters: '${tld}') for: '${value}'`);
                         return {
                             isValid: false,
                             normalizedValue: value,
-                            errorMessage: 'Invalid domain extension - must contain only letters (e.g., .com, .au, not .x1)'
+                            errorMessage: 'Domain extension must contain only letters (e.g., .com not .c0m)'
                         };
                     }
 
-                    // Validate against known valid TLD patterns
-                    // This comprehensive check catches fake TLDs like .xx, .xc, .zz, etc.
-                    const invalidTLDPatterns = [
-                        /^([a-z])\1+$/i,  // All same letter: xx, aaa, zzzz
-                        /^[xyzq]{2}$/i,   // Two letter combos unlikely to be real: xx, xy, xz, qq, zz, etc.
-                        /^[bcdfghjklmnpqrstvwxyz]{2}$/i  // Two consonants only (most 2-letter TLDs have at least one vowel)
-                    ];
-
-                    // Known valid 2-letter TLDs (country codes) - partial list of common ones
-                    const validTwoLetterTLDs = [
-                        'au', 'us', 'uk', 'ca', 'de', 'fr', 'it', 'es', 'nl', 'be', 'ch', 'at',
-                        'se', 'no', 'dk', 'fi', 'ie', 'nz', 'jp', 'cn', 'kr', 'in', 'sg', 'hk',
-                        'tw', 'th', 'my', 'ph', 'id', 'vn', 'ae', 'sa', 'il', 'tr', 'ru', 'ua',
-                        'pl', 'cz', 'ro', 'gr', 'pt', 'hu', 'bg', 'hr', 'si', 'sk', 'lt', 'lv',
-                        'ee', 'is', 'lu', 'mt', 'cy', 'mx', 'br', 'ar', 'cl', 'co', 'pe', 'za'
-                    ];
-
-                    const tldLower = tld.toLowerCase();
-
-                    // For 2-letter TLDs, check against whitelist
-                    if (tld.length === 2) {
-                        if (!validTwoLetterTLDs.includes(tldLower)) {
-                            console.log(`❌ Email validation FAILED (invalid 2-letter TLD: '${tld}') for: '${value}'`);
-                            return {
-                                isValid: false,
-                                normalizedValue: value,
-                                errorMessage: 'Invalid country code - please use valid domain extensions (e.g., .au, .com, .net, .org)'
-                            };
-                        }
-                    }
-
-                    // For any length, check against invalid patterns
-                    for (const pattern of invalidTLDPatterns) {
-                        if (pattern.test(tld)) {
-                            console.log(`❌ Email validation FAILED (TLD matches invalid pattern: '${tld}') for: '${value}'`);
-                            return {
-                                isValid: false,
-                                normalizedValue: value,
-                                errorMessage: 'Invalid domain extension (e.g., use .com, .com.au, .net, .org, .edu, .gov)'
-                            };
-                        }
-                    }
-
-                    console.log(`✅ Email validation PASSED for: '${value}' (TLD: '${tld}')`);
+                    console.log(`✅ Email validation PASSED for: '${value}'`);
 
                     // Split email into local part (before @) and domain (after @)
-                    // (atIndex already declared above)
                     const localPart = value.substring(0, atIndex); // Keep original casing
                     const domainLower = domain.toLowerCase(); // Force lowercase
 
@@ -2274,29 +2241,30 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Adds error styling and message to a field
              */
-            addFieldError: function (fieldId, message, customSelector = null) {
-                const selector = customSelector || `#kn-input-${fieldId}`;
-                const $field = $(selector);
+            addFieldError: function (fieldId, message, customSelector = null, viewId = null) {
+                console.log(`🎯 Adding error to field: ${fieldId}, Message: '${message}'`);
 
-                console.log(`🎯 Adding error to field: ${fieldId}, Selector: ${selector}, Field found: ${$field.length > 0}, Message: '${message}'`);
-
-                $field.addClass('kn-error');
-
-                // Create or update error message below the field using native Knack styling
-                let $errorDiv = $field.find('.validation-error-message');
-                if ($errorDiv.length === 0) {
-                    $errorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px; display: block !important; visibility: visible !important; opacity: 1 !important;"><span class="kn-message-body"></span></div>');
-                    $field.append($errorDiv);
-                    console.log(`➕ Created new error div for ${fieldId}`);
+                // Use unified notification system if viewId provided
+                if (viewId && typeof notificationSystem !== 'undefined') {
+                    notificationSystem.showFieldNotification(viewId, fieldId, message, 'error');
                 } else {
-                    console.log(`🔄 Updating existing error div for ${fieldId}`);
+                    // Fallback to old style if viewId not provided (legacy compatibility)
+                    const selector = customSelector || `#kn-input-${fieldId}`;
+                    const $field = $(selector);
+                    $field.addClass('kn-error');
+
+                    let $errorDiv = $field.find('.validation-error-message');
+                    if ($errorDiv.length === 0) {
+                        $errorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px; display: block !important; visibility: visible !important; opacity: 1 !important;"><span class="kn-message-body"></span></div>');
+                        $field.append($errorDiv);
+                    }
+                    $errorDiv.find('.kn-message-body').text(message);
+                    $errorDiv.css({
+                        'display': 'block',
+                        'visibility': 'visible',
+                        'opacity': '1'
+                    }).show();
                 }
-                $errorDiv.find('.kn-message-body').text(message);
-                $errorDiv.css({
-                    'display': 'block',
-                    'visibility': 'visible',
-                    'opacity': '1'
-                }).show();
 
                 console.log(`❌ Validation error added to ${fieldId}: ${message}`);
             },
@@ -2304,12 +2272,17 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Removes error styling and message from a field
              */
-            removeFieldError: function (fieldId, customSelector = null) {
-                const selector = customSelector || `#kn-input-${fieldId}`;
-                const $field = $(selector);
-
-                $field.removeClass('kn-error');
-                $field.find('.validation-error-message').remove();
+            removeFieldError: function (fieldId, customSelector = null, viewId = null) {
+                // Use unified notification system if viewId provided
+                if (viewId && typeof notificationSystem !== 'undefined') {
+                    notificationSystem.clearFieldNotification(viewId, fieldId);
+                } else {
+                    // Fallback to old style if viewId not provided (legacy compatibility)
+                    const selector = customSelector || `#kn-input-${fieldId}`;
+                    const $field = $(selector);
+                    $field.removeClass('kn-error');
+                    $field.find('.validation-error-message').remove();
+                }
 
                 console.log(`✅ Validation error cleared from ${fieldId}`);
             },
@@ -3087,12 +3060,12 @@ window.ktlReady = function (appInfo = {}) {
 
                     if (!fieldValid) {
                         const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
-                        utils.addFieldError(fieldId, errorMessage);
+                        utils.addFieldError(fieldId, errorMessage, null, viewId);
                         errors.push(errorMessage);
                         console.log(`❌ ${fieldConfig.rule} validation failed for ${fieldId}: ${errorMessage}`);
                         isValid = false;
                     } else {
-                        utils.removeFieldError(fieldId);
+                        utils.removeFieldError(fieldId, null, viewId);
 
                         // Update field with normalized value if provided
                         if (result.normalizedValue && result.normalizedValue !== fieldValue) {
@@ -3620,37 +3593,84 @@ window.ktlReady = function (appInfo = {}) {
                     );
                 }
 
-                // Use stored values from pre-submission webhook response, or build defaults
+                // Build knack_api_payloads from actual submitted form data
+                // This ensures we use what was actually submitted, not pre-submission validation
                 let knackApiPayloads = [];
                 let comActionType = 'create_all';
                 let sharedComIds = '';
                 let isTest = false;
 
-                // Check if we have stored payloads from pre-submission webhook
-                if (window._knackApiPayloads) {
-                    // Use the payloads from Make.com
-                    knackApiPayloads = window._knackApiPayloads;
-                    console.log(`✅ Using knack_api_payloads from pre-submission response`);
-                } else {
-                    // Fallback: Build payloads from form data
-                    const emailHasValue = emailNormalised && emailNormalised.trim() !== '';
-                    const phoneHasValue = phoneNormalised && phoneNormalised.trim() !== '';
+                const emailHasValue = emailNormalised && emailNormalised.trim() !== '';
+                const phoneHasValue = phoneNormalised && phoneNormalised.trim() !== '';
 
-                    if (emailHasValue) {
-                        knackApiPayloads.push({
-                            field_4047: emailNormalised,
-                            field_4048: tenantId
-                        });
-                    }
+                // Build email payload if email exists
+                if (emailHasValue) {
+                    const emailParts = emailNormalised.split('@');
+                    const emailLocal = emailParts[0] || '';
+                    const emailDomain = emailParts[1] || '';
 
-                    if (phoneHasValue) {
-                        knackApiPayloads.push({
-                            field_4047: phoneNormalised,
-                            field_4048: tenantId
-                        });
-                    }
-                    console.log(`⚠️ Built knack_api_payloads from form data (pre-submission response not available)`);
+                    // Extract contact name from email (e.g., "info" from "info@example.com")
+                    const contactName = emailLocal.charAt(0).toUpperCase() + emailLocal.slice(1);
+
+                    knackApiPayloads.push({
+                        field_3988: 'Email',                    // Communication type
+                        field_3869: emailNormalised,            // Email normalized (lowercase for search)
+                        field_3968: emailRaw,                   // Email formatted (original as entered)
+                        field_3969: emailDomain,                // Domain
+                        field_3970: contactName,                // Contact name
+                        field_3982: 'Company',                  // Entity type
+                        field_3876: 'Active',                   // Status
+                        field_3881: currentUserId,              // Created by (current user ID)
+                        field_4016: tenantId                    // Tenant ID
+                    });
                 }
+
+                // Build phone payload if phone exists
+                if (phoneHasValue) {
+                    // Extract country code and national number
+                    // Assuming phoneNormalised is in format like "+61412345678"
+                    let countryCode = '';
+                    let nationalNumber = '';
+
+                    if (phoneNormalised.startsWith('+')) {
+                        // Extract country code (assume first 2-3 digits after +)
+                        const phoneWithoutPlus = phoneNormalised.substring(1);
+
+                        // Common country codes: 61 (AU), 1 (US/CA), 44 (UK), etc.
+                        if (phoneWithoutPlus.startsWith('61')) {
+                            countryCode = '61';
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        } else if (phoneWithoutPlus.startsWith('1')) {
+                            countryCode = '1';
+                            nationalNumber = phoneWithoutPlus.substring(1);
+                        } else if (phoneWithoutPlus.startsWith('44')) {
+                            countryCode = '44';
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        } else {
+                            // Default: assume 2-digit country code
+                            countryCode = phoneWithoutPlus.substring(0, 2);
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        }
+                    } else {
+                        // No + prefix, assume it's already national number
+                        nationalNumber = phoneNormalised;
+                        countryCode = '61'; // Default to Australia
+                    }
+
+                    knackApiPayloads.push({
+                        field_3988: 'Phone',                    // Communication type
+                        field_3886: phoneNormalised,            // Full international phone
+                        field_3971: nationalNumber,             // National number (without country code)
+                        field_3885: countryCode,                // Country code
+                        field_3982: 'Company',                  // Entity type
+                        field_3876: 'Active',                   // Status
+                        field_3881: currentUserId,              // Created by (current user ID)
+                        field_4016: tenantId                    // Tenant ID
+                    });
+                }
+
+                console.log(`📦 Built knack_api_payloads from submitted form data (${knackApiPayloads.length} payloads)`);
+                console.log('Payloads:', knackApiPayloads);
 
                 // Get other values from pre-submission response or use defaults
                 if (typeof window._isTest !== 'undefined') {
@@ -3697,7 +3717,7 @@ window.ktlReady = function (appInfo = {}) {
                     address_zip: zipRaw,
                     email_normalised: emailNormalised,
                     phone_normalised: phoneNormalised,
-                    knack_api_payloads: JSON.stringify(knackApiPayloads),
+                    knack_api_payloads: knackApiPayloads.map(p => JSON.stringify(p)).join(':::'),
                     shared_com_ids: sharedComIds,
                     com_action_type: comActionType,
                     is_test: isTest,
@@ -4002,6 +4022,618 @@ window.ktlReady = function (appInfo = {}) {
         };
 
         // ========================================================================
+        // UNIFIED NOTIFICATION SYSTEM
+        // Consistent inline notifications for errors, warnings, and success messages
+        // Brand colors: Error (red), Warning (orange), Success/Info (green #39b54a)
+        // ========================================================================
+
+        const notificationSystem = {
+            /**
+             * Brand color palette
+             */
+            colors: {
+                error: {
+                    text: '#d32f2f',
+                    background: '#ffebee',
+                    border: '#d32f2f'
+                },
+                warning: {
+                    text: '#856404',
+                    background: '#fff3cd',
+                    border: '#ffc107'
+                },
+                success: {
+                    text: '#2d7a2d',
+                    background: '#e8f5e8',
+                    border: '#39b54a'  // Greenlight brand green
+                },
+                info: {
+                    text: '#2d7a2d',
+                    background: '#e8f5e8',
+                    border: '#39b54a'  // Same as success
+                }
+            },
+
+            /**
+             * Icons for each notification type
+             */
+            icons: {
+                error: '❌',
+                warning: '⚠️',
+                success: '✅',
+                info: 'ℹ️'
+            },
+
+            /**
+             * Show inline notification below a field
+             * Replaces all old notification styles with consistent design
+             *
+             * @param {string} viewId - View ID (e.g., 'view_4059')
+             * @param {string} fieldId - Field ID (e.g., 'field_992')
+             * @param {string} message - Notification message (can include HTML)
+             * @param {string} type - 'error', 'warning', 'success', or 'info'
+             * @param {string} actionLink - Optional link URL
+             * @param {string} actionText - Optional link text (default: "View details")
+             */
+            showFieldNotification: function(viewId, fieldId, message, type = 'error', actionLink = null, actionText = 'View details') {
+                const color = this.colors[type];
+                const icon = this.icons[type];
+
+                console.log(`${icon} Showing ${type} notification for ${fieldId}: ${message}`);
+
+                const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+
+                if (!$field.length) {
+                    console.warn(`⚠️ Could not find field ${fieldId} to show ${type} notification`);
+                    return;
+                }
+
+                // Remove any existing notifications for this field
+                $field.closest('.kn-input').find('.field-notification-message').remove();
+                $field.removeClass('field-has-error field-has-warning field-has-info field-has-success');
+
+                // Create notification element with unified style
+                const notificationId = `notification-${type}-${fieldId}`;
+                const $notification = $(`<div class="field-notification-message field-${type}-message" id="${notificationId}" style="
+                    color: ${color.text};
+                    font-size: 13px;
+                    margin-top: 5px;
+                    padding: 8px 12px;
+                    background: ${color.background};
+                    border-left: 3px solid ${color.border};
+                    border-radius: 3px;
+                    line-height: 1.5;
+                "></div>`);
+
+                // Build notification content
+                $notification.html(`
+                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                        <span style="flex-shrink: 0; font-size: 14px;">${icon}</span>
+                        <div style="flex: 1;">
+                            <div>${message}</div>
+                            ${actionLink ? `
+                                <a href="${actionLink}" style="
+                                    color: #1976d2;
+                                    text-decoration: underline;
+                                    font-size: 12px;
+                                    margin-top: 4px;
+                                    display: inline-block;
+                                ">${actionText}</a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `);
+
+                // Add CSS class to field for styling hooks
+                $field.addClass(`field-has-${type}`);
+
+                // Insert notification after the field's container
+                $field.closest('.kn-input').append($notification);
+
+                // Behavior based on type
+                if (type === 'error') {
+                    // Focus and select the field for errors
+                    $field.focus().select();
+                    // Scroll to field
+                    $field[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (type === 'warning') {
+                    // Just scroll, don't focus
+                    $field[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                // Success/info: no auto-scroll/focus
+            },
+
+            /**
+             * Clear all notifications from a field
+             */
+            clearFieldNotification: function(viewId, fieldId) {
+                const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+
+                if (!$field.length) return;
+
+                $field.closest('.kn-input').find('.field-notification-message').remove();
+                $field.removeClass('field-has-error field-has-warning field-has-info field-has-success');
+
+                console.log(`🧹 Cleared notifications from ${fieldId}`);
+            },
+
+            /**
+             * Clear all notifications from all fields in a view
+             */
+            clearAllNotifications: function(viewId) {
+                $(`#${viewId} .field-notification-message`).remove();
+                $(`#${viewId} .field-has-error, #${viewId} .field-has-warning, #${viewId} .field-has-info, #${viewId} .field-has-success`)
+                    .removeClass('field-has-error field-has-warning field-has-info field-has-success');
+
+                console.log(`🧹 Cleared all notifications from ${viewId}`);
+            },
+
+            /**
+             * Show inline confirmation request with Yes/No buttons
+             * Replaces modal dialog with inline approach
+             *
+             * @param {string} viewId - View ID
+             * @param {string} message - Confirmation question (HTML allowed)
+             * @param {function} onConfirm - Callback when user clicks Yes
+             * @param {function} onCancel - Callback when user clicks No/Cancel
+             * @param {object} options - { confirmText: 'Yes', cancelText: 'No', type: 'warning' }
+             */
+            showInlineConfirmation: function(viewId, message, onConfirm, onCancel, options = {}) {
+                const {
+                    confirmText = 'Yes, Proceed',
+                    cancelText = 'Cancel',
+                    type = 'warning',
+                    insertBefore = `#${viewId} .kn-submit`  // Where to insert the confirmation
+                } = options;
+
+                const color = this.colors[type];
+                const icon = this.icons[type];
+
+                console.log(`${icon} Showing inline confirmation for ${viewId}`);
+
+                // Remove any existing confirmations
+                $(`#${viewId} .inline-confirmation`).remove();
+
+                // Create confirmation element
+                const $confirmation = $(`<div class="inline-confirmation" style="
+                    margin: 20px 0;
+                    padding: 15px;
+                    background: ${color.background};
+                    border: 2px solid ${color.border};
+                    border-radius: 6px;
+                "></div>`);
+
+                $confirmation.html(`
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="flex-shrink: 0; font-size: 18px;">${icon}</span>
+                            <div style="flex: 1; color: ${color.text}; font-size: 14px; line-height: 1.6;">
+                                ${message}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="confirmation-cancel" style="
+                            background: #ccc;
+                            color: #333;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                        ">${cancelText}</button>
+                        <button type="button" class="confirmation-confirm" style="
+                            background: #39b54a;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                        ">${confirmText}</button>
+                    </div>
+                `);
+
+                // Insert before submit button
+                const $insertPoint = $(insertBefore);
+                if ($insertPoint.length) {
+                    $insertPoint.before($confirmation);
+                } else {
+                    // Fallback: insert at end of form
+                    $(`#${viewId} form`).append($confirmation);
+                }
+
+                // Handle confirmation
+                $confirmation.find('.confirmation-confirm').on('click', function() {
+                    $confirmation.remove();
+                    if (onConfirm) onConfirm();
+                });
+
+                // Handle cancellation
+                $confirmation.find('.confirmation-cancel').on('click', function() {
+                    $confirmation.remove();
+                    if (onCancel) onCancel();
+                });
+
+                // Scroll to confirmation
+                $confirmation[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Focus confirm button
+                setTimeout(() => {
+                    $confirmation.find('.confirmation-confirm').focus();
+                }, 100);
+            },
+
+            /**
+             * Submit Button State Manager
+             * Controls submit button text, state, and visual feedback
+             */
+            submitButton: {
+                /**
+                 * Set submit button state
+                 *
+                 * @param {string} viewId - View ID
+                 * @param {string} state - 'ready', 'loading', 'disabled', 'success', 'error'
+                 * @param {string} customText - Optional custom text
+                 */
+                setState: function(viewId, state, customText = null) {
+                    const $submitBtn = $(`#${viewId} .kn-button.is-primary, #${viewId} button[type="submit"]`).first();
+
+                    if (!$submitBtn.length) {
+                        console.warn(`⚠️ Submit button not found for ${viewId}`);
+                        return;
+                    }
+
+                    const states = {
+                        ready: {
+                            text: customText || 'Submit',
+                            disabled: false,
+                            color: '#007cba',
+                            cursor: 'pointer'
+                        },
+                        loading: {
+                            text: customText || 'Processing...',
+                            disabled: true,
+                            color: '#007cba',
+                            cursor: 'wait'
+                        },
+                        disabled: {
+                            text: customText || 'Submit',
+                            disabled: true,
+                            color: '#ccc',
+                            cursor: 'not-allowed'
+                        },
+                        success: {
+                            text: customText || '✓ Success',
+                            disabled: true,
+                            color: '#39b54a',
+                            cursor: 'default'
+                        },
+                        error: {
+                            text: customText || '✗ Error - Try Again',
+                            disabled: false,
+                            color: '#d32f2f',
+                            cursor: 'pointer'
+                        }
+                    };
+
+                    const config = states[state] || states.ready;
+
+                    $submitBtn
+                        .text(config.text)
+                        .prop('disabled', config.disabled)
+                        .css({
+                            'background-color': config.color,
+                            'cursor': config.cursor,
+                            'opacity': config.disabled ? '0.7' : '1'
+                        });
+
+                    console.log(`🔘 Submit button set to '${state}': "${config.text}"`);
+                },
+
+                /**
+                 * Get original button text (stored on first call)
+                 */
+                getOriginalText: function(viewId) {
+                    const $submitBtn = $(`#${viewId} .kn-button.is-primary, #${viewId} button[type="submit"]`).first();
+
+                    if (!$submitBtn.data('originalText')) {
+                        $submitBtn.data('originalText', $submitBtn.text());
+                    }
+
+                    return $submitBtn.data('originalText');
+                },
+
+                /**
+                 * Reset to original state
+                 */
+                reset: function(viewId) {
+                    const originalText = this.getOriginalText(viewId);
+                    this.setState(viewId, 'ready', originalText);
+                }
+            }
+        };
+
+        // ========================================================================
+        // FIELD CHANGE DETECTION FRAMEWORK
+        // Tracks form field changes after validation to determine revalidation needs
+        // ========================================================================
+
+        /**
+         * Field Change Strategies Configuration
+         * Defines how each field should be handled when changed after validation
+         *
+         * Strategies:
+         * - 'revalidate': Always revalidate when field changes (e.g., company name)
+         * - 'conditional': Use custom logic to decide (e.g., email - revalidate if changed, allow if deleted)
+         * - 'allow': Never revalidate (e.g., optional address fields)
+         */
+        const fieldChangeStrategies = {
+            view_4059: {  // Create Company Form
+                field_992: {
+                    strategy: 'revalidate',
+                    reason: 'Company name changed - must check for duplicates'
+                },
+                field_3783: {
+                    strategy: 'revalidate',
+                    reason: 'Short name changed - must check for duplicates'
+                },
+                field_4057: {
+                    strategy: 'conditional',
+                    reason: 'Email validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        // If email was deleted (made empty), allow submission without revalidation
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📧 Email deleted - allowing submission without revalidation');
+                            return 'allow';
+                        }
+                        // If email was changed to a different value, revalidate
+                        if (newVal !== oldVal) {
+                            console.log(`📧 Email changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        // No change
+                        return 'allow';
+                    }
+                },
+                field_4056: {
+                    strategy: 'conditional',
+                    reason: 'Phone validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        // Same logic as email
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📞 Phone deleted - allowing submission without revalidation');
+                            return 'allow';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📞 Phone changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                },
+                // Address fields - never require revalidation (no duplicate check on addresses)
+                street: { strategy: 'allow', reason: 'Address changes do not require revalidation' },
+                street2: { strategy: 'allow', reason: 'Address changes do not require revalidation' },
+                city: { strategy: 'allow', reason: 'Address changes do not require revalidation' },
+                state: { strategy: 'allow', reason: 'Address changes do not require revalidation' },
+                zip: { strategy: 'allow', reason: 'Address changes do not require revalidation' }
+            }
+
+            // PLACEHOLDER: Add other forms here as needed
+            // view_XXXX: { ... } // Create Contact Form
+            // view_2406: { ... } // Update Company Form (already exists in viewConfigs)
+            // view_YYYY: { ... } // Update Contact Form
+        };
+
+        /**
+         * Change Tracker Module
+         * Captures validated field values and determines if revalidation is needed
+         */
+        const changeTracker = {
+            // Stores field values after successful webhook validation
+            // Structure: { viewId: { fieldId: validatedValue } }
+            validatedValues: {},
+
+            /**
+             * Capture field values after successful webhook validation
+             * Called after webhook returns 'proceed' or 'confirm'
+             *
+             * @param {string} viewId - The view ID (e.g., 'view_4059')
+             * @param {object} formData - Form data object (not currently used, for future enhancement)
+             */
+            captureValidatedValues: function (viewId, formData) {
+                if (!this.validatedValues[viewId]) {
+                    this.validatedValues[viewId] = {};
+                }
+
+                const config = viewConfigs[viewId];
+                if (!config || !config.fields) {
+                    console.warn(`⚠️ No config found for ${viewId} - cannot capture validated values`);
+                    return;
+                }
+
+                console.log(`📸 Capturing validated values for ${viewId}`);
+
+                // Capture each configured field's current value
+                Object.keys(config.fields).forEach(fieldId => {
+                    const fieldConfig = config.fields[fieldId];
+
+                    // Handle different selector types
+                    let $field;
+                    if (fieldConfig.selector) {
+                        $field = $(fieldConfig.selector);
+                    } else if (fieldConfig.selectors) {
+                        // Skip composite fields (like name-fields, address)
+                        return;
+                    }
+
+                    if ($field && $field.length) {
+                        const value = $field.val() || '';
+                        this.validatedValues[viewId][fieldId] = value;
+                        console.log(`  ✓ ${fieldId}: "${value}"`);
+                    }
+                });
+            },
+
+            /**
+             * Determine if revalidation is needed based on field changes
+             * Uses fieldChangeStrategies to make intelligent decisions
+             *
+             * Priority logic:
+             * - If ANY field requires 'revalidate', return true immediately
+             * - If multiple fields changed, the most restrictive strategy wins
+             *
+             * @param {string} viewId - The view ID
+             * @returns {boolean} - True if revalidation needed, false otherwise
+             */
+            needsRevalidation: function (viewId) {
+                const state = window._fieldValidationState?.[viewId];
+
+                // No validation state means no previous validation occurred
+                if (!state || !state.needsRevalidation) {
+                    return false;
+                }
+
+                const changedFields = state.changedFields || [];
+                if (changedFields.length === 0) {
+                    return false;
+                }
+
+                const strategies = fieldChangeStrategies[viewId];
+                if (!strategies) {
+                    console.warn(`⚠️ No change strategies defined for ${viewId} - defaulting to revalidate`);
+                    return true;
+                }
+
+                console.log(`🔍 Checking if revalidation needed for ${viewId}`);
+                console.log(`   Changed fields: ${changedFields.join(', ')}`);
+
+                // Check each changed field's strategy
+                for (const fieldId of changedFields) {
+                    const strategyConfig = strategies[fieldId];
+
+                    if (!strategyConfig) {
+                        console.log(`  ⚠️ No strategy for ${fieldId} - defaulting to revalidate`);
+                        return true;
+                    }
+
+                    // Handle 'revalidate' strategy (highest priority)
+                    if (strategyConfig.strategy === 'revalidate') {
+                        console.log(`  🔄 ${fieldId} requires revalidation: ${strategyConfig.reason}`);
+                        return true;
+                    }
+
+                    // Handle 'conditional' strategy
+                    if (strategyConfig.strategy === 'conditional') {
+                        const oldVal = this.validatedValues[viewId]?.[fieldId] || '';
+
+                        // Get current value
+                        const config = viewConfigs[viewId];
+                        const fieldConfig = config?.fields[fieldId];
+                        if (!fieldConfig || !fieldConfig.selector) {
+                            console.warn(`  ⚠️ Cannot get current value for ${fieldId}`);
+                            continue;
+                        }
+
+                        const $field = $(fieldConfig.selector);
+                        const newVal = $field.val() || '';
+
+                        // Run condition function
+                        const decision = strategyConfig.condition(oldVal, newVal);
+
+                        if (decision === 'revalidate') {
+                            console.log(`  🔄 ${fieldId} requires revalidation (conditional): ${strategyConfig.reason}`);
+                            return true;
+                        } else {
+                            console.log(`  ✅ ${fieldId} change allows submission: ${decision}`);
+                        }
+                    }
+
+                    // Handle 'allow' strategy
+                    if (strategyConfig.strategy === 'allow') {
+                        console.log(`  ✅ ${fieldId} change allowed: ${strategyConfig.reason}`);
+                        // Continue checking other fields
+                    }
+                }
+
+                console.log(`✅ No revalidation needed - all changes allow direct submission`);
+                return false;
+            },
+
+            /**
+             * Get a summary of what changed and why revalidation is/isn't needed
+             * Used for informative user messages
+             *
+             * @param {string} viewId - The view ID
+             * @returns {object} - { needsRevalidation: boolean, changedFields: [], reasons: [] }
+             */
+            getChangesSummary: function (viewId) {
+                const state = window._fieldValidationState?.[viewId];
+                if (!state || !state.needsRevalidation) {
+                    return { needsRevalidation: false, changedFields: [], reasons: [] };
+                }
+
+                const changedFields = state.changedFields || [];
+                const strategies = fieldChangeStrategies[viewId] || {};
+                const reasons = [];
+
+                let needsRevalidation = false;
+
+                changedFields.forEach(fieldId => {
+                    const strategyConfig = strategies[fieldId];
+
+                    if (!strategyConfig) {
+                        reasons.push(`${fieldId}: No strategy defined (defaulting to revalidate)`);
+                        needsRevalidation = true;
+                        return;
+                    }
+
+                    if (strategyConfig.strategy === 'revalidate') {
+                        reasons.push(strategyConfig.reason);
+                        needsRevalidation = true;
+                    } else if (strategyConfig.strategy === 'conditional') {
+                        const oldVal = this.validatedValues[viewId]?.[fieldId] || '';
+                        const config = viewConfigs[viewId];
+                        const fieldConfig = config?.fields[fieldId];
+                        const $field = $(fieldConfig?.selector);
+                        const newVal = $field.val() || '';
+
+                        const decision = strategyConfig.condition(oldVal, newVal);
+                        if (decision === 'revalidate') {
+                            reasons.push(strategyConfig.reason);
+                            needsRevalidation = true;
+                        }
+                    }
+                });
+
+                return { needsRevalidation, changedFields, reasons };
+            },
+
+            /**
+             * Clear validation state after successful submission
+             * Should be called after form submits to Knack
+             *
+             * @param {string} viewId - The view ID
+             */
+            clearValidationState: function (viewId) {
+                // Clear window validation state
+                if (window._fieldValidationState && window._fieldValidationState[viewId]) {
+                    delete window._fieldValidationState[viewId];
+                    console.log(`🧹 Cleared window._fieldValidationState for ${viewId}`);
+                }
+
+                // Clear tracked validated values
+                if (this.validatedValues[viewId]) {
+                    delete this.validatedValues[viewId];
+                    console.log(`🧹 Cleared validatedValues for ${viewId}`);
+                }
+            }
+        };
+
+        // ========================================================================
         // DUPLICATE DETECTION HANDLER
         // Handles async duplicate checking and response processing
         // ========================================================================
@@ -4053,10 +4685,16 @@ window.ktlReady = function (appInfo = {}) {
                         break;
 
                     case 'confirm':
+                        // Capture validated values before showing confirmation dialog
+                        // User may cancel and edit fields, we need baseline for change detection
+                        changeTracker.captureValidatedValues(viewId, formData);
                         this.showConfirmationDialog(result, formData, viewId, $form, $submitBtn, originalText);
                         break;
 
                     case 'proceed':
+                        // Capture validated values before proceeding
+                        // This establishes baseline for future change detection
+                        changeTracker.captureValidatedValues(viewId, formData);
                         this.proceedWithSubmission(formData, viewId, result);
                         break;
 
@@ -4068,95 +4706,335 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
-             * Block submission with duplicate message
+             * Field error state manager
+             */
+            fieldErrors: {},
+
+            /**
+             * Show inline error for a specific field
+             */
+            showFieldError: function(viewId, fieldId, errorMessage, viewLink = null) {
+                // Store error state
+                if (!this.fieldErrors[viewId]) {
+                    this.fieldErrors[viewId] = {};
+                }
+                this.fieldErrors[viewId][fieldId] = {
+                    message: errorMessage,
+                    viewLink: viewLink
+                };
+
+                // Use unified notification system
+                notificationSystem.showFieldNotification(
+                    viewId,
+                    fieldId,
+                    errorMessage,
+                    'error',
+                    viewLink,
+                    'View existing record'
+                );
+
+                // Disable submit button
+                this.disableSubmit(viewId);
+            },
+
+            /**
+             * Show warning message for a field (orange/yellow - used for conflicts/shared contacts)
+             * Color scheme: #ffc107 border, #fff3cd background, #856404 text
+             */
+            showFieldWarning: function(viewId, fieldId, warningMessage, actionLink = null) {
+                // Use unified notification system
+                notificationSystem.showFieldNotification(
+                    viewId,
+                    fieldId,
+                    warningMessage,
+                    'warning',
+                    actionLink,
+                    'View details'
+                );
+            },
+
+            /**
+             * Show info message for a field (green - used for confirmations)
+             * Color scheme: #39b54a border, #e8f5e8 background, #2d7a2d text
+             */
+            showFieldInfo: function(viewId, fieldId, infoMessage) {
+                // Use unified notification system
+                notificationSystem.showFieldNotification(
+                    viewId,
+                    fieldId,
+                    infoMessage,
+                    'info'
+                );
+            },
+
+            /**
+             * Clear error for a specific field
+             */
+            clearFieldError: function(viewId, fieldId) {
+                console.log(`✅ Clearing field error for ${fieldId}`);
+
+                // Use unified notification system to clear
+                notificationSystem.clearFieldNotification(viewId, fieldId);
+
+                // Clear error state
+                if (this.fieldErrors[viewId]) {
+                    delete this.fieldErrors[viewId][fieldId];
+                }
+
+                // Re-enable submit if no more errors
+                if (this.hasNoErrors(viewId)) {
+                    this.enableSubmit(viewId);
+                }
+            },
+
+            /**
+             * Clear warning for a specific field
+             */
+            clearFieldWarning: function(viewId, fieldId) {
+                console.log(`✅ Clearing field warning for ${fieldId}`);
+
+                const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+
+                // Remove warning UI
+                $field.closest('.kn-input').find('.field-warning-message').remove();
+                $field.removeClass('field-has-warning');
+            },
+
+            /**
+             * Clear info for a specific field
+             */
+            clearFieldInfo: function(viewId, fieldId) {
+                console.log(`✅ Clearing field info for ${fieldId}`);
+
+                const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+
+                // Remove info UI
+                $field.closest('.kn-input').find('.field-info-message').remove();
+                $field.removeClass('field-has-info');
+            },
+
+            /**
+             * Clear all warnings from a view
+             */
+            clearAllWarnings: function(viewId) {
+                console.log(`✅ Clearing all warnings for ${viewId}`);
+                // Use unified notification system to clear all notifications
+                notificationSystem.clearAllNotifications(viewId);
+            },
+
+            /**
+             * Check if form has any field errors
+             */
+            hasNoErrors: function(viewId) {
+                return !this.fieldErrors[viewId] || Object.keys(this.fieldErrors[viewId]).length === 0;
+            },
+
+            /**
+             * Disable submit button
+             */
+            disableSubmit: function(viewId) {
+                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                $submitBtn.prop('disabled', true).css({
+                    'opacity': '0.5',
+                    'cursor': 'not-allowed'
+                });
+            },
+
+            /**
+             * Enable submit button
+             */
+            enableSubmit: function(viewId) {
+                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                $submitBtn.prop('disabled', false).css({
+                    'opacity': '1',
+                    'cursor': 'pointer'
+                });
+            },
+
+            /**
+             * Setup field change listeners to clear errors and trigger re-validation
+             */
+            setupFieldErrorListeners: function(viewId) {
+                const self = this;
+                const fieldsToWatch = ['field_992', 'field_3783', 'field_4057', 'field_4056'];
+
+                console.log(`👂 Setting up field error listeners for ${viewId}`);
+
+                fieldsToWatch.forEach(fieldId => {
+                    const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+
+                    if (!$field.length) {
+                        console.log(`⚠️ Field ${fieldId} not found in ${viewId}, skipping listener setup`);
+                        return;
+                    }
+
+                    $field.on('input change', function() {
+                        const fieldValue = $(this).val();
+
+                        console.log(`🔄 Field ${fieldId} changed, value: "${fieldValue}"`);
+
+                        // If this field has an error, clear it
+                        if (self.fieldErrors[viewId] && self.fieldErrors[viewId][fieldId]) {
+                            console.log(`✅ Clearing error for ${fieldId}`);
+                            self.clearFieldError(viewId, fieldId);
+
+                            // Mark that we need re-validation before submission
+                            if (!window._fieldValidationState) {
+                                window._fieldValidationState = {};
+                            }
+                            if (!window._fieldValidationState[viewId]) {
+                                window._fieldValidationState[viewId] = {};
+                            }
+                            window._fieldValidationState[viewId].needsRevalidation = true;
+                            window._fieldValidationState[viewId].changedFields = window._fieldValidationState[viewId].changedFields || [];
+
+                            if (!window._fieldValidationState[viewId].changedFields.includes(fieldId)) {
+                                window._fieldValidationState[viewId].changedFields.push(fieldId);
+                            }
+
+                            console.log(`⏳ Marked for re-validation. Changed fields:`, window._fieldValidationState[viewId].changedFields);
+                        }
+                    });
+
+                    console.log(`✅ Listener setup for ${fieldId}`);
+                });
+            },
+
+            /**
+             * Block submission with inline field errors
              */
             blockSubmission: function (result, viewId, $form, $submitBtn, originalText) {
-                console.log('🚫 Blocking submission due to duplicates');
+                console.log('🚫 Blocking submission with field errors');
 
-                // Clear any existing errors
-                $form.find('.kn-message.is-error').remove();
-
-                // Show block message using native Knack styling
-                const $errorDiv = $('<div class="kn-message is-error"></div>');
-                $errorDiv.html(`
-                    <span class="kn-message-body">
-                        <p><strong>Duplicate Contact Detected</strong></p>
-                        <p>${result.messages.block_message}</p>
-                        <p>Please use the existing contact or modify the details.</p>
-                    </span>
-                `);
-
-                $form.prepend($errorDiv);
-
-                // Scroll to error
-                $errorDiv[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Re-enable the submit button
+                // Re-enable submit button (will be disabled by field error display)
                 $submitBtn.prop('disabled', false).text(originalText);
+
+                // Determine which field(s) have errors based on block_reason
+                const blockReason = result.block_reason;
+
+                if (blockReason === 'duplicate_company') {
+                    // Handle duplicate company name
+                    const duplicateField = result.duplicate_field; // "Full Name", "Short Name", or "Both"
+                    const errorMessage = result.messages.block_message;
+                    const viewLink = result.messages.view_link;
+
+                    if (duplicateField === 'Full Name' || duplicateField === 'Both') {
+                        this.showFieldError(viewId, 'field_992', errorMessage, viewLink);
+                    }
+
+                    if (duplicateField === 'Short Name' || duplicateField === 'Both') {
+                        this.showFieldError(viewId, 'field_3783', errorMessage, viewLink);
+                    }
+
+                } else if (result.email_validation && result.email_validation.action === 'block') {
+                    // Handle email validation failure
+                    const errorMessage = result.email_validation.message;
+                    this.showFieldError(viewId, 'field_4057', errorMessage);
+
+                } else if (blockReason === 'duplicate_phone') {
+                    // Handle duplicate phone number
+                    const errorMessage = result.messages.block_message;
+                    const viewLink = result.messages.view_link;
+                    this.showFieldError(viewId, 'field_4056', errorMessage, viewLink);
+
+                } else {
+                    // Generic block - show top-level error (fallback)
+                    console.warn('⚠️ Unknown block reason - showing generic error');
+                    const blockMessage = result.messages?.block_message || 'Unable to process submission.';
+                    this.showError(blockMessage);
+                    $submitBtn.prop('disabled', false).text(originalText);
+                }
             },
 
             /**
              * Show confirmation dialog for conflicts
              */
             showConfirmationDialog: function (result, formData, viewId, $form, $submitBtn, originalText) {
-                console.log('❓ Showing confirmation dialog for conflicts');
+                console.log('❓ Showing inline confirmation for conflicts');
 
-                const conflicts = result.conflicts;
+                const conflicts = result.conflicts || [];
+                const emailValidationWarning = result.email_validation_warning;
 
-                // Build confirmation message
-                let confirmMessage = '<div style="text-align: left;">';
-                confirmMessage += '<p><strong>Contact conflicts detected:</strong></p><ul>';
+                // Show inline field warnings for conflicts
+                if (emailValidationWarning) {
+                    this.showFieldWarning(viewId, 'field_4057', `Email Validation Warning: ${emailValidationWarning}`);
+                }
 
+                // Show inline warnings for each conflict type
                 conflicts.forEach(conflict => {
-                    const contactMethod = conflict.type === 'mobile' ? 'Mobile' :
-                        conflict.type === 'phone' ? 'Phone' : 'Email';
-                    confirmMessage += `<li><strong>${contactMethod}:</strong> ${conflict.contact_value} is already associated with <strong>${conflict.existing_contact}</strong></li>`;
+                    let fieldId;
+                    let warningMsg;
+
+                    // Map conflict type to field ID
+                    if (conflict.type === 'email') {
+                        fieldId = 'field_4057';
+                        warningMsg = `This email is already associated with <strong>${conflict.existing_contact}</strong>`;
+                    } else if (conflict.type === 'phone') {
+                        fieldId = 'field_4056';
+                        warningMsg = `This phone number is already associated with <strong>${conflict.existing_contact}</strong>`;
+                    } else if (conflict.type === 'mobile') {
+                        fieldId = 'field_3960';
+                        warningMsg = `This mobile number is already associated with <strong>${conflict.existing_contact}</strong>`;
+                    }
+
+                    if (fieldId) {
+                        this.showFieldWarning(viewId, fieldId, warningMsg);
+                    }
                 });
 
-                confirmMessage += '</ul>';
-                confirmMessage += `<p>Do you want to associate these contact methods with <strong>${formData.first} ${formData.last}</strong> as well?</p>`;
-                confirmMessage += '</div>';
+                // Build confirmation message (summary of conflicts)
+                let confirmMessage = '';
 
-                // Create custom modal dialog
-                const $modal = $(`
-                    <div id="duplicate-confirmation-modal" style="
-                        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                        background: rgba(0,0,0,0.5); z-index: 9999; display: flex;
-                        align-items: center; justify-content: center;
-                    ">
-                        <div style="
-                            background: white; padding: 30px; border-radius: 8px;
-                            max-width: 500px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                        ">
-                            <h3 style="margin-top: 0; color: #333;">Confirm Contact Association</h3>
-                            ${confirmMessage}
-                            <div style="margin-top: 20px; text-align: right;">
-                                <button id="cancel-association" style="
-                                    background: #ccc; color: #333; border: none; padding: 10px 20px;
-                                    margin-right: 10px; border-radius: 4px; cursor: pointer;
-                                ">Cancel</button>
-                                <button id="confirm-association" style="
-                                    background: #007cba; color: white; border: none; padding: 10px 20px;
-                                    border-radius: 4px; cursor: pointer;
-                                ">Yes, Associate</button>
-                            </div>
-                        </div>
-                    </div>
-                `);
+                // Add email validation warning summary
+                if (emailValidationWarning) {
+                    confirmMessage += `<p><strong>⚠️ Email Validation Warning:</strong> ${emailValidationWarning}</p>`;
+                }
 
-                $('body').append($modal);
+                // Add conflicts summary
+                if (conflicts.length > 0) {
+                    confirmMessage += `<p><strong>Contact conflicts detected:</strong></p><ul style="margin: 10px 0;">`;
 
-                // Handle confirmation
-                $('#confirm-association').on('click', () => {
-                    $modal.remove();
-                    this.proceedWithAssociation(formData, result, viewId);
-                });
+                    conflicts.forEach(conflict => {
+                        const contactMethod = conflict.type === 'mobile' ? 'Mobile' :
+                            conflict.type === 'phone' ? 'Phone' : 'Email';
+                        confirmMessage += `<li>${contactMethod}: <strong>${conflict.contact_value}</strong> is already associated with <strong>${conflict.existing_contact}</strong></li>`;
+                    });
 
-                // Handle cancellation
-                $('#cancel-association').on('click', () => {
-                    $modal.remove();
-                    $submitBtn.prop('disabled', false).text(originalText);
-                });
+                    confirmMessage += '</ul>';
+                }
+
+                // Add appropriate question based on what's being confirmed
+                if (conflicts.length > 0 && formData.first && formData.last) {
+                    confirmMessage += `<p><strong>Do you want to associate these contact methods with ${formData.first} ${formData.last} as well?</strong></p>`;
+                } else if (emailValidationWarning && conflicts.length === 0) {
+                    confirmMessage += `<p><strong>Do you want to proceed with this email address anyway?</strong></p>`;
+                } else if (conflicts.length > 0) {
+                    confirmMessage += `<p><strong>Do you want to proceed with these shared contact methods?</strong></p>`;
+                }
+
+                // Show inline confirmation using unified notification system
+                notificationSystem.showInlineConfirmation(
+                    viewId,
+                    confirmMessage,
+                    // On confirm
+                    () => {
+                        this.clearAllWarnings(viewId);
+                        this.proceedWithAssociation(formData, result, viewId);
+                    },
+                    // On cancel
+                    () => {
+                        this.clearAllWarnings(viewId);
+                        notificationSystem.submitButton.reset(viewId);
+                    },
+                    {
+                        confirmText: 'Yes, Associate',
+                        cancelText: 'Cancel',
+                        type: 'warning'
+                    }
+                );
+
+                // Disable submit button while waiting for user decision
+                notificationSystem.submitButton.setState(viewId, 'disabled', 'Waiting for confirmation...');
             },
 
             /**
@@ -4224,6 +5102,9 @@ window.ktlReady = function (appInfo = {}) {
                 window._preSubmissionFormData = formData;
                 console.log(`💾 Stored form data for post-submission webhook:`, formData);
 
+                // Clear change detection state - form is being submitted successfully
+                changeTracker.clearValidationState(viewId);
+
                 // Set a flag to skip validation since we already validated
                 window.skipValidationForSubmit = true;
 
@@ -4246,15 +5127,33 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
-             * Show generic error message
+             * Show generic error message (toast-style notification)
+             * Used for system-level errors, not field-specific validation
              */
             showError: function (message) {
-                const $errorDiv = $('<div class="kn-message is-error" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;"></div>');
-                $errorDiv.html(`
-                    <span class="kn-message-body">
-                        <p><strong>Validation Error</strong></p>
-                        <p>${message}</p>
-                    </span>
+                const colors = typeof notificationSystem !== 'undefined'
+                    ? notificationSystem.colors.error
+                    : { text: '#d32f2f', background: '#ffebee', border: '#d32f2f' };
+
+                const $errorDiv = $(`
+                    <div class="generic-error-toast" style="
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        z-index: 10000;
+                        background-color: ${colors.background};
+                        border: 2px solid ${colors.border};
+                        border-radius: 4px;
+                        padding: 15px 20px;
+                        color: ${colors.text};
+                        font-weight: bold;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        max-width: 500px;
+                        text-align: center;
+                    ">
+                        ❌ ${message}
+                    </div>
                 `);
 
                 $('body').prepend($errorDiv);
@@ -4613,6 +5512,11 @@ window.ktlReady = function (appInfo = {}) {
                 // Listen for form submissions on all configured views
                 Object.keys(viewConfigs).forEach(viewId => {
 
+                    // Setup field error listeners for this view
+                    $(document).on(`knack-view-render.${viewId}`, function(event, view) {
+                        duplicateHandler.setupFieldErrorListeners(viewId);
+                    });
+
                     // Use before-submit event for async duplicate checking
                     $(document).on(`knack-form-before-submit.${viewId}`, function (event, view) {
                         console.log(`📋 Before form submission for ${viewId} - running validation and duplicate check`);
@@ -4621,6 +5525,37 @@ window.ktlReady = function (appInfo = {}) {
                         if (window.skipValidationForSubmit) {
                             console.log(`⏭️ Skipping validation for ${viewId} - already validated via duplicate check`);
                             return true; // Allow normal submission
+                        }
+
+                        // Check if there are any field errors still present
+                        if (!duplicateHandler.hasNoErrors(viewId)) {
+                            console.log(`🚫 Cannot submit - field errors still exist for ${viewId}`);
+                            event.preventDefault();
+                            event.stopImmediatePropagation();
+
+                            // Focus the first error field
+                            const firstErrorField = Object.keys(duplicateHandler.fieldErrors[viewId])[0];
+                            if (firstErrorField) {
+                                $(`#${viewId} #${firstErrorField}, #${viewId} input[name="${firstErrorField}"]`).first().focus();
+                            }
+                            return false;
+                        }
+
+                        // NEW: Check if revalidation is needed due to field changes
+                        const needsRevalidation = changeTracker.needsRevalidation(viewId);
+
+                        if (needsRevalidation) {
+                            console.log(`🔄 Revalidation required - user changed critical fields after previous validation`);
+
+                            // Get summary of what changed
+                            const summary = changeTracker.getChangesSummary(viewId);
+                            console.log(`   Reasons: ${summary.reasons.join(', ')}`);
+
+                            // Clear previous validation state to allow fresh validation
+                            changeTracker.clearValidationState(viewId);
+
+                            // Fall through to run webhook validation again
+                            // The informative message will be shown in the button text
                         }
 
                         const validation = validator.validateView(viewId);
@@ -4645,11 +5580,21 @@ window.ktlReady = function (appInfo = {}) {
                         // Extract form data for duplicate checking
                         const formData = eventListeners.extractFormData(viewId);
 
-                        // Show loading state
+                        // Show loading state with informative message
                         const $form = $(`#${viewId} form`);
                         const $submitBtn = $form.find('button[type="submit"]');
                         const originalText = $submitBtn.text();
-                        $submitBtn.prop('disabled', true).text('Checking for duplicates...');
+
+                        // NEW: Show informative message if revalidating
+                        let loadingMessage = 'Checking for duplicates...';
+                        if (needsRevalidation) {
+                            const summary = changeTracker.getChangesSummary(viewId);
+                            const primaryReason = summary.reasons[0] || 'Field changed';
+                            loadingMessage = `${primaryReason} - rechecking...`;
+                            console.log(`📢 User message: ${loadingMessage}`);
+                        }
+
+                        $submitBtn.prop('disabled', true).text(loadingMessage);
 
                         // Fire the existing webhook which now includes duplicate detection
                         webhookManager.fireWebhookWithDuplicateCheck(viewId, formData, $form, $submitBtn, originalText)
@@ -4770,7 +5715,7 @@ window.ktlReady = function (appInfo = {}) {
                     // Show errors for invalid prefilled fields
                     if (!result.isValid) {
                         const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
-                        utils.addFieldError(fieldId, errorMessage);
+                        utils.addFieldError(fieldId, errorMessage, null, viewId);
                         console.log(`❌ Error shown for prefilled ${fieldId}: ${errorMessage}`);
                     }
                 }
@@ -4843,7 +5788,7 @@ window.ktlReady = function (appInfo = {}) {
                                 const result = ruleDefinition.validate(fieldConfig, fieldValue, $field);
 
                                 if (result.isValid) {
-                                    utils.removeFieldError(fieldId);
+                                    utils.removeFieldError(fieldId, null, viewId);
 
                                     // Update field with normalized value if provided
                                     // Skip for address fields (they handle normalization internally)
@@ -4878,7 +5823,7 @@ window.ktlReady = function (appInfo = {}) {
                                 } else {
                                     // Validation failed - show error
                                     const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
-                                    utils.addFieldError(fieldId, errorMessage);
+                                    utils.addFieldError(fieldId, errorMessage, null, viewId);
                                     console.log(`❌ Real-time validation failed for ${fieldId}: ${errorMessage}`);
                                 }
                             }
@@ -5058,6 +6003,34 @@ window.ktlReady = function (appInfo = {}) {
                 eventListeners.setupFieldInteractionListeners();
                 eventListeners.setupAddressAutocompleteListeners();
 
+                // Change submit button text to "Validate" for company forms
+                $(document).on('knack-view-render.view_4059', function (event, view, data) {
+                    setTimeout(function() {
+                        const $submitBtn = $('#view_4059 button[type="submit"], #view_4059 input[type="submit"]');
+                        if ($submitBtn.length) {
+                            $submitBtn.text('Validate');
+                            console.log('✏️ Changed submit button text to "Validate" for view_4059');
+                        }
+
+                        // Focus on Company short name field
+                        const $shortNameField = $('#field_3783');
+                        if ($shortNameField.length) {
+                            $shortNameField.focus();
+                            console.log('⌨️ Focused Company short name field (field_3783)');
+                        }
+                    }, 100);
+                });
+
+                $(document).on('knack-view-render.view_2406', function (event, view, data) {
+                    setTimeout(function() {
+                        const $submitBtn = $('#view_2406 button[type="submit"], #view_2406 input[type="submit"]');
+                        if ($submitBtn.length) {
+                            $submitBtn.text('Validate');
+                            console.log('✏️ Changed submit button text to "Validate" for view_2406');
+                        }
+                    }, 100);
+                });
+
                 // Set up post-submission webhook listeners for company forms
                 $(document).on('knack-form-submit.view_4059', function (event, view, response) {
                     console.log(`📝 Form submission completed for view_4059 (company-creation)`);
@@ -5188,19 +6161,26 @@ window.ktlReady = function (appInfo = {}) {
                                 // Hide the original error
                                 $alert.hide();
 
-                                // Show error below the email field instead
-                                const $emailField = $('#kn-input-field_3959');
-                                if ($emailField.length) {
-                                    $emailField.addClass('kn-error');
+                                // Show error below the email field instead (view_5518)
+                                const fieldId = 'field_3959';
+                                const viewId = 'view_5518';
 
-                                    // Create error message with native Knack styling
-                                    let $errorDiv = $emailField.find('.validation-error-message');
-                                    if ($errorDiv.length === 0) {
-                                        $errorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px;"><span class="kn-message-body"></span></div>');
-                                        $emailField.append($errorDiv);
+                                if (typeof notificationSystem !== 'undefined') {
+                                    // Use unified notification system
+                                    notificationSystem.showFieldNotification(viewId, fieldId, errorText, 'error');
+                                } else {
+                                    // Fallback to old style if notification system not loaded
+                                    const $emailField = $('#kn-input-' + fieldId);
+                                    if ($emailField.length) {
+                                        $emailField.addClass('kn-error');
+                                        let $errorDiv = $emailField.find('.validation-error-message');
+                                        if ($errorDiv.length === 0) {
+                                            $errorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px;"><span class="kn-message-body"></span></div>');
+                                            $emailField.append($errorDiv);
+                                        }
+                                        $errorDiv.find('.kn-message-body').text(errorText);
+                                        $errorDiv.show();
                                     }
-                                    $errorDiv.find('.kn-message-body').text(errorText);
-                                    $errorDiv.show();
                                 }
                             }
                         }
@@ -5679,6 +6659,37 @@ window.ktlReady = function (appInfo = {}) {
                     }
                 });
 
+                // Add focus/blur handlers for keyboard navigation styling
+                $link.on('focus', function() {
+                    $(this).addClass('keyboard-focused');
+                    // Force apply hover styles using attr() to set style with !important
+                    const focusStyles = 'background: #39b54a !important; color: white !important; transform: translateY(-2px) !important; box-shadow: 0 4px 8px rgba(57, 181, 74, 0.25) !important;';
+                    $(this).attr('style', focusStyles);
+                    console.log('⌨️ Add-new-link focused, applied !important styles via attr');
+                }).on('blur', function() {
+                    $(this).removeClass('keyboard-focused');
+                    // Remove inline styles to return to default
+                    $(this).attr('style', '');
+                    console.log('⌨️ Add-new-link blurred, removed inline styles');
+                });
+
+                // Add keyboard handler for Tab key to cycle back to search field
+                $link.on('keydown', function(e) {
+                    if (e.key === 'Tab' && !e.shiftKey) {
+                        // Tab pressed (not Shift+Tab) - cycle back to search field
+                        e.preventDefault();
+                        const $searchInput = $container.closest('form').find('input[name="keyword"]');
+                        if ($searchInput.length) {
+                            $searchInput.focus();
+                            // Select all text in the search field
+                            $searchInput[0].select();
+                            console.log('⌨️ Cycled back to search field with text selected');
+                        } else {
+                            console.log('⚠️ Could not find search input field');
+                        }
+                    }
+                });
+
                 $container.append($link);
                 console.log(`   ✓ Created "+ New ${cfg.entityName}" button`);
             }
@@ -5778,9 +6789,62 @@ window.ktlReady = function (appInfo = {}) {
                 }
             });
 
+            // Set up keyboard navigation
+            const $companyBtn = $modal.find('.xero-entity-company');
+            const $contactBtn = $modal.find('.xero-entity-contact');
+            const $cancelBtn = $modal.find('.xero-entity-modal-cancel');
+
+            // Add focus/blur handlers to ensure hover styles apply
+            const $allButtons = $modal.find('.xero-entity-modal-btn, .xero-entity-modal-cancel');
+            $allButtons.on('focus', function() {
+                $(this).addClass('keyboard-focused');
+            }).on('blur', function() {
+                $(this).removeClass('keyboard-focused');
+            });
+
+            // Add keyboard handlers for Enter key
+            $companyBtn.on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    $(this).click();
+                    e.preventDefault();
+                }
+            });
+
+            $contactBtn.on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    $(this).click();
+                    e.preventDefault();
+                }
+            });
+
+            $cancelBtn.on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    $(this).click();
+                    e.preventDefault();
+                }
+                // Cycle back to first button on Tab from Cancel
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    e.preventDefault();
+                    $companyBtn.focus();
+                }
+            });
+
+            // Cycle back to cancel on Shift+Tab from Company button
+            $companyBtn.on('keydown', function(e) {
+                if (e.key === 'Tab' && e.shiftKey) {
+                    e.preventDefault();
+                    $cancelBtn.focus();
+                }
+            });
+
             // Show modal with animation
             setTimeout(() => {
                 $modal.addClass('xero-entity-modal-show');
+                // Focus first button (Company)
+                setTimeout(() => {
+                    $companyBtn.focus();
+                    console.log('⌨️ Focused Company button for keyboard navigation');
+                }, 100);
             }, 10);
         },
 
@@ -6277,6 +7341,165 @@ window.ktlReady = function (appInfo = {}) {
 
     // ========================================================================
     // END CUSTOM AUTO-REFRESH
+    // ========================================================================
+
+    // ========================================================================
+    // CONTACT VIEW PROCESSING STATUS POLLING (scene_2397)
+    // ========================================================================
+
+    let processingPollTimer = null;
+    let processingPollAttempts = 0;
+    const MAX_POLL_ATTEMPTS = 60; // 60 seconds (1 second interval)
+
+    /**
+     * Poll view_5600 field_4028 for processing status
+     */
+    function pollProcessingStatus() {
+        processingPollAttempts++;
+
+        console.log(`🔍 Polling processing status (attempt ${processingPollAttempts}/${MAX_POLL_ATTEMPTS})`);
+
+        // First, refresh view_5600 to get latest data using KTL
+        if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
+            window.ktl.views.refreshView('view_5600');
+            console.log('🔄 Refreshed view_5600 using KTL');
+        } else {
+            console.warn('⚠️ KTL refresh not available, using Knack native refresh');
+            if (typeof Knack !== 'undefined' && Knack.views && Knack.views.view_5600) {
+                Knack.views.view_5600.model.fetch();
+            }
+        }
+
+        // Wait a moment for the refresh to complete, then check the value
+        setTimeout(function() {
+            // Get the field value from view_5600 - it's in the kn-detail-body span
+            const $statusField = $('#view_5600 .field_4028 .kn-detail-body span span');
+
+            if ($statusField.length > 0) {
+                const statusValue = $statusField.text().trim();
+                console.log(`📊 Processing status: "${statusValue}"`);
+
+                if (statusValue === 'Ready') {
+                    console.log('✅ Processing complete! Refreshing view_5601 and view_5602');
+
+                    // Stop polling
+                    if (processingPollTimer) {
+                        clearInterval(processingPollTimer);
+                        processingPollTimer = null;
+                    }
+
+                    // Refresh view_5601 using KTL
+                    if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
+                        window.ktl.views.refreshView('view_5601');
+                        console.log('🔄 Refreshed view_5601 using KTL');
+
+                        window.ktl.views.refreshView('view_5602');
+                        console.log('🔄 Refreshed view_5602 using KTL');
+                    } else {
+                        console.warn('⚠️ KTL refresh not available, using Knack native refresh');
+                        if (typeof Knack !== 'undefined' && Knack.views) {
+                            if (Knack.views.view_5601) {
+                                Knack.views.view_5601.model.fetch();
+                            }
+                            if (Knack.views.view_5602) {
+                                Knack.views.view_5602.model.fetch();
+                            }
+                        }
+                    }
+
+                    processingPollAttempts = 0;
+                    return;
+                }
+            } else {
+                console.warn('⚠️ view_5600 field_4028 not found in DOM');
+            }
+        }, 300); // Wait 300ms for refresh to complete
+
+        // Stop polling after max attempts (60 seconds)
+        if (processingPollAttempts >= MAX_POLL_ATTEMPTS) {
+            console.log('⏱️ Polling timeout reached (60 seconds) - stopping');
+            if (processingPollTimer) {
+                clearInterval(processingPollTimer);
+                processingPollTimer = null;
+            }
+            processingPollAttempts = 0;
+        }
+    }
+
+    /**
+     * Start polling when scene_2397 renders
+     */
+    $(document).on('knack-scene-render.scene_2397', function(event, scene) {
+        console.log('📍 Entered scene_2397 - starting processing status polling');
+
+        // Clear any existing timer
+        if (processingPollTimer) {
+            clearInterval(processingPollTimer);
+        }
+
+        // Reset attempts counter
+        processingPollAttempts = 0;
+
+        // Start polling every 1 second
+        processingPollTimer = setInterval(pollProcessingStatus, 1000);
+    });
+
+    /**
+     * Stop polling when leaving scene_2397
+     */
+    $(document).on('knack-scene-render', function(event, scene) {
+        const currentScene = Knack.router.current_scene_key;
+
+        if (currentScene !== 'scene_2397' && processingPollTimer) {
+            console.log('🛑 Left scene_2397, stopping processing status polling');
+            clearInterval(processingPollTimer);
+            processingPollTimer = null;
+            processingPollAttempts = 0;
+        }
+    });
+
+    // ========================================================================
+    // END CONTACT VIEW PROCESSING STATUS POLLING
+    // ========================================================================
+
+    // ========================================================================
+    // HIDE HR DIVS IN view_5601
+    // ========================================================================
+
+    /**
+     * Hide first div if it only contains <hr>
+     */
+    function hideHrDivInView5601() {
+        const $view = $('#view_5601');
+
+        if ($view.length > 0) {
+            // Look for divs that only contain <hr> inside the kn-table
+            $view.find('.kn-table > div').each(function() {
+                const $div = $(this);
+                const content = $div.html().trim();
+
+                // Check if content is just <hr> with possible whitespace/newlines
+                const isHrOnly = content.replace(/\s+/g, '') === '<hr>' ||
+                                content.replace(/\s+/g, '') === '<hr/>';
+
+                if (isHrOnly) {
+                    console.log('🙈 Hiding div with <hr> in view_5601');
+                    $div.hide();
+                }
+            });
+        }
+    }
+
+    /**
+     * Run on view_5601 render
+     */
+    $(document).on('knack-view-render.view_5601', function(event, view, data) {
+        console.log('👀 view_5601 rendered - checking for hr div');
+        hideHrDivInView5601();
+    });
+
+    // ========================================================================
+    // END HIDE HR DIVS
     // ========================================================================
 
     // ========================================================================
