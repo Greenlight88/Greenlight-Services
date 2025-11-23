@@ -2142,6 +2142,7 @@ window.ktlReady = function (appInfo = {}) {
             // ===== COMPANY CREATION FORM =====
             view_4059: {
                 formType: 'company-creation',
+                allow_shared_contacts: false,  // Company creation does NOT allow shared contacts (hard fail)
                 webhook: {
                     url: 'https://hook.us1.make.com/k5x6x9cgrnxeotdocoqmkvfspe495am4',
                     enabled: true
@@ -3229,12 +3230,13 @@ window.ktlReady = function (appInfo = {}) {
                 // Get tenant_id (placeholder - you'll need to get this from your system)
                 const tenantId = '648a5861b632b20027d53b8b'; // TODO: Get from config or form
 
-                // Extract and normalize company data using configured selectors
-                const companyNameRaw = config.fields.field_992 ? $(config.fields.field_992.selector).val() || '' : '';
-                const companyShortNameRaw = config.fields.field_3783 ? $(config.fields.field_3783.selector).val() || '' : '';
-                const streetAddressRaw = config.fields.address ? $(config.fields.address.selectors.street).val() || '' : '';
-                const emailRaw = config.fields.field_4057 ? $(config.fields.field_4057.selector).val() || '' : '';
-                const phoneRaw = config.fields.field_4056 ? $(config.fields.field_4056.selector).val() || '' : '';
+                // Extract and normalize company data from formData
+                // TODO: Update these field selectors based on your actual form fields
+                const companyNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_992"]').val() || ''; // TODO: Update field ID
+                const companyShortNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_XXX"]').val() || ''; // TODO: Add field ID
+                const streetAddressRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_YYY"]').val() || ''; // TODO: Add field ID
+                const emailRaw = $('#field_4057').val() || '';
+                const phoneRaw = $('#field_4056').val() || '';
 
                 // Normalize all fields
                 const companyNameNormalised = companyNameRaw;
@@ -3249,6 +3251,7 @@ window.ktlReady = function (appInfo = {}) {
                 const payload = {
                     view: viewId,
                     form_type: formType,
+                    allow_shared_contacts: config.allow_shared_contacts !== false,  // Default true if not specified
                     timestamp: new Date().toISOString(),
                     tenant_id: tenantId,
                     current_user: {
@@ -3265,6 +3268,7 @@ window.ktlReady = function (appInfo = {}) {
                     phone_normalised: phoneNormalised,
                     data: {
                         form_type: formType,
+                        allow_shared_contacts: config.allow_shared_contacts !== false,
                         company_name_normalised: companyNameNormalised,
                         company_search: companySearch,
                         company_short_search: companyShortSearch,
@@ -4008,8 +4012,26 @@ window.ktlReady = function (appInfo = {}) {
                         console.log(`📡 Raw webhook response:`, responseText);
 
                         try {
-                            const result = JSON.parse(responseText);
-                            console.log(`✅ Parsed webhook response for ${viewId}:`, result);
+                            let result = JSON.parse(responseText);
+                            console.log(`✅ Parsed webhook response (initial):`, result);
+
+                            // Handle Make.com wrapped response: [{ body: "...", status: 200 }]
+                            if (Array.isArray(result) && result.length > 0 && result[0].body) {
+                                console.log(`🔄 Detected Make.com wrapped response - extracting body`);
+                                const bodyContent = result[0].body;
+
+                                // Parse the body string into JSON
+                                try {
+                                    result = JSON.parse(bodyContent);
+                                    console.log(`✅ Parsed inner body content:`, result);
+                                } catch (innerParseError) {
+                                    console.error(`❌ Failed to parse inner body JSON:`, innerParseError);
+                                    console.error(`❌ Body content was:`, bodyContent);
+                                    throw new Error(`Invalid JSON in response body: ${innerParseError.message}`);
+                                }
+                            }
+
+                            console.log(`✅ Final parsed webhook response for ${viewId}:`, result);
                             return result;
                         } catch (parseError) {
                             console.error(`❌ Failed to parse JSON response:`, parseError);
@@ -4935,6 +4957,24 @@ window.ktlReady = function (appInfo = {}) {
                     const errorMessage = result.messages.block_message;
                     const viewLink = result.messages.view_link;
                     this.showFieldError(viewId, 'field_4056', errorMessage, viewLink);
+
+                } else if (blockReason === 'shared_contacts_not_allowed') {
+                    // Handle shared contacts when not allowed (view_4059)
+                    // Show field-level errors for each conflicting contact
+                    const conflicts = result.conflicts || [];
+
+                    conflicts.forEach(conflict => {
+                        const fieldId = conflict.field_id; // 'field_4057' (email) or 'field_4056' (phone)
+                        const errorMessage = conflict.conflict_message || 'This contact detail is already in use.';
+                        const viewLink = conflict.view_link || null;
+
+                        this.showFieldError(viewId, fieldId, errorMessage, viewLink);
+                    });
+
+                    // Also show general instruction if provided
+                    if (result.messages && result.messages.action_instruction) {
+                        console.log(`📢 ${result.messages.action_instruction}`);
+                    }
 
                 } else {
                     // Generic block - show top-level error (fallback)
