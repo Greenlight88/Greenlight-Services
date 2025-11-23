@@ -3229,13 +3229,12 @@ window.ktlReady = function (appInfo = {}) {
                 // Get tenant_id (placeholder - you'll need to get this from your system)
                 const tenantId = '648a5861b632b20027d53b8b'; // TODO: Get from config or form
 
-                // Extract and normalize company data from formData
-                // TODO: Update these field selectors based on your actual form fields
-                const companyNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_992"]').val() || ''; // TODO: Update field ID
-                const companyShortNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_XXX"]').val() || ''; // TODO: Add field ID
-                const streetAddressRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_YYY"]').val() || ''; // TODO: Add field ID
-                const emailRaw = $('#field_4057').val() || '';
-                const phoneRaw = $('#field_4056').val() || '';
+                // Extract and normalize company data using configured selectors
+                const companyNameRaw = config.fields.field_992 ? $(config.fields.field_992.selector).val() || '' : '';
+                const companyShortNameRaw = config.fields.field_3783 ? $(config.fields.field_3783.selector).val() || '' : '';
+                const streetAddressRaw = config.fields.address ? $(config.fields.address.selectors.street).val() || '' : '';
+                const emailRaw = config.fields.field_4057 ? $(config.fields.field_4057.selector).val() || '' : '';
+                const phoneRaw = config.fields.field_4056 ? $(config.fields.field_4056.selector).val() || '' : '';
 
                 // Normalize all fields
                 const companyNameNormalised = companyNameRaw;
