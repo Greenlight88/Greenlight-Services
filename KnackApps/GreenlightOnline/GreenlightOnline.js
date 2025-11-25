@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.6'; // Unified notification system with inline notifications and brand colors
+window.APP_VERSION = '1.0.9'; // Complete Update Company form with processing status polling
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -1537,11 +1537,18 @@ window.ktlReady = function (appInfo = {}) {
             // Mobile number validation
             'mobile-number': {
                 validate: function (config, fieldValue, $field) {
-                    if (!fieldValue || fieldValue.trim() === '') {
+                    const rawValue = fieldValue || '';
+                    const trimmedValue = rawValue.trim();
+
+                    if (!trimmedValue) {
+                        // If field had whitespace-only content, clear it
+                        if (rawValue !== '') {
+                            $(config.selector).val('');
+                        }
                         return { isValid: true, normalizedValue: '' };
                     }
 
-                    const result = validator.normalizeMobileNumber(fieldValue.trim());
+                    const result = validator.normalizeMobileNumber(trimmedValue);
 
                     // If validation failed, return the specific error message
                     if (!result.isValid) {
@@ -1552,9 +1559,10 @@ window.ktlReady = function (appInfo = {}) {
                         };
                     }
 
-                    // Apply normalized value to field
-                    if (result.normalizedValue && result.normalizedValue !== fieldValue.trim()) {
+                    // Apply normalized value to field (includes trimming whitespace)
+                    if (result.normalizedValue && result.normalizedValue !== rawValue) {
                         $(config.selector).val(result.normalizedValue);
+                        console.log(`📝 Mobile field updated: '${rawValue}' → '${result.normalizedValue}'`);
                     }
 
                     return result;
@@ -1565,11 +1573,18 @@ window.ktlReady = function (appInfo = {}) {
             // Landline number validation with extensions
             'landline-number': {
                 validate: function (config, fieldValue, $field) {
-                    if (!fieldValue || fieldValue.trim() === '') {
+                    const rawValue = fieldValue || '';
+                    const trimmedValue = rawValue.trim();
+
+                    if (!trimmedValue) {
+                        // If field had whitespace-only content, clear it
+                        if (rawValue !== '') {
+                            $(config.selector).val('');
+                        }
                         return { isValid: true, normalizedValue: '', hasAreaCodeCorrection: false };
                     }
 
-                    const result = validator.normalizeLandlineNumber(fieldValue.trim());
+                    const result = validator.normalizeLandlineNumber(trimmedValue);
 
                     // If validation failed, return the specific error message
                     if (!result.isValid) {
@@ -1581,9 +1596,10 @@ window.ktlReady = function (appInfo = {}) {
                         };
                     }
 
-                    // Apply normalized value to field
-                    if (result.normalizedValue && result.normalizedValue !== fieldValue.trim()) {
+                    // Apply normalized value to field (includes trimming whitespace)
+                    if (result.normalizedValue && result.normalizedValue !== rawValue) {
                         $(config.selector).val(result.normalizedValue);
+                        console.log(`📝 Landline field updated: '${rawValue}' → '${result.normalizedValue}'`);
                     }
 
                     return result;
@@ -1655,23 +1671,28 @@ window.ktlReady = function (appInfo = {}) {
             // Proper case text validation (auto-converts to Title Case)
             'proper-case-text': {
                 validate: function (config, fieldValue, $field) {
-                    if (!fieldValue || fieldValue.trim() === '') {
+                    const rawValue = fieldValue || '';
+                    const trimmedValue = rawValue.trim();
+
+                    if (!trimmedValue) {
+                        // If field had whitespace-only content, clear it
+                        if (rawValue !== '') {
+                            $field.val('');
+                        }
                         return { isValid: true, normalizedValue: '' };
                     }
-
-                    const trimmed = fieldValue.trim();
 
                     // Convert to proper case (Title Case)
                     function toProperCase(text) {
                         return text.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
                     }
 
-                    const properCaseValue = toProperCase(trimmed);
+                    const properCaseValue = toProperCase(trimmedValue);
 
-                    // Update the field if it was changed
-                    if (trimmed !== properCaseValue) {
+                    // Update the field if it was changed (includes trimming whitespace)
+                    if (properCaseValue !== rawValue) {
                         $field.val(properCaseValue);
-                        console.log(`📝 Text corrected to Proper Case: '${trimmed}' → '${properCaseValue}'`);
+                        console.log(`📝 Text corrected to Proper Case: '${rawValue}' → '${properCaseValue}'`);
                     }
 
                     return {
@@ -1685,8 +1706,16 @@ window.ktlReady = function (appInfo = {}) {
             // Short name validation (optional field, no specific rules)
             'short-name': {
                 validate: function (config, fieldValue, $field) {
-                    // Optional field, always valid
-                    return { isValid: true, normalizedValue: fieldValue ? fieldValue.trim() : '' };
+                    const rawValue = fieldValue || '';
+                    const trimmedValue = rawValue.trim();
+
+                    // Update field if whitespace was trimmed
+                    if (trimmedValue !== rawValue) {
+                        $field.val(trimmedValue);
+                        console.log(`📝 Short name field updated: '${rawValue}' → '${trimmedValue}'`);
+                    }
+
+                    return { isValid: true, normalizedValue: trimmedValue };
                 },
                 defaultMessage: ''
             },
@@ -1867,11 +1896,11 @@ window.ktlReady = function (appInfo = {}) {
             // Company email validation (optional, but must be valid if provided)
             'company-email': {
                 validate: function (config, fieldValue, $field) {
-                    let value = $(config.selector).val();
-                    value = value ? value.trim() : '';
+                    const rawValue = $(config.selector).val() || '';
+                    const value = rawValue.trim();
 
                     // Log detailed validation info including character codes
-                    console.log(`📧 Validating email - Value: '${value}', Length: ${value.length}, Selector: ${config.selector}`);
+                    console.log(`📧 Validating email - Raw: '${rawValue}', Trimmed: '${value}', Length: ${value.length}, Selector: ${config.selector}`);
                     if (value.length > 0) {
                         console.log(`   Character codes: ${Array.from(value).map(c => c.charCodeAt(0)).join(',')}`);
                     }
@@ -1954,9 +1983,10 @@ window.ktlReady = function (appInfo = {}) {
 
                     const normalizedEmail = localPart + '@' + domainLower;
 
-                    // Apply normalized value to field if it changed
-                    if (normalizedEmail !== value) {
+                    // Apply normalized value to field if it changed (includes trimming whitespace)
+                    if (normalizedEmail !== rawValue) {
                         $(config.selector).val(normalizedEmail);
+                        console.log(`📝 Email field updated: '${rawValue}' → '${normalizedEmail}'`);
                     }
 
                     return {
@@ -1970,11 +2000,18 @@ window.ktlReady = function (appInfo = {}) {
             // Company phone validation (optional)
             'company-phone': {
                 validate: function (config, fieldValue, $field) {
-                    if (!fieldValue || fieldValue.trim() === '') {
+                    const rawValue = fieldValue || '';
+                    const trimmedValue = rawValue.trim();
+
+                    if (!trimmedValue) {
+                        // If field had whitespace-only content, clear it
+                        if (rawValue !== '') {
+                            $(config.selector).val('');
+                        }
                         return { isValid: true, normalizedValue: '' };
                     }
 
-                    const result = validator.normalizeLandlineNumber(fieldValue.trim());
+                    const result = validator.normalizeLandlineNumber(trimmedValue);
 
                     // If validation failed, return the specific error message
                     if (!result.isValid) {
@@ -1986,9 +2023,10 @@ window.ktlReady = function (appInfo = {}) {
                         };
                     }
 
-                    // Apply normalized value to field
-                    if (result.normalizedValue && result.normalizedValue !== fieldValue.trim()) {
+                    // Apply normalized value to field (includes trimming whitespace)
+                    if (result.normalizedValue && result.normalizedValue !== rawValue) {
                         $(config.selector).val(result.normalizedValue);
+                        console.log(`📝 Phone field updated: '${rawValue}' → '${result.normalizedValue}'`);
                     }
 
                     return result;
@@ -1999,14 +2037,15 @@ window.ktlReady = function (appInfo = {}) {
             // Company name validation (allows any casing, normalizes Pty Ltd variants)
             'company-name': {
                 validate: function (config, fieldValue, $field) {
-                    if (!fieldValue || fieldValue.trim() === '') {
+                    const rawValue = fieldValue || '';
+                    const trimmedValue = rawValue.trim();
+
+                    if (!trimmedValue) {
                         return { isValid: false, normalizedValue: '', hasWarning: false };
                     }
 
-                    const originalValue = fieldValue.trim();
-
                     // Normalize Pty Ltd and Ltd variants
-                    let normalized = originalValue
+                    let normalized = trimmedValue
                         // Normalize "P/L" to "Pty Ltd"
                         .replace(/\bP\/L\b/gi, 'Pty Ltd')
                         // Normalize "pty. ltd." to "Pty Ltd"
@@ -2052,11 +2091,11 @@ window.ktlReady = function (appInfo = {}) {
                         }
                     }
 
-                    // Update field if normalization changed the value
-                    const changed = normalized !== originalValue;
+                    // Update field if normalization changed the value (includes trimming whitespace)
+                    const changed = normalized !== rawValue;
                     if (changed) {
                         $field.val(normalized);
-                        console.log(`📝 Company name normalized: '${originalValue}' → '${normalized}'`);
+                        console.log(`📝 Company name normalized: '${rawValue}' → '${normalized}'`);
                     }
 
                     return {
@@ -2178,9 +2217,9 @@ window.ktlReady = function (appInfo = {}) {
                         },
                         required: false
                     },
-                    field_4057: {
+                    field_4164: {
                         rule: 'company-email',
-                        selector: '#view_4059 input[name="email"]',
+                        selector: '#field_4164',
                         required: false
                     },
                     field_4056: {
@@ -2192,37 +2231,62 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             // ===== COMPANY UPDATE FORM =====
-            view_2406: {
+            view_5605: {
                 formType: 'company-update',
+                allowSharedContacts: true,  // Update forms allow shared contacts (confirm scenario)
                 webhook: {
-                    url: 'https://hook.us1.make.com/k5x6x9cgrnxeotdocoqmkvfspe495am4',
+                    url: 'https://hook.us1.make.com/e9oq91sfh4mpdzaxrfr0khlf7ftqn8sj',
                     enabled: true
                 },
                 postSubmissionWebhook: {
-                    url: 'https://hook.us1.make.com/kncqr2skxuof3i5swdbnk2o9bbcoeqvw',
+                    url: 'https://hook.us1.make.com/m7gcd3gof5fihmsel37nlxhjnu8mlvp7',
                     enabled: true
                 },
-                // Hidden view that contains the existing record IDs
+                // Hidden views containing existing record IDs and original values
+                // Note: Selectors point to two different views (view_5609 for company, view_5608 for ECN)
                 hiddenView: {
-                    viewId: 'view_5608',  // Details view with existing data
+                    // Record IDs from ECN view (view_5608)
                     recordIds: {
-                        company_record_id: '#view_5608 .field_XXXX .kn-detail-body span span',  // TODO: Add actual field
-                        primary_email_record_id: '#view_5608 .field_YYYY .kn-detail-body span span',  // TODO: Add actual field
-                        primary_phone_record_id: '#view_5608 .field_ZZZZ .kn-detail-body span span',  // TODO: Add actual field
-                        primary_scn_record_id: '#view_5608 .field_WWWW .kn-detail-body span span'  // TODO: Add actual field
+                        company_record_id: '#view_5608 .field_4135 .kn-detail-body',
+                        primary_email_record_id: '#view_5608 .field_4136 .kn-detail-body',
+                        primary_phone_record_id: '#view_5608 .field_4137 .kn-detail-body',
+                        primary_scn_record_id: '#view_5608 .field_4146 .kn-detail-body'
                     },
+                    // Original values from Company Details view (view_5609) and ECN view (view_5608)
                     originalValues: {
-                        company_name: '#view_5608 .field_AAAA .kn-detail-body',  // TODO: Add actual field
-                        company_short_name: '#view_5608 .field_BBBB .kn-detail-body',  // TODO: Add actual field
-                        street_address: '#view_5608 .field_CCCC .kn-detail-body',  // TODO: Add actual field
-                        email: '#view_5608 .field_DDDD .kn-detail-body',  // TODO: Add actual field
-                        phone: '#view_5608 .field_EEEE .kn-detail-body'  // TODO: Add actual field
+                        company_name: '#view_5609 .field_992 .kn-detail-body',
+                        company_short_name: '#view_5609 .field_3783 .kn-detail-body',
+                        street_address: '#view_5609 .field_969 .kn-detail-body',
+                        email: '#view_5608 .field_4066 .kn-detail-body',  // primary_email_normalised
+                        phone: '#view_5608 .field_4065 .kn-detail-body'   // primary_phone_normalised
                     }
                 },
+                // Form input fields
                 fields: {
-                    field_4057: {
+                    field_992: {
+                        rule: 'company-name',
+                        selector: '#field_992',
+                        required: true
+                    },
+                    field_3783: {
+                        rule: 'short-name',
+                        selector: '#field_3783',
+                        required: false
+                    },
+                    address: {
+                        rule: 'melbourne-address',
+                        selectors: {
+                            street: '#street',
+                            street2: '#street2',
+                            city: '#city',
+                            state: '#state',
+                            zip: '#zip'
+                        },
+                        required: false
+                    },
+                    field_4164: {
                         rule: 'company-email',
-                        selector: '#view_2406 input[name="email"]',
+                        selector: '#field_4164',
                         required: false
                     },
                     field_4056: {
@@ -3212,38 +3276,75 @@ window.ktlReady = function (appInfo = {}) {
                     console.warn(`⚠️ Could not get current user info:`, error);
                 }
 
-                // Extract company_id from URL (for update forms)
+                // Extract ECN record ID from URL (for update forms)
+                // URL pattern: #contacts6/view-contact3/{ecn_id}/update-company/{ecn_id}/
                 let ecnRecordId = null;
                 try {
                     const hash = window.location.hash;
                     if (hash) {
                         const segments = hash.replace(/^#/, '').split('/');
-                        if (segments.length >= 3 && segments[2]) {
+                        // Look for 'update-company' segment and get the ID after it
+                        const updateCompanyIndex = segments.indexOf('update-company');
+                        if (updateCompanyIndex !== -1 && segments[updateCompanyIndex + 1]) {
+                            ecnRecordId = segments[updateCompanyIndex + 1];
+                            console.log(`🏢 Extracted ECN record ID from URL (after update-company): ${ecnRecordId}`);
+                        } else if (segments.length >= 3 && segments[2]) {
+                            // Fallback: third segment (after scene/page)
                             ecnRecordId = segments[2];
-                            console.log(`🏢 Extracted ECN record ID from URL: ${ecnRecordId}`);
+                            console.log(`🏢 Extracted ECN record ID from URL (fallback position): ${ecnRecordId}`);
                         }
                     }
                 } catch (error) {
                     console.warn(`⚠️ Could not extract ECN ID from URL:`, error);
                 }
 
-                // Get tenant_id (placeholder - you'll need to get this from your system)
-                const tenantId = '648a5861b632b20027d53b8b'; // TODO: Get from config or form
+                // Get tenant_id from Knack app info
+                const tenantId = Knack.application_id || '648a5861b632b20027d53b8b';
 
-                // Extract and normalize company data from formData
-                // TODO: Update these field selectors based on your actual form fields
-                const companyNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_992"]').val() || ''; // TODO: Update field ID
-                const companyShortNameRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_XXX"]').val() || ''; // TODO: Add field ID
-                const streetAddressRaw = $('#view_' + viewId.split('_')[1] + ' input[name="field_YYY"]').val() || ''; // TODO: Add field ID
-                const emailRaw = $('#field_4057').val() || '';
-                const phoneRaw = $('#field_4056').val() || '';
+                // Extract form field values using config selectors
+                const fields = config.fields;
+
+                // Company name
+                const companyNameRaw = fields.field_992 ? $(fields.field_992.selector).val() || '' : '';
+
+                // Short name
+                const companyShortNameRaw = fields.field_3783 ? $(fields.field_3783.selector).val() || '' : '';
+
+                // Address (composite field)
+                let streetAddressRaw = '';
+                let addressStreet = '';
+                let addressStreet2 = '';
+                let addressCity = '';
+                let addressState = '';
+                let addressZip = '';
+                if (fields.address && fields.address.selectors) {
+                    addressStreet = $(fields.address.selectors.street).val() || '';
+                    addressStreet2 = $(fields.address.selectors.street2).val() || '';
+                    addressCity = $(fields.address.selectors.city).val() || '';
+                    addressState = $(fields.address.selectors.state).val() || '';
+                    addressZip = $(fields.address.selectors.zip).val() || '';
+
+                    // Build formatted address for comparison
+                    // Format: "Street\nCity, State Zip" or "Street\nStreet2\nCity, State Zip"
+                    if (addressStreet2) {
+                        streetAddressRaw = `${addressStreet}\n${addressStreet2}\n${addressCity}, ${addressState} ${addressZip}`;
+                    } else {
+                        streetAddressRaw = `${addressStreet}\n${addressCity}, ${addressState} ${addressZip}`;
+                    }
+                }
+
+                // Email
+                const emailRaw = fields.field_4164 ? $(fields.field_4164.selector).val() || '' : '';
+
+                // Phone
+                const phoneRaw = fields.field_4056 ? $(fields.field_4056.selector).val() || '' : '';
 
                 // Normalize all fields
                 const companyNameNormalised = companyNameRaw;
                 const companySearch = this.normalizeCompanyName(companyNameRaw);
                 const companyShortSearch = this.normalizeCompanyName(companyShortNameRaw);
+                const streetAddressNormalised = streetAddressRaw.trim();
                 const streetAddressSearch = this.normalizeStreetAddress(streetAddressRaw);
-                const formattedStreetAddress = streetAddressRaw; // TODO: Implement proper formatting
                 const emailNormalised = this.normalizeEmail(emailRaw);
                 const phoneNormalised = this.normalizePhone(phoneRaw);
 
@@ -3251,7 +3352,7 @@ window.ktlReady = function (appInfo = {}) {
                 const payload = {
                     view: viewId,
                     form_type: formType,
-                    allow_shared_contacts: config.allow_shared_contacts !== false,  // Default true if not specified
+                    allow_shared_contacts: config.allowSharedContacts !== false,  // Default true if not specified
                     timestamp: new Date().toISOString(),
                     tenant_id: tenantId,
                     current_user: {
@@ -3262,20 +3363,30 @@ window.ktlReady = function (appInfo = {}) {
                     company_name_normalised: companyNameNormalised,
                     company_search: companySearch,
                     company_short_search: companyShortSearch,
+                    street_address_normalised: streetAddressNormalised,
                     street_address_search: streetAddressSearch,
-                    formatted_street_address: formattedStreetAddress,
+                    address_street: addressStreet,
+                    address_street2: addressStreet2,
+                    address_city: addressCity,
+                    address_state: addressState,
+                    address_zip: addressZip,
                     email_normalised: emailNormalised,
                     phone_normalised: phoneNormalised,
                     data: {
                         form_type: formType,
-                        allow_shared_contacts: config.allow_shared_contacts !== false,
+                        allow_shared_contacts: config.allowSharedContacts !== false,
                         company_name_normalised: companyNameNormalised,
                         company_search: companySearch,
                         company_short_search: companyShortSearch,
+                        street_address_normalised: streetAddressNormalised,
                         street_address_search: streetAddressSearch,
-                        formatted_street_address: formattedStreetAddress,
-                        email_normalised: emailNormalised,
-                        phone_normalised: phoneNormalised,
+                        address_street: addressStreet,
+                        address_street2: addressStreet2,
+                        address_city: addressCity,
+                        address_state: addressState,
+                        address_zip: addressZip,
+                        email: emailNormalised,
+                        phone: phoneNormalised,
                         tenant_id: tenantId
                     }
                 };
@@ -3325,6 +3436,11 @@ window.ktlReady = function (appInfo = {}) {
                     payload.data.phone_has_changed = changeDetection.phone_has_changed;
                     payload.data.email_was_deleted = changeDetection.email_was_deleted;
                     payload.data.phone_was_deleted = changeDetection.phone_was_deleted;
+
+                    // Store original values and change detection for post-submission webhook
+                    window._originalFormValues = originalValues;
+                    window._preSubmissionChangeDetection = changeDetection;
+                    console.log(`📋 Stored original values and change detection for post-submission webhook`);
                 } else {
                     // For creation forms, these fields should be null
                     payload.company_record_id = null;
@@ -3334,13 +3450,6 @@ window.ktlReady = function (appInfo = {}) {
                     payload.data.company_record_id = null;
                     payload.data.primary_email_record_id = null;
                     payload.data.primary_phone_record_id = null;
-                }
-
-                // Store original values and change detection for post-submission webhook
-                if (formType === 'company-update') {
-                    window._originalFormValues = originalValues;
-                    window._preSubmissionChangeDetection = changeDetection;
-                    console.log(`📋 Stored original values and change detection for post-submission webhook`);
                 }
 
                 console.log(`📦 Built ${formType} payload:`, payload);
@@ -3527,7 +3636,7 @@ window.ktlReady = function (appInfo = {}) {
                 // Extract values from stored form data
                 const companyNameRaw = storedFormData.field_992 || '';
                 const companyShortNameRaw = storedFormData.field_3783 || '';
-                const emailRaw = storedFormData.field_4057 || '';
+                const emailRaw = storedFormData.field_4164 || '';
                 const phoneRaw = storedFormData.field_4056 || '';
 
                 // Extract address fields from stored data
@@ -3745,8 +3854,10 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Add update-specific fields ONLY for company-update forms
                 if (formType === 'company-update') {
-                    // Get existing record IDs from hidden view
-                    const existingRecordIds = this.getExistingRecordIds(viewId);
+                    // Get existing record IDs from stored values (captured during form render)
+                    // Hidden views are no longer in DOM after form submission/redirect
+                    const existingRecordIds = window._existingRecordIds || {};
+                    console.log(`📋 Using stored record IDs for post-submission:`, existingRecordIds);
 
                     // Add to top level
                     payload.company_record_id = existingRecordIds.company_record_id;
@@ -4133,17 +4244,53 @@ window.ktlReady = function (appInfo = {}) {
                         <div style="flex: 1;">
                             <div>${message}</div>
                             ${actionLink ? `
-                                <a href="${actionLink}" style="
-                                    color: #1976d2;
-                                    text-decoration: underline;
+                                <a href="${actionLink}" target="_blank" class="notification-view-link" style="
+                                    color: ${color.text};
+                                    font-weight: 600;
+                                    text-decoration: none;
                                     font-size: 12px;
-                                    margin-top: 4px;
+                                    margin-top: 6px;
                                     display: inline-block;
-                                ">${actionText}</a>
+                                    cursor: pointer;
+                                    padding: 4px 10px;
+                                    background: rgba(255, 255, 255, 0.7);
+                                    border-radius: 3px;
+                                    border: 1px solid ${color.border};
+                                    transition: all 0.2s ease;
+                                ">${actionText} <i class="fa fa-arrow-right"></i></a>
                             ` : ''}
                         </div>
                     </div>
                 `);
+
+                // Add hover effects to the link
+                $notification.find('.notification-view-link').on('mouseenter', function() {
+                    $(this).css({
+                        'background': 'rgba(255, 255, 255, 0.9)',
+                        'border-color': color.border,
+                        'transform': 'translateY(-1px)',
+                        'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'
+                    });
+                }).on('mouseleave', function() {
+                    $(this).css({
+                        'background': 'rgba(255, 255, 255, 0.7)',
+                        'border-color': color.border,
+                        'transform': 'translateY(0)',
+                        'box-shadow': 'none'
+                    });
+                });
+
+                // Prevent clicks on the notification itself from doing anything unexpected
+                // But allow links to work normally
+                $notification.on('click', function(e) {
+                    // If clicking the link, let it through
+                    if ($(e.target).hasClass('notification-view-link') || $(e.target).closest('.notification-view-link').length) {
+                        // Let the link work (target="_blank" will open in new tab)
+                        return true;
+                    }
+                    // Otherwise prevent any default behavior on the notification div
+                    e.stopPropagation();
+                });
 
                 // Add CSS class to field for styling hooks
                 $field.addClass(`field-has-${type}`);
@@ -4389,7 +4536,8 @@ window.ktlReady = function (appInfo = {}) {
          * Strategies:
          * - 'revalidate': Always revalidate when field changes (e.g., company name)
          * - 'conditional': Use custom logic to decide (e.g., email - revalidate if changed, allow if deleted)
-         * - 'allow': Never revalidate (e.g., optional address fields)
+         * - 'allow': Never revalidate, no post-submission needed (e.g., entity type, industry)
+         * - 'post_only': No pre-validation needed, but requires post-submission webhook (e.g., address changes)
          */
         const fieldChangeStrategies = {
             view_4059: {  // Create Company Form
@@ -4401,7 +4549,7 @@ window.ktlReady = function (appInfo = {}) {
                     strategy: 'revalidate',
                     reason: 'Short name changed - must check for duplicates'
                 },
-                field_4057: {
+                field_4164: {
                     strategy: 'conditional',
                     reason: 'Email validation depends on action',
                     condition: (oldVal, newVal) => {
@@ -4441,11 +4589,63 @@ window.ktlReady = function (appInfo = {}) {
                 city: { strategy: 'allow', reason: 'Address changes do not require revalidation' },
                 state: { strategy: 'allow', reason: 'Address changes do not require revalidation' },
                 zip: { strategy: 'allow', reason: 'Address changes do not require revalidation' }
+            },
+
+            // ===== COMPANY UPDATE FORM =====
+            view_5605: {
+                field_992: {
+                    strategy: 'revalidate',
+                    reason: 'Company name changed - must check for duplicates'
+                },
+                field_3783: {
+                    strategy: 'revalidate',
+                    reason: 'Short name changed - must check for duplicates'
+                },
+                field_4164: {
+                    strategy: 'conditional',
+                    reason: 'Email validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        // If email was deleted (made empty), allow submission but need post-webhook
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📧 Email deleted - no pre-validation needed, post-submission required');
+                            return 'post_only';
+                        }
+                        // If email was changed to a different value, revalidate
+                        if (newVal !== oldVal) {
+                            console.log(`📧 Email changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        // No change
+                        return 'allow';
+                    }
+                },
+                field_4056: {
+                    strategy: 'conditional',
+                    reason: 'Phone validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        // If phone was deleted (made empty), allow submission but need post-webhook
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📞 Phone deleted - no pre-validation needed, post-submission required');
+                            return 'post_only';
+                        }
+                        // If phone was changed to a different value, revalidate
+                        if (newVal !== oldVal) {
+                            console.log(`📞 Phone changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                },
+                // Address fields - no pre-validation, but post-submission webhook needed for SCN updates
+                street: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' },
+                street2: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' },
+                city: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' },
+                state: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' },
+                zip: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' }
             }
 
             // PLACEHOLDER: Add other forms here as needed
             // view_XXXX: { ... } // Create Contact Form
-            // view_2406: { ... } // Update Company Form (already exists in viewConfigs)
             // view_YYYY: { ... } // Update Contact Form
         };
 
@@ -4500,6 +4700,29 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
+             * Map field IDs to original value keys
+             * Used for comparing current values against form load values
+             *
+             * @param {string} fieldId - The Knack field ID (e.g., 'field_992')
+             * @returns {string} - The original value key (e.g., 'company_name')
+             */
+            getOriginalFieldKey: function (fieldId) {
+                const fieldKeyMap = {
+                    field_992: 'company_name',
+                    field_3783: 'company_short_name',
+                    field_4164: 'email',
+                    field_4056: 'phone',
+                    // Address fields map to street_address (composite)
+                    street: 'street_address',
+                    street2: 'street_address',
+                    city: 'street_address',
+                    state: 'street_address',
+                    zip: 'street_address'
+                };
+                return fieldKeyMap[fieldId] || fieldId;
+            },
+
+            /**
              * Determine if revalidation is needed based on field changes
              * Uses fieldChangeStrategies to make intelligent decisions
              *
@@ -4513,8 +4736,8 @@ window.ktlReady = function (appInfo = {}) {
             needsRevalidation: function (viewId) {
                 const state = window._fieldValidationState?.[viewId];
 
-                // No validation state means no previous validation occurred
-                if (!state || !state.needsRevalidation) {
+                // No validation state means no fields have changed
+                if (!state) {
                     return false;
                 }
 
@@ -4543,13 +4766,32 @@ window.ktlReady = function (appInfo = {}) {
 
                     // Handle 'revalidate' strategy (highest priority)
                     if (strategyConfig.strategy === 'revalidate') {
+                        // For update forms, check if value returned to original
+                        const originalFormValues = window._originalFormValues || {};
+                        const originalKey = this.getOriginalFieldKey(fieldId);
+                        const originalVal = originalFormValues[originalKey] || '';
+
+                        // Get current value from field
+                        const config = viewConfigs[viewId];
+                        const fieldConfig = config?.fields[fieldId];
+                        if (fieldConfig && fieldConfig.selector) {
+                            const $field = $(fieldConfig.selector);
+                            const currentVal = $field.val() || '';
+
+                            // If current value matches original, no revalidation needed
+                            if (currentVal.toLowerCase() === originalVal.toLowerCase() && originalVal !== '') {
+                                console.log(`  ✅ ${fieldId} returned to original value "${originalVal}" - no revalidation needed`);
+                                continue;
+                            }
+                        }
+
                         console.log(`  🔄 ${fieldId} requires revalidation: ${strategyConfig.reason}`);
                         return true;
                     }
 
                     // Handle 'conditional' strategy
                     if (strategyConfig.strategy === 'conditional') {
-                        const oldVal = this.validatedValues[viewId]?.[fieldId] || '';
+                        const validatedVal = this.validatedValues[viewId]?.[fieldId] || '';
 
                         // Get current value
                         const config = viewConfigs[viewId];
@@ -4562,8 +4804,18 @@ window.ktlReady = function (appInfo = {}) {
                         const $field = $(fieldConfig.selector);
                         const newVal = $field.val() || '';
 
-                        // Run condition function
-                        const decision = strategyConfig.condition(oldVal, newVal);
+                        // Also get original value from form load (for update forms)
+                        const originalFormValues = window._originalFormValues || {};
+                        const originalVal = originalFormValues[this.getOriginalFieldKey(fieldId)] || '';
+
+                        // If current value matches original, no revalidation needed
+                        if (newVal.toLowerCase() === originalVal.toLowerCase()) {
+                            console.log(`  ✅ ${fieldId} returned to original value "${originalVal}" - no revalidation needed`);
+                            continue;
+                        }
+
+                        // Run condition function against validated value
+                        const decision = strategyConfig.condition(validatedVal, newVal);
 
                         if (decision === 'revalidate') {
                             console.log(`  🔄 ${fieldId} requires revalidation (conditional): ${strategyConfig.reason}`);
@@ -4577,6 +4829,12 @@ window.ktlReady = function (appInfo = {}) {
                     if (strategyConfig.strategy === 'allow') {
                         console.log(`  ✅ ${fieldId} change allowed: ${strategyConfig.reason}`);
                         // Continue checking other fields
+                    }
+
+                    // Handle 'post_only' strategy (no pre-submission validation, post-submission webhook handles it)
+                    if (strategyConfig.strategy === 'post_only') {
+                        console.log(`  📬 ${fieldId} change handled by post-submission webhook: ${strategyConfig.reason}`);
+                        // Continue checking other fields - doesn't require revalidation
                     }
                 }
 
@@ -4702,6 +4960,9 @@ window.ktlReady = function (appInfo = {}) {
 
                 switch (action) {
                     case 'block':
+                        // Capture validated values even for blocks
+                        // This enables proper change detection when user clears errors
+                        changeTracker.captureValidatedValues(viewId, formData);
                         this.blockSubmission(result, viewId, $form, $submitBtn, originalText);
                         break;
 
@@ -4732,17 +4993,67 @@ window.ktlReady = function (appInfo = {}) {
             fieldErrors: {},
 
             /**
+             * Last known value for each field with an error notification
+             * Used to prevent clearing notifications when value hasn't changed
+             */
+            lastErrorValues: {},
+
+            /**
              * Show inline error for a specific field
              */
             showFieldError: function(viewId, fieldId, errorMessage, viewLink = null) {
+                // Set flag to prevent change handler from interfering
+                if (!window._showingError) {
+                    window._showingError = {};
+                }
+                window._showingError[fieldId] = true;
+
+                // Get current field value to store with error
+                const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+                const currentValue = $field.val() || '';
+
+                console.log(`📌 Showing error for ${fieldId}, current value: "${currentValue}"`);
+
                 // Store error state
                 if (!this.fieldErrors[viewId]) {
                     this.fieldErrors[viewId] = {};
                 }
+
+                // Only update originalValue if this is a new error (not a re-show)
+                const existingError = this.fieldErrors[viewId][fieldId];
+
                 this.fieldErrors[viewId][fieldId] = {
                     message: errorMessage,
-                    viewLink: viewLink
+                    viewLink: viewLink,
+                    value: currentValue,
+                    originalValue: existingError?.originalValue || currentValue // Preserve original if re-showing
                 };
+
+                // FUNDAMENTAL: Store last value for this field's error notification
+                // This prevents notification from clearing unless value actually changes
+                if (!this.lastErrorValues[viewId]) {
+                    this.lastErrorValues[viewId] = {};
+                }
+                this.lastErrorValues[viewId][fieldId] = currentValue;
+
+                // Store in _problematicValues immediately so blur handler can check it
+                // This is for webhook errors specifically - permanent storage of known bad values
+                if (!window._problematicValues) {
+                    window._problematicValues = {};
+                }
+                if (!window._problematicValues[viewId]) {
+                    window._problematicValues[viewId] = {};
+                }
+                if (!window._problematicValues[viewId][fieldId]) {
+                    window._problematicValues[viewId][fieldId] = {
+                        value: currentValue,
+                        message: errorMessage,
+                        viewLink: viewLink
+                    };
+                }
+
+                console.log(`📌 Stored error value for ${fieldId}: "${currentValue}"`);
+                console.log(`📌 Last error value stored: "${currentValue}"`);
 
                 // Use unified notification system
                 notificationSystem.showFieldNotification(
@@ -4756,6 +5067,14 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Disable submit button
                 this.disableSubmit(viewId);
+
+                // Clear the flag after a short delay to allow any pending events to settle
+                setTimeout(() => {
+                    if (window._showingError) {
+                        delete window._showingError[fieldId];
+                        console.log(`🔓 Cleared showingError flag for ${fieldId}`);
+                    }
+                }, 100);
             },
 
             /**
@@ -4800,6 +5119,11 @@ window.ktlReady = function (appInfo = {}) {
                 // Clear error state
                 if (this.fieldErrors[viewId]) {
                     delete this.fieldErrors[viewId][fieldId];
+                }
+
+                // Clear last error value
+                if (this.lastErrorValues[viewId]) {
+                    delete this.lastErrorValues[viewId][fieldId];
                 }
 
                 // Re-enable submit if no more errors
@@ -4862,14 +5186,40 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
-             * Enable submit button
+             * Enable submit button with correct text based on validation state
+             *
+             * Button text logic:
+             * - "Validate" if validation-required fields were changed (company name, short name, email, phone)
+             * - "Save" if no revalidation needed (can proceed directly)
              */
             enableSubmit: function(viewId) {
                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
-                $submitBtn.prop('disabled', false).css({
-                    'opacity': '1',
-                    'cursor': 'pointer'
-                });
+
+                // Determine if revalidation is needed based on changed fields
+                const needsRevalidation = changeTracker.needsRevalidation(viewId);
+
+                // Set button text based on validation state
+                const buttonText = needsRevalidation ? 'Validate' : 'Save';
+
+                $submitBtn
+                    .prop('disabled', false)
+                    .text(buttonText)
+                    .css({
+                        'opacity': '1',
+                        'cursor': 'pointer',
+                        'background-color': '#007cba'
+                    });
+
+                console.log(`🔘 Submit button enabled with text "${buttonText}" (needsRevalidation: ${needsRevalidation})`);
+            },
+
+            /**
+             * Update Processing Status field (field_4023) for view_5605 based on email/phone changes
+             * NOTE: This function is deprecated - polling system handles status detection instead
+             */
+            updateProcessingStatus: function(viewId) {
+                // Deprecated - polling system in scene_2397 handles status detection
+                return;
             },
 
             /**
@@ -4877,7 +5227,7 @@ window.ktlReady = function (appInfo = {}) {
              */
             setupFieldErrorListeners: function(viewId) {
                 const self = this;
-                const fieldsToWatch = ['field_992', 'field_3783', 'field_4057', 'field_4056'];
+                const fieldsToWatch = ['field_992', 'field_3783', 'field_4164', 'field_4056'];
 
                 console.log(`👂 Setting up field error listeners for ${viewId}`);
 
@@ -4890,14 +5240,58 @@ window.ktlReady = function (appInfo = {}) {
                     }
 
                     $field.on('input change', function() {
-                        const fieldValue = $(this).val();
+                        const fieldValue = $(this).val().trim();
 
-                        console.log(`🔄 Field ${fieldId} changed, value: "${fieldValue}"`);
+                        console.log(`🔄 Field ${fieldId} changed (${$(this).attr('type')} input), value: "${fieldValue}"`);
 
-                        // If this field has an error, clear it
+                        // CRITICAL: If we're in the middle of showing an error, ignore spurious change events
+                        // This prevents type="email" inputs from clearing themselves when notification DOM updates
+                        if (window._showingError && window._showingError[fieldId]) {
+                            console.log(`⏭️ Ignoring change event for ${fieldId} - currently showing error`);
+                            return;
+                        }
+
+                        // Keep a permanent record of problematic values (even after error cleared)
+                        if (!window._problematicValues) {
+                            window._problematicValues = {};
+                        }
+                        if (!window._problematicValues[viewId]) {
+                            window._problematicValues[viewId] = {};
+                        }
+
+                        // Check if this field currently has an error
                         if (self.fieldErrors[viewId] && self.fieldErrors[viewId][fieldId]) {
-                            console.log(`✅ Clearing error for ${fieldId}`);
-                            self.clearFieldError(viewId, fieldId);
+                            const errorState = self.fieldErrors[viewId][fieldId];
+
+                            // FUNDAMENTAL: Get the last value that had the error
+                            const lastErrorValue = self.lastErrorValues[viewId] && self.lastErrorValues[viewId][fieldId];
+
+                            console.log(`📊 Change check for ${fieldId}:`, {
+                                currentValue: fieldValue,
+                                lastErrorValue: lastErrorValue,
+                                valueChanged: fieldValue.toLowerCase() !== (lastErrorValue || '').toLowerCase()
+                            });
+
+                            // Store the problematic value permanently
+                            if (!window._problematicValues[viewId][fieldId]) {
+                                window._problematicValues[viewId][fieldId] = {
+                                    value: errorState.originalValue || errorState.value,
+                                    message: errorState.message,
+                                    viewLink: errorState.viewLink
+                                };
+                                console.log(`📝 Stored problematic value for ${fieldId}: "${window._problematicValues[viewId][fieldId].value}"`);
+                            }
+
+                            // ONLY clear error if value has actually changed from the last error value
+                            if (fieldValue.toLowerCase() !== (lastErrorValue || '').toLowerCase()) {
+                                console.log(`✅ Value changed from "${lastErrorValue}" to "${fieldValue}" - clearing error`);
+                                self.clearFieldError(viewId, fieldId);
+                            } else {
+                                console.log(`⏭️ Value unchanged ("${fieldValue}") - keeping error visible`);
+                                // Update lastErrorValue to current value to track any future changes
+                                self.lastErrorValues[viewId][fieldId] = fieldValue;
+                                return; // Don't proceed with re-validation marking
+                            }
 
                             // Mark that we need re-validation before submission
                             if (!window._fieldValidationState) {
@@ -4914,6 +5308,135 @@ window.ktlReady = function (appInfo = {}) {
                             }
 
                             console.log(`⏳ Marked for re-validation. Changed fields:`, window._fieldValidationState[viewId].changedFields);
+                        } else {
+                            // No current error, but check if user re-entered a previously problematic value
+                            const problematicValue = window._problematicValues[viewId] && window._problematicValues[viewId][fieldId];
+                            if (problematicValue && fieldValue !== '') {
+                                // For phone fields, normalize both values for comparison
+                                let currentNormalized = fieldValue.toLowerCase();
+                                let problematicNormalized = (problematicValue.value || '').toLowerCase();
+
+                                if (fieldId === 'field_4056') {
+                                    // Normalize phone numbers: remove spaces, dashes, parentheses
+                                    currentNormalized = fieldValue.replace(/[\s\-\(\)\.]/g, '');
+                                    problematicNormalized = (problematicValue.value || '').replace(/[\s\-\(\)\.]/g, '');
+                                }
+
+                                const isSameErrorValue = currentNormalized === problematicNormalized;
+
+                                if (isSameErrorValue) {
+                                    // User re-entered the problematic value - re-show the error
+                                    console.log(`⚠️ User re-entered problematic value "${fieldValue}" (normalized: "${currentNormalized}") - re-showing error`);
+                                    self.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
+                                }
+                            }
+
+                            // FOR UPDATE FORMS: Track changes from original values
+                            // This enables the decision tree logic (revalidate vs post_only vs allow)
+                            const originalValues = changeTracker.validatedValues[viewId];
+                            if (originalValues) {
+                                const originalValue = originalValues[fieldId] || '';
+                                const hasChanged = fieldValue.toLowerCase() !== originalValue.toLowerCase();
+
+                                if (hasChanged) {
+                                    // Initialize validation state if needed
+                                    if (!window._fieldValidationState) {
+                                        window._fieldValidationState = {};
+                                    }
+                                    if (!window._fieldValidationState[viewId]) {
+                                        window._fieldValidationState[viewId] = { needsRevalidation: false, changedFields: [] };
+                                    }
+
+                                    // Add to changed fields if not already there
+                                    if (!window._fieldValidationState[viewId].changedFields.includes(fieldId)) {
+                                        window._fieldValidationState[viewId].changedFields.push(fieldId);
+                                        console.log(`📝 Field ${fieldId} changed from original "${originalValue}" to "${fieldValue}"`);
+                                    }
+
+                                    // Check strategy to determine if revalidation needed
+                                    const strategies = fieldChangeStrategies[viewId];
+                                    if (strategies && strategies[fieldId]) {
+                                        const strategyConfig = strategies[fieldId];
+
+                                        if (strategyConfig.strategy === 'revalidate') {
+                                            // Use needsRevalidation() which checks against original form values
+                                            const stillNeedsRevalidation = changeTracker.needsRevalidation(viewId);
+                                            window._fieldValidationState[viewId].needsRevalidation = stillNeedsRevalidation;
+
+                                            if (stillNeedsRevalidation) {
+                                                console.log(`🔄 ${fieldId} requires revalidation: ${strategyConfig.reason}`);
+                                                // Update button text to "Validate"
+                                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                                if ($submitBtn.text() !== 'Validate') {
+                                                    $submitBtn.text('Validate');
+                                                    console.log(`🔘 Button text changed to "Validate"`);
+                                                }
+                                            } else {
+                                                console.log(`✅ ${fieldId} returned to original - no revalidation needed`);
+                                                // Update button text to "Save"
+                                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                                if ($submitBtn.text() === 'Validate') {
+                                                    $submitBtn.text('Save');
+                                                    console.log(`🔘 Button text changed back to "Save"`);
+                                                }
+                                            }
+                                            // Update Processing Status for view_5605
+                                            self.updateProcessingStatus(viewId);
+                                        } else if (strategyConfig.strategy === 'conditional' && strategyConfig.condition) {
+                                            const decision = strategyConfig.condition(originalValue, fieldValue);
+                                            console.log(`📋 Conditional strategy for ${fieldId} returned: ${decision}`);
+
+                                            // Always use needsRevalidation() to check against original form values
+                                            const stillNeedsRevalidation = changeTracker.needsRevalidation(viewId);
+                                            window._fieldValidationState[viewId].needsRevalidation = stillNeedsRevalidation;
+
+                                            if (stillNeedsRevalidation) {
+                                                console.log(`🔄 Revalidation needed for ${viewId}`);
+                                                // Update button text to "Validate"
+                                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                                if ($submitBtn.text() !== 'Validate') {
+                                                    $submitBtn.text('Validate');
+                                                    console.log(`🔘 Button text changed to "Validate"`);
+                                                }
+                                            } else {
+                                                console.log(`✅ No revalidation needed - decision: ${decision}`);
+                                                // Update button text to "Save"
+                                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                                if ($submitBtn.text() === 'Validate') {
+                                                    $submitBtn.text('Save');
+                                                    console.log(`🔘 Button text changed back to "Save" (${decision})`);
+                                                }
+                                            }
+                                            // Update Processing Status for view_5605
+                                            self.updateProcessingStatus(viewId);
+                                        }
+                                    }
+                                } else {
+                                    // Value returned to original - remove from changed fields
+                                    if (window._fieldValidationState && window._fieldValidationState[viewId]) {
+                                        const idx = window._fieldValidationState[viewId].changedFields.indexOf(fieldId);
+                                        if (idx > -1) {
+                                            window._fieldValidationState[viewId].changedFields.splice(idx, 1);
+                                            console.log(`↩️ Field ${fieldId} returned to original value - removed from changed fields`);
+
+                                            // Recalculate if revalidation is still needed
+                                            const stillNeedsRevalidation = changeTracker.needsRevalidation(viewId);
+                                            window._fieldValidationState[viewId].needsRevalidation = stillNeedsRevalidation;
+
+                                            // Update button text if no longer needs revalidation
+                                            if (!stillNeedsRevalidation) {
+                                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                                if ($submitBtn.text() === 'Validate') {
+                                                    $submitBtn.text('Save');
+                                                    console.log(`🔘 Button text changed back to "Save"`);
+                                                }
+                                            }
+                                            // Update Processing Status for view_5605
+                                            self.updateProcessingStatus(viewId);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     });
 
@@ -4947,10 +5470,16 @@ window.ktlReady = function (appInfo = {}) {
                         this.showFieldError(viewId, 'field_3783', errorMessage, viewLink);
                     }
 
+                    // Fallback: If no duplicate_field specified, show error on company name field
+                    if (!duplicateField) {
+                        console.log('⚠️ No duplicate_field specified - defaulting to field_992 (company name)');
+                        this.showFieldError(viewId, 'field_992', errorMessage, viewLink);
+                    }
+
                 } else if (result.email_validation && result.email_validation.action === 'block') {
                     // Handle email validation failure
                     const errorMessage = result.email_validation.message;
-                    this.showFieldError(viewId, 'field_4057', errorMessage);
+                    this.showFieldError(viewId, 'field_4164', errorMessage);
 
                 } else if (blockReason === 'duplicate_phone') {
                     // Handle duplicate phone number
@@ -4963,12 +5492,16 @@ window.ktlReady = function (appInfo = {}) {
                     // Show field-level errors for each conflicting contact
                     const conflicts = result.conflicts || [];
 
-                    conflicts.forEach(conflict => {
-                        const fieldId = conflict.field_id; // 'field_4057' (email) or 'field_4056' (phone)
+                    console.log(`🔍 Processing ${conflicts.length} conflict(s):`, conflicts);
+
+                    conflicts.forEach((conflict, index) => {
+                        const fieldId = conflict.field_id; // 'field_4164' (email) or 'field_4056' (phone)
                         const errorMessage = conflict.conflict_message || 'This contact detail is already in use.';
                         const viewLink = conflict.view_link || null;
 
+                        console.log(`  [${index + 1}] Showing error for ${fieldId}: "${errorMessage}"`);
                         this.showFieldError(viewId, fieldId, errorMessage, viewLink);
+                        console.log(`  [${index + 1}] ✓ Error shown for ${fieldId}`);
                     });
 
                     // Also show general instruction if provided
@@ -4996,7 +5529,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Show inline field warnings for conflicts
                 if (emailValidationWarning) {
-                    this.showFieldWarning(viewId, 'field_4057', `Email Validation Warning: ${emailValidationWarning}`);
+                    this.showFieldWarning(viewId, 'field_4164', `Email Validation Warning: ${emailValidationWarning}`);
                 }
 
                 // Show inline warnings for each conflict type
@@ -5006,7 +5539,7 @@ window.ktlReady = function (appInfo = {}) {
 
                     // Map conflict type to field ID
                     if (conflict.type === 'email') {
-                        fieldId = 'field_4057';
+                        fieldId = 'field_4164';
                         warningMsg = `This email is already associated with <strong>${conflict.existing_contact}</strong>`;
                     } else if (conflict.type === 'phone') {
                         fieldId = 'field_4056';
@@ -5580,8 +6113,26 @@ window.ktlReady = function (appInfo = {}) {
                             return false;
                         }
 
-                        // NEW: Check if revalidation is needed due to field changes
+                        // Check if revalidation is needed due to field changes
                         const needsRevalidation = changeTracker.needsRevalidation(viewId);
+                        const hasBeenValidated = !!changeTracker.validatedValues[viewId];
+
+                        // If previously validated AND no revalidation needed → submit directly
+                        if (hasBeenValidated && !needsRevalidation) {
+                            console.log(`✅ Previously validated and no revalidation needed - submitting directly`);
+
+                            // Capture form data before submission for post-submission webhook
+                            const formData = eventListeners.extractFormData(viewId);
+                            window._preSubmissionFormData = formData;
+                            console.log(`💾 Stored form data for direct submission:`, formData);
+
+                            // Clear validation state since we're submitting
+                            changeTracker.clearValidationState(viewId);
+
+                            // Allow normal Knack submission
+                            window.skipValidationForSubmit = true;
+                            return true;
+                        }
 
                         if (needsRevalidation) {
                             console.log(`🔄 Revalidation required - user changed critical fields after previous validation`);
@@ -5674,6 +6225,38 @@ window.ktlReady = function (appInfo = {}) {
                             return false;
                         }
 
+                        // Check if there are any field errors still present
+                        if (!duplicateHandler.hasNoErrors(viewId)) {
+                            console.log(`🚫 Cannot submit via button click - field errors still exist for ${viewId}`);
+                            e.preventDefault();
+                            e.stopImmediatePropagation();
+                            return false;
+                        }
+
+                        // === DECISION TREE FOR UPDATE FORMS ===
+                        // Check if revalidation is needed due to field changes
+                        const needsRevalidation = changeTracker.needsRevalidation(viewId);
+                        const hasBeenValidated = !!changeTracker.validatedValues[viewId];
+
+                        console.log(`📊 Decision tree check: hasBeenValidated=${hasBeenValidated}, needsRevalidation=${needsRevalidation}`);
+
+                        // If previously validated AND no revalidation needed → submit directly to Knack
+                        if (hasBeenValidated && !needsRevalidation) {
+                            console.log(`✅ Previously validated and no revalidation needed - allowing direct Knack submission`);
+
+                            // Capture form data before submission for post-submission webhook
+                            const formData = eventListeners.extractFormData(viewId);
+                            window._preSubmissionFormData = formData;
+                            console.log(`💾 Stored form data for direct submission:`, formData);
+
+                            // Clear validation state since we're submitting
+                            changeTracker.clearValidationState(viewId);
+
+                            // Allow normal Knack submission - don't prevent default
+                            window.skipValidationForSubmit = true;
+                            return true;
+                        }
+
                         console.log(`✅ Submit button validation passed for ${viewId} - checking for duplicates`);
 
                         // Prevent the click from proceeding - we'll handle submission async
@@ -5683,11 +6266,20 @@ window.ktlReady = function (appInfo = {}) {
                         // Extract form data for duplicate checking
                         const formData = eventListeners.extractFormData(viewId);
 
-                        // Show loading state
+                        // Show loading state with informative message
                         const $form = $(`#${viewId} form`);
                         const $submitBtn = $(e.currentTarget);
                         const originalText = $submitBtn.text();
-                        $submitBtn.prop('disabled', true).text('Checking for duplicates...');
+
+                        // Show informative message if revalidating
+                        let loadingMessage = 'Checking for duplicates...';
+                        if (needsRevalidation) {
+                            const summary = changeTracker.getChangesSummary(viewId);
+                            if (summary.reasons.length > 0) {
+                                loadingMessage = summary.reasons[0];
+                            }
+                        }
+                        $submitBtn.prop('disabled', true).text(loadingMessage);
 
                         // Fire the existing webhook which now includes duplicate detection
                         webhookManager.fireWebhookWithDuplicateCheck(viewId, formData, $form, $submitBtn, originalText)
@@ -5819,9 +6411,88 @@ window.ktlReady = function (appInfo = {}) {
                             if (fieldTracker.hasFieldBeenInteracted(viewId, fieldId)) {
                                 // Get field value - handle both single selector and multiple selectors
                                 const $field = fieldConfig.selector ? $(fieldConfig.selector) : $(this);
-                                const fieldValue = $field.val() || '';
+                                const rawFieldValue = $field.val() || '';
+                                const fieldValue = rawFieldValue.trim();
+
+                                // IMMEDIATE TRIM: Update field if it has leading/trailing whitespace
+                                // This ensures fields are trimmed on blur regardless of validation outcome
+                                if (rawFieldValue !== fieldValue) {
+                                    $field.val(fieldValue);
+                                    console.log(`✂️ Trimmed whitespace from ${fieldId}: '${rawFieldValue}' → '${fieldValue}'`);
+                                }
+
+                                const webhookSystem = window._formValidationWebhookSystem;
+                                const currentValue = fieldValue.toLowerCase();
+
+                                // FUNDAMENTAL RULE #1: If field has an error notification, check if value has changed
+                                // This applies to ALL error notifications, not just webhook errors
+                                if (webhookSystem && webhookSystem.lastErrorValues &&
+                                    webhookSystem.lastErrorValues[viewId] &&
+                                    webhookSystem.lastErrorValues[viewId][fieldId]) {
+
+                                    const lastErrorValue = (webhookSystem.lastErrorValues[viewId][fieldId] || '').toLowerCase();
+
+                                    console.log(`🔍 Blur check for ${fieldId} with existing error:`, {
+                                        currentValue: currentValue,
+                                        lastErrorValue: lastErrorValue,
+                                        match: currentValue === lastErrorValue
+                                    });
+
+                                    if (currentValue === lastErrorValue) {
+                                        // Value hasn't changed from when error was shown - keep error visible, skip validation
+                                        console.log(`⏭️ Skipping validation for ${fieldId} - value unchanged from last error`);
+                                        return;
+                                    }
+                                }
+
+                                // FUNDAMENTAL RULE #2: Check if this value matches a known problematic value (from webhook)
+                                // Even if error was cleared, re-show it if user re-enters the problematic value
+                                if (window._problematicValues && window._problematicValues[viewId] && window._problematicValues[viewId][fieldId]) {
+                                    const problematicValue = window._problematicValues[viewId][fieldId];
+                                    const errorValue = (problematicValue.value || '').toLowerCase();
+
+                                    console.log(`🔍 Checking for problematic value match:`, {
+                                        currentValue: currentValue,
+                                        problematicValue: errorValue,
+                                        match: currentValue === errorValue
+                                    });
+
+                                    if (currentValue === errorValue && currentValue !== '') {
+                                        // Current value matches the problematic value - ALWAYS show error and skip validation
+                                        console.log(`⚠️ Problematic value detected for ${fieldId} - ensuring error is visible`);
+                                        console.log(`   Field value before error show: "${$field.val()}"`);
+
+                                        // Always ensure error is showing for this problematic value
+                                        if (!webhookSystem.fieldErrors[viewId] || !webhookSystem.fieldErrors[viewId][fieldId]) {
+                                            // Error not showing - show it
+                                            console.log(`   Re-showing error for ${fieldId}`);
+                                            webhookSystem.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
+                                            console.log(`   Field value after error show: "${$field.val()}"`);
+                                        } else {
+                                            console.log(`   Error already visible for ${fieldId}`);
+                                        }
+
+                                        // SKIP validation entirely - this value is known to be problematic
+                                        return;
+                                    }
+                                }
 
                                 console.log(`🔍 Validating ${fieldId} (${fieldConfig.rule}) on ${events}`);
+
+                                // Value is different - clear any webhook error and proceed with validation
+                                if (webhookSystem && webhookSystem.fieldErrors &&
+                                    webhookSystem.fieldErrors[viewId] &&
+                                    webhookSystem.fieldErrors[viewId][fieldId]) {
+                                    console.log(`✅ Clearing webhook error for ${fieldId} - value is different`);
+                                    delete webhookSystem.fieldErrors[viewId][fieldId];
+                                }
+
+                                // Also clear lastErrorValue since we're about to validate
+                                if (webhookSystem && webhookSystem.lastErrorValues &&
+                                    webhookSystem.lastErrorValues[viewId] &&
+                                    webhookSystem.lastErrorValues[viewId][fieldId]) {
+                                    delete webhookSystem.lastErrorValues[viewId][fieldId];
+                                }
 
                                 // Run validation
                                 const result = ruleDefinition.validate(fieldConfig, fieldValue, $field);
@@ -6057,16 +6728,69 @@ window.ktlReady = function (appInfo = {}) {
                             $shortNameField.focus();
                             console.log('⌨️ Focused Company short name field (field_3783)');
                         }
+
+                        // Trim email field on blur
+                        $('#field_4164').off('blur.trim').on('blur.trim', function() {
+                            const trimmed = $(this).val().trim();
+                            if (trimmed !== $(this).val()) {
+                                $(this).val(trimmed);
+                            }
+                        });
                     }, 100);
                 });
 
-                $(document).on('knack-view-render.view_2406', function (event, view, data) {
+                // Company Update Form (view_5605)
+                $(document).on('knack-view-render.view_5605', function (event, view, data) {
                     setTimeout(function() {
-                        const $submitBtn = $('#view_2406 button[type="submit"], #view_2406 input[type="submit"]');
+                        const viewId = 'view_5605';
+                        const $submitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
+
                         if ($submitBtn.length) {
-                            $submitBtn.text('Validate');
-                            console.log('✏️ Changed submit button text to "Validate" for view_2406');
+                            // Set initial button text to "Save" (update forms don't need validation unless fields change)
+                            $submitBtn.text('Save');
+                            console.log('✏️ Set submit button text to "Save" for view_5605 (Update Company)');
+
+                            // Initialize Processing Status to "Ready" on form render
+                            const $processingStatusInit = $('#view_5605-field_4023');
+                            if ($processingStatusInit.length && $processingStatusInit.val() !== 'Ready') {
+                                $processingStatusInit.val('Ready').trigger('change');
+                                console.log('🔄 Reset Processing Status to "Ready" on form render');
+                            }
                         }
+
+                        // Capture original values from hidden views for change detection
+                        const originalValues = companyFormHandler.getOriginalValues(viewId);
+                        const recordIds = companyFormHandler.getExistingRecordIds(viewId);
+
+                        // Store as baseline for change detection
+                        changeTracker.validatedValues[viewId] = {
+                            field_992: originalValues.company_name || '',
+                            field_3783: originalValues.company_short_name || '',
+                            field_4164: originalValues.email || '',
+                            field_4056: originalValues.phone || '',
+                            street_address: originalValues.street_address || ''
+                        };
+
+                        // Store record IDs globally for webhook payloads
+                        window._existingRecordIds = recordIds;
+
+                        // Store original values globally for post-submission webhook
+                        // (needed when direct submission happens without pre-submission webhook)
+                        window._originalFormValues = originalValues;
+
+                        console.log('📋 Captured original values for view_5605:', changeTracker.validatedValues[viewId]);
+                        console.log('📋 Captured record IDs for view_5605:', recordIds);
+
+                        // Set up field error listeners
+                        duplicateHandler.setupFieldErrorListeners(viewId);
+
+                        // Trim email field on blur
+                        $('#field_4164').off('blur.trim').on('blur.trim', function() {
+                            const trimmed = $(this).val().trim();
+                            if (trimmed !== $(this).val()) {
+                                $(this).val(trimmed);
+                            }
+                        });
                     }, 100);
                 });
 
@@ -6081,8 +6805,8 @@ window.ktlReady = function (appInfo = {}) {
                     companyFormHandler.firePostSubmissionWebhook('view_4059', response);
                 });
 
-                $(document).on('knack-form-submit.view_2406', function (event, view, response) {
-                    console.log(`📝 Form submission completed for view_2406 (company-update)`);
+                $(document).on('knack-form-submit.view_5605', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_5605 (company-update)`);
                     console.log(`📦 Submission response:`, response);
 
                     // Extract ECN ID from Knack's response
@@ -6101,10 +6825,22 @@ window.ktlReady = function (appInfo = {}) {
                         window._ecnRecordId = ecnId;
                     }
 
+                    // Store change tracking for polling on contact view
+                    // This is used to determine if address view fields should be hidden until Ready
+                    const changeDetection = window._preSubmissionChangeDetection;
+                    if (changeDetection) {
+                        window._updateCompanyChanges = {
+                            emailChanged: changeDetection.email_has_changed || false,
+                            phoneChanged: changeDetection.phone_has_changed || false,
+                            addressChanged: changeDetection.street_address_has_changed || false
+                        };
+                        console.log('📋 Stored change tracking for polling:', window._updateCompanyChanges);
+                    }
+
                     // Fire post-submission webhook (update forms may not need redirect)
                     setTimeout(() => {
                         console.log(`⏱️ Firing post-submission webhook for update form`);
-                        companyFormHandler.firePostSubmissionWebhook('view_2406', response);
+                        companyFormHandler.firePostSubmissionWebhook('view_5605', response);
                     }, 1000);
                 });
 
@@ -6118,7 +6854,7 @@ window.ktlReady = function (appInfo = {}) {
                         }, 100);
 
                         // Validate prefilled fields for company forms
-                        if (viewId === 'view_4059' || viewId === 'view_2406') {
+                        if (viewId === 'view_4059' || viewId === 'view_5605') {
                             console.log(`📋 Company form (${viewId}) rendered - checking for prefilled fields`);
                             setTimeout(() => {
                                 eventListeners.validatePrefilledFields(viewId);
@@ -6774,7 +7510,7 @@ window.ktlReady = function (appInfo = {}) {
             // Create modal HTML
             const modalHtml = `
                 <div class="xero-entity-modal-overlay">
-                    <div class="xero-entity-modal">
+                    <div class="xero-entity-modal keyboard-mode">
                         <h3>What would you like to add?</h3>
                         <p class="xero-entity-modal-search-term">'${properCaseTerm}'</p>
                         <div class="xero-entity-modal-buttons">
@@ -6801,22 +7537,98 @@ window.ktlReady = function (appInfo = {}) {
             const $modal = $(modalHtml);
             $('body').append($modal);
 
-            // Add Company button
-            $modal.find('.xero-entity-company').on('click', () => {
+            const $modalInner = $modal.find('.xero-entity-modal');
+            const $companyBtn = $modal.find('.xero-entity-company');
+            const $contactBtn = $modal.find('.xero-entity-contact');
+            const $cancelBtn = $modal.find('.xero-entity-modal-cancel');
+            const $allButtons = $modal.find('.xero-entity-modal-btn, .xero-entity-modal-cancel');
+
+            // Helper: Enter keyboard mode and set focus highlight
+            function enterKeyboardMode($focusedBtn) {
+                $modalInner.addClass('keyboard-mode');
+                $allButtons.removeClass('keyboard-focused');
+                if ($focusedBtn && $focusedBtn.length) {
+                    $focusedBtn.addClass('keyboard-focused');
+                }
+                console.log('⌨️ Entered keyboard mode');
+            }
+
+            // Helper: Enter mouse mode (remove keyboard highlights)
+            function enterMouseMode() {
+                $modalInner.removeClass('keyboard-mode');
+                $allButtons.removeClass('keyboard-focused');
+                console.log('🖱️ Entered mouse mode');
+            }
+
+            // Mouse enters a button: switch to mouse mode
+            $allButtons.on('mouseenter', function() {
+                enterMouseMode();
+            });
+
+            // Tab key pressed: switch to keyboard mode
+            $allButtons.on('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    // Determine which button will receive focus
+                    let $nextBtn;
+                    if (e.shiftKey) {
+                        // Shift+Tab: go backwards
+                        if ($(this).is($companyBtn)) {
+                            $nextBtn = $cancelBtn;
+                        } else if ($(this).is($contactBtn)) {
+                            $nextBtn = $companyBtn;
+                        } else if ($(this).is($cancelBtn)) {
+                            $nextBtn = $contactBtn;
+                        }
+                    } else {
+                        // Tab: go forwards
+                        if ($(this).is($companyBtn)) {
+                            $nextBtn = $contactBtn;
+                        } else if ($(this).is($contactBtn)) {
+                            $nextBtn = $cancelBtn;
+                        } else if ($(this).is($cancelBtn)) {
+                            $nextBtn = $companyBtn;
+                        }
+                    }
+                    
+                    e.preventDefault();
+                    if ($nextBtn) {
+                        $nextBtn.focus();
+                        enterKeyboardMode($nextBtn);
+                    }
+                }
+                
+                // Enter key activates button
+                if (e.key === 'Enter') {
+                    $(this).click();
+                    e.preventDefault();
+                }
+            });
+
+            // Track focus for keyboard mode (in case focus changes another way)
+            $allButtons.on('focus', function() {
+                // Only apply keyboard-focused if we're in keyboard mode
+                if ($modalInner.hasClass('keyboard-mode')) {
+                    $allButtons.removeClass('keyboard-focused');
+                    $(this).addClass('keyboard-focused');
+                }
+            });
+
+            // Add Company button click
+            $companyBtn.on('click', () => {
                 console.log(`   ✅ User chose: Add Company`);
                 this.clickHiddenButton(cfg.modalButtons.company, searchTerm);
                 $modal.remove();
             });
 
-            // Add Contact button
-            $modal.find('.xero-entity-contact').on('click', () => {
+            // Add Contact button click
+            $contactBtn.on('click', () => {
                 console.log(`   ✅ User chose: Add Contact`);
                 this.clickHiddenButton(cfg.modalButtons.contact, searchTerm);
                 $modal.remove();
             });
 
-            // Cancel button
-            $modal.find('.xero-entity-modal-cancel').on('click', () => {
+            // Cancel button click
+            $cancelBtn.on('click', () => {
                 console.log(`   ❌ User cancelled`);
                 $modal.remove();
             });
@@ -6828,60 +7640,20 @@ window.ktlReady = function (appInfo = {}) {
                 }
             });
 
-            // Set up keyboard navigation
-            const $companyBtn = $modal.find('.xero-entity-company');
-            const $contactBtn = $modal.find('.xero-entity-contact');
-            const $cancelBtn = $modal.find('.xero-entity-modal-cancel');
-
-            // Add focus/blur handlers to ensure hover styles apply
-            const $allButtons = $modal.find('.xero-entity-modal-btn, .xero-entity-modal-cancel');
-            $allButtons.on('focus', function() {
-                $(this).addClass('keyboard-focused');
-            }).on('blur', function() {
-                $(this).removeClass('keyboard-focused');
-            });
-
-            // Add keyboard handlers for Enter key
-            $companyBtn.on('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    $(this).click();
-                    e.preventDefault();
+            // Escape key to close
+            $(document).on('keydown.entityModal', function(e) {
+                if (e.key === 'Escape') {
+                    $modal.remove();
+                    $(document).off('keydown.entityModal');
                 }
             });
 
-            $contactBtn.on('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    $(this).click();
-                    e.preventDefault();
-                }
-            });
-
-            $cancelBtn.on('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    $(this).click();
-                    e.preventDefault();
-                }
-                // Cycle back to first button on Tab from Cancel
-                if (e.key === 'Tab' && !e.shiftKey) {
-                    e.preventDefault();
-                    $companyBtn.focus();
-                }
-            });
-
-            // Cycle back to cancel on Shift+Tab from Company button
-            $companyBtn.on('keydown', function(e) {
-                if (e.key === 'Tab' && e.shiftKey) {
-                    e.preventDefault();
-                    $cancelBtn.focus();
-                }
-            });
-
-            // Show modal with animation
+            // Show modal with animation and focus first button in keyboard mode
             setTimeout(() => {
                 $modal.addClass('xero-entity-modal-show');
-                // Focus first button (Company)
                 setTimeout(() => {
                     $companyBtn.focus();
+                    enterKeyboardMode($companyBtn);
                     console.log('⌨️ Focused Company button for keyboard navigation');
                 }, 100);
             }, 10);
@@ -7384,21 +8156,97 @@ window.ktlReady = function (appInfo = {}) {
 
     // ========================================================================
     // CONTACT VIEW PROCESSING STATUS POLLING (scene_2397)
+    // Polls view_5600 field_4028 for processing status
+    // Hides aerial/street view fields until status is Ready
     // ========================================================================
 
     let processingPollTimer = null;
     let processingPollAttempts = 0;
+    let lastProcessingStatus = null; // Track previous status to avoid unnecessary refreshes
+    let processingPollStartTime = null; // Track when polling started for 5 second minimum
     const MAX_POLL_ATTEMPTS = 60; // 60 seconds (1 second interval)
+    const MIN_POLL_DURATION_MS = 5000; // Minimum 5 seconds of polling before stopping
+
+    /**
+     * Hide aerial and street view fields in view_5602 until processing is complete
+     * field_4138 = Aerial view, field_4139 = Street address view
+     */
+    function hideAddressViewFields() {
+        const $aerialField = $('#view_5602 .field_4138');
+        const $streetField = $('#view_5602 .field_4139');
+
+        if ($aerialField.length > 0) {
+            $aerialField.hide();
+            console.log('🙈 Hiding aerial view field (field_4138)');
+        }
+        if ($streetField.length > 0) {
+            $streetField.hide();
+            console.log('🙈 Hiding street view field (field_4139)');
+        }
+    }
+
+    /**
+     * Show aerial and street view fields in view_5602 when processing is complete
+     */
+    function showAddressViewFields() {
+        const $aerialField = $('#view_5602 .field_4138');
+        const $streetField = $('#view_5602 .field_4139');
+
+        if ($aerialField.length > 0) {
+            $aerialField.show();
+            console.log('👁️ Showing aerial view field (field_4138)');
+        }
+        if ($streetField.length > 0) {
+            $streetField.show();
+            console.log('👁️ Showing street view field (field_4139)');
+        }
+    }
+
+    /**
+     * Update visibility of address view fields based on processing status
+     * Only shows aerial/street view when status is Ready
+     */
+    function updateFieldVisibilityForProcessingStatus(status) {
+        if (status === 'Ready') {
+            showAddressViewFields();
+        } else {
+            hideAddressViewFields();
+        }
+    }
+
+    /**
+     * Check current processing status and update field visibility accordingly
+     * Called when views render to ensure correct visibility state
+     * Note: Does NOT trigger refresh - that's handled by pollProcessingStatus when transitioning from Loading to Ready
+     */
+    function checkAndUpdateFieldVisibility() {
+        const $statusField = $('#view_5600 .field_4028 .kn-detail-body span span');
+
+        if ($statusField.length > 0) {
+            const statusValue = $statusField.text().trim();
+            console.log(`🔍 Checking processing status on render: "${statusValue}"`);
+            updateFieldVisibilityForProcessingStatus(statusValue);
+        } else {
+            // If status field not found yet, hide fields by default (safer)
+            console.log('⚠️ Status field not found on render - hiding address fields by default');
+            hideAddressViewFields();
+        }
+    }
 
     /**
      * Poll view_5600 field_4028 for processing status
+     * Uses KTL refresh to get latest data every second
+     * Must poll for at least 5 seconds (status might change to Loading in first 5 seconds)
      */
     function pollProcessingStatus() {
         processingPollAttempts++;
 
-        console.log(`🔍 Polling processing status (attempt ${processingPollAttempts}/${MAX_POLL_ATTEMPTS})`);
+        const elapsedMs = Date.now() - processingPollStartTime;
+        const hasMinimumTimePassed = elapsedMs >= MIN_POLL_DURATION_MS;
 
-        // First, refresh view_5600 to get latest data using KTL
+        console.log(`🔍 Polling processing status (attempt ${processingPollAttempts}/${MAX_POLL_ATTEMPTS}, elapsed: ${Math.round(elapsedMs/1000)}s)`);
+
+        // Refresh view_5600 to get latest data using KTL
         if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
             window.ktl.views.refreshView('view_5600');
             console.log('🔄 Refreshed view_5600 using KTL');
@@ -7418,8 +8266,17 @@ window.ktlReady = function (appInfo = {}) {
                 const statusValue = $statusField.text().trim();
                 console.log(`📊 Processing status: "${statusValue}"`);
 
+                // Update field visibility based on processing status
+                updateFieldVisibilityForProcessingStatus(statusValue);
+
                 if (statusValue === 'Ready') {
-                    console.log('✅ Processing complete! Refreshing view_5601 and view_5602');
+                    // Only stop if minimum time has passed (5 seconds)
+                    // Status might change to Loading in first 5 seconds
+                    if (!hasMinimumTimePassed) {
+                        console.log(`⏳ Status is Ready but minimum polling time not reached (${Math.round(elapsedMs/1000)}s < 5s) - continuing to poll`);
+                        lastProcessingStatus = statusValue;
+                        return;
+                    }
 
                     // Stop polling
                     if (processingPollTimer) {
@@ -7427,28 +8284,41 @@ window.ktlReady = function (appInfo = {}) {
                         processingPollTimer = null;
                     }
 
-                    // Refresh view_5601 using KTL
-                    if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
-                        window.ktl.views.refreshView('view_5601');
-                        console.log('🔄 Refreshed view_5601 using KTL');
+                    // Only refresh views if we were previously in Loading state
+                    // This avoids double-render when page loads with Ready status
+                    if (lastProcessingStatus === 'Loading') {
+                        console.log('✅ Processing complete! Refreshing view_5601 and view_5602');
 
-                        window.ktl.views.refreshView('view_5602');
-                        console.log('🔄 Refreshed view_5602 using KTL');
-                    } else {
-                        console.warn('⚠️ KTL refresh not available, using Knack native refresh');
-                        if (typeof Knack !== 'undefined' && Knack.views) {
-                            if (Knack.views.view_5601) {
-                                Knack.views.view_5601.model.fetch();
-                            }
-                            if (Knack.views.view_5602) {
-                                Knack.views.view_5602.model.fetch();
+                        // Refresh views using KTL
+                        if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
+                            window.ktl.views.refreshView('view_5601');
+                            console.log('🔄 Refreshed view_5601 using KTL');
+
+                            window.ktl.views.refreshView('view_5602');
+                            console.log('🔄 Refreshed view_5602 using KTL');
+                        } else {
+                            console.warn('⚠️ KTL refresh not available, using Knack native refresh');
+                            if (typeof Knack !== 'undefined' && Knack.views) {
+                                if (Knack.views.view_5601) {
+                                    Knack.views.view_5601.model.fetch();
+                                }
+                                if (Knack.views.view_5602) {
+                                    Knack.views.view_5602.model.fetch();
+                                }
                             }
                         }
+                    } else {
+                        console.log('✅ Status is Ready (no transition from Loading) - skipping refresh');
                     }
 
                     processingPollAttempts = 0;
+                    processingPollStartTime = null;
+                    lastProcessingStatus = statusValue;
                     return;
                 }
+
+                // Track the status for next poll
+                lastProcessingStatus = statusValue;
             } else {
                 console.warn('⚠️ view_5600 field_4028 not found in DOM');
             }
@@ -7461,7 +8331,10 @@ window.ktlReady = function (appInfo = {}) {
                 clearInterval(processingPollTimer);
                 processingPollTimer = null;
             }
+            // Show address fields even on timeout
+            showAddressViewFields();
             processingPollAttempts = 0;
+            processingPollStartTime = null;
         }
     }
 
@@ -7476,8 +8349,32 @@ window.ktlReady = function (appInfo = {}) {
             clearInterval(processingPollTimer);
         }
 
-        // Reset attempts counter
+        // Reset attempts counter and status tracking
         processingPollAttempts = 0;
+        processingPollStartTime = Date.now(); // Track start time for 5 second minimum
+        lastProcessingStatus = null; // Reset to avoid skipping refresh on first poll
+
+        // Check if we have change tracking from form submission - hide address fields if needed
+        if (window._updateCompanyChanges) {
+            const changes = window._updateCompanyChanges;
+            const hasChanges = changes.emailChanged || changes.phoneChanged || changes.addressChanged;
+
+            if (hasChanges) {
+                console.log('📋 Form submission with changes detected - hiding address view fields until Ready');
+                // Small delay to ensure views are rendered, then hide address fields
+                setTimeout(hideAddressViewFields, 500);
+
+                // Force lastProcessingStatus to 'Loading' so we don't skip the refresh
+                // when status becomes 'Ready' (since Make will set the status, not the form)
+                lastProcessingStatus = 'Loading';
+                console.log('📋 Set lastProcessingStatus to "Loading" to ensure refresh on Ready');
+            } else {
+                console.log('📋 Form submitted but no email/phone/address changes');
+            }
+
+            // Clear the change tracking now that we've used it
+            delete window._updateCompanyChanges;
+        }
 
         // Start polling every 1 second
         processingPollTimer = setInterval(pollProcessingStatus, 1000);
@@ -7535,6 +8432,9 @@ window.ktlReady = function (appInfo = {}) {
     $(document).on('knack-view-render.view_5601', function(event, view, data) {
         console.log('👀 view_5601 rendered - checking for hr div');
         hideHrDivInView5601();
+
+        // Check processing status and hide email/phone fields if Processing
+        checkAndUpdateFieldVisibility();
     });
 
     // ========================================================================
