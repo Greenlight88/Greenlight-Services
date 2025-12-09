@@ -31,10 +31,10 @@
   --lt-color-gray-900: #111213;
 
   /* Base Colors */
-  --lt-color-white: #fff;
+  --lt-color-white: #ffffff;
   --lt-color-black: #111213;
 
-  /* Brand Colors - Customize these */
+  /* Brand Colors */
   --brand-green: #39b54a;
   --brand-green-hover: #2d8f3a;
   --brand-green-active: #257830;
@@ -50,6 +50,17 @@
   --brand-gray: #6c757d;
   --brand-gray-hover: #545b62;
   --brand-gray-active: #424649;
+
+  /* New Additions */
+  --brand-pink: #f8bbd0;
+  --brand-pink-hover: #f48fb1;
+  --brand-pink-active: #f06292;
+
+  --brand-white: #ffffff;
+  --brand-black: #000000;
+  --brand-white-border: #000000;
+  --brand-white-hover-bg: #f8f9fa;
+  --brand-white-active-bg: #e9ecef;
 
   /* Shadows */
   --shadow-default: 0 3px 1px -2px rgba(0, 0, 0, 0.2),
@@ -67,13 +78,17 @@
 
   /* Transitions */
   --transition-default: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Unified button sizing */
+  --button-min-height: 40px;
+  --button-padding-vertical: 8px;
+  --button-padding-horizontal: 24px;
+  --button-min-width: 120px;
 }
 
 /* ===================================
    SHARED KNACK BUTTON BASE STYLES
    =================================== */
-/* Target all Knack buttons and custom injected classes */
-/* Using .kn-content prefix to avoid affecting header navigation */
 .kn-content .kn-button .kn-button-submit,
 .kn-content .kn-button.is-primary,
 .kn-content .kn-form.kn-button.is-primary input[type="submit"],
@@ -85,134 +100,66 @@
 .kn-content .kn-button-menu a,
 .kn-content .kn-back-link a,
 .kn-content .kn-add-link a,
-/* Custom injected button classes */
 .biggreenButton,
 .bigblueButton,
 .bigredButton,
-.biggrayButton {
-  /* Reset & Base Styles */
+.biggreyButton,
+.bigpinkButton,
+.bigwhiteButton {
   font-weight: 400 !important;
   -webkit-font-smoothing: antialiased !important;
   text-rendering: optimizeLegibility !important;
   font-family: var(--font-primary) !important;
   box-sizing: border-box !important;
 
-  /* Layout */
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
 
-  /* Sizing */
-  min-width: 120px !important;
-  padding: 8px 24px !important;
+  min-width: var(--button-min-width) !important;
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal) !important;
   line-height: 1.4 !important;
-
-  /* Typography */
   font-size: 1rem !important;
   text-decoration: none !important;
   user-select: none !important;
   color: var(--lt-color-white) !important;
 
-  /* Appearance */
   border: 2px solid transparent !important;
   border-radius: 50px !important;
-  /* Pill shape */
   cursor: pointer !important;
-
-  /* Effects */
   box-shadow: var(--shadow-default) !important;
   transition: var(--transition-default) !important;
-
-  /* States */
   position: relative !important;
   overflow: hidden !important;
 }
 
-:root {
-  /* Unified button sizing */
-  --button-min-height: 40px;
-  --button-padding-vertical: 8px;
-  --button-padding-horizontal: 24px;
-  --button-min-width: 120px;
-}
-
-/* 1) Target all button-like elements with a single selector */
-.kn-content .kn-button,
-.kn-content .kn-link-1,
-.kn-content .kn-link-2,
-.kn-content .kn-link-3,
-.kn-content .kn-link-4,
-.kn-content .kn-link-cancel,
-.kn-content .kn-back-link a,
-.kn-content .kn-add-link a,
-.biggreenButton,
-.bigblueButton,
-.bigredButton,
-.biggrayButton {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-height: var(--button-min-height) !important;
-  min-width: var(--button-min-width) !important;
-  padding: var(--button-padding-vertical) var(--button-padding-horizontal) !important;
-}
-
-/* 2) Special case: Save button with icon stays consistent without text indent hack */
-.kn-content .kn-form.kn-button.is-primary input[type="submit"] {
-  /* Restore label and match other buttons */
-  text-indent: 0 !important;
-  padding: var(--button-padding-vertical) var(--button-padding-horizontal) !important;
-  min-width: var(--button-min-width) !important;
-}
-
-/* 3) Table action links inherit same height but get custom padding */
-.kn-content .kn-table tbody td a.kn-link-1,
-.kn-content .kn-table tbody td a.kn-link-2,
-.kn-content .kn-table tbody td a.kn-link-3,
-.kn-content .kn-table tbody td .biggreenButton,
-.kn-content .kn-table tbody td .bigblueButton,
-.kn-content .kn-table tbody td .bigredButton {
-  min-height: var(--button-min-height) !important;
-  padding: 6px 16px !important;
-  min-width: auto !important;
-}
-
-/* ===================================
-   HOVER & ACTIVE STATES (ALL BUTTONS)
-   =================================== */
-.kn-content .kn-button .kn-button-submit:hover,
-.kn-content .kn-button.is-primary:hover,
-.kn-content .kn-form.kn-button.is-primary input[type="submit"]:hover,
+/* Hover & Active States */
+.kn-content .kn-button:hover,
 .kn-content .kn-link-1:hover,
 .kn-content .kn-link-2:hover,
 .kn-content .kn-link-3:hover,
 .kn-content .kn-link-4:hover,
-.kn-content .kn-button-menu a:hover,
-.kn-content .kn-back-link a:hover,
-.kn-content .kn-add-link a:hover,
-/* Custom injected classes */
 .biggreenButton:hover,
 .bigblueButton:hover,
 .bigredButton:hover,
-.biggrayButton:hover {
-  /* Use theme variables */
+.biggreyButton:hover,
+.bigpinkButton:hover,
+.bigwhiteButton:hover {
   box-shadow: var(--shadow-hover) !important;
   transform: translateY(-2px) !important;
 }
 
-/* Active states */
-.kn-content .kn-button .kn-button-submit:active,
-.kn-content .kn-button.is-primary:active,
-.kn-content .kn-form.kn-button.is-primary input[type="submit"]:active,
+.kn-content .kn-button:active,
 .kn-content .kn-link-1:active,
 .kn-content .kn-link-2:active,
 .kn-content .kn-link-3:active,
 .kn-content .kn-link-4:active,
-.kn-content .kn-button-menu a:active,
 .biggreenButton:active,
 .bigblueButton:active,
 .bigredButton:active,
-.biggrayButton:active {
+.biggreyButton:active,
+.bigpinkButton:active,
+.bigwhiteButton:active {
   box-shadow: var(--shadow-active) !important;
   transform: translateY(0) !important;
 }
@@ -220,98 +167,100 @@
 /* ===================================
    COLOR-SPECIFIC BUTTON STYLES
    =================================== */
+
 /* 1. Primary Action (Green) */
-.kn-content .kn-button.is-primary,
-.kn-content .kn-form.kn-button.is-primary input[type="submit"],
 .biggreenButton {
   background-color: var(--brand-green) !important;
   border-color: var(--brand-green) !important;
 }
 
-.kn-content .kn-button.is-primary:hover,
-.kn-content .kn-form.kn-button.is-primary input[type="submit"]:hover,
 .biggreenButton:hover {
   background-color: var(--brand-green-hover) !important;
   border-color: var(--brand-green-hover) !important;
 }
 
-.kn-content .kn-button.is-primary:active,
-.kn-content .kn-form.kn-button.is-primary input[type="submit"]:active,
 .biggreenButton:active {
   background-color: var(--brand-green-active) !important;
   border-color: var(--brand-green-active) !important;
 }
 
-/* 2. Secondary Actions (Blue) */
-.kn-content .kn-link-1,
-.kn-content .kn-add-link a,
+/* 2. Secondary Action (Blue) */
 .bigblueButton {
   background-color: var(--brand-blue) !important;
   border-color: var(--brand-blue) !important;
 }
 
-.kn-content .kn-link-1:hover,
-.kn-content .kn-add-link a:hover,
 .bigblueButton:hover {
   background-color: var(--brand-blue-hover) !important;
   border-color: var(--brand-blue-hover) !important;
 }
 
-.kn-content .kn-link-1:active,
-.kn-content .kn-add-link a:active,
 .bigblueButton:active {
   background-color: var(--brand-blue-active) !important;
   border-color: var(--brand-blue-active) !important;
 }
 
-/* 3. Destructive Actions (Red) */
-.kn-content .kn-link-2,
-.kn-content .kn-link.is-delete,
-.kn-content .kn-button.is-danger,
+/* 3. Destructive Action (Red) */
 .bigredButton {
   background-color: var(--brand-red) !important;
   border-color: var(--brand-red) !important;
 }
 
-.kn-content .kn-link-2:hover,
-.kn-content .kn-link.is-delete:hover,
-.kn-content .kn-button.is-danger:hover,
 .bigredButton:hover {
   background-color: var(--brand-red-hover) !important;
   border-color: var(--brand-red-hover) !important;
 }
 
-.kn-content .kn-link-2:active,
-.kn-content .kn-link.is-delete:active,
-.kn-content .kn-button.is-danger:active,
 .bigredButton:active {
   background-color: var(--brand-red-active) !important;
   border-color: var(--brand-red-active) !important;
 }
 
-/* 4. Tertiary Actions (Gray) */
-.kn-content .kn-link-3,
-.kn-content .kn-link-cancel,
-.kn-content .kn-back-link a,
-.biggrayButton {
+/* 4. Neutral / Comment (Gray) */
+.biggreyButton {
   background-color: var(--brand-gray) !important;
   border-color: var(--brand-gray) !important;
 }
 
-.kn-content .kn-link-3:hover,
-.kn-content .kn-link-cancel:hover,
-.kn-content .kn-back-link a:hover,
-.biggrayButton:hover {
+.biggreyButton:hover {
   background-color: var(--brand-gray-hover) !important;
   border-color: var(--brand-gray-hover) !important;
 }
 
-.kn-content .kn-link-3:active,
-.kn-content .kn-link-cancel:active,
-.kn-content .kn-back-link a:active,
-.biggrayButton:active {
+.biggreyButton:active {
   background-color: var(--brand-gray-active) !important;
   border-color: var(--brand-gray-active) !important;
+}
+
+/* 5. Friendly / Soft Action (Pink - Blush) */
+.bigpinkButton {
+  background-color: var(--brand-pink) !important;
+  color: var(--lt-color-black) !important;
+}
+
+.bigpinkButton:hover {
+  background-color: var(--brand-pink-hover) !important;
+  border-color: var(--brand-pink-hover) !important;
+}
+
+.bigpinkButton:active {
+  background-color: var(--brand-pink-active) !important;
+  border-color: var(--brand-pink-active) !important;
+}
+
+/* 6. View / Outline Action (White with Black Border) */
+.bigwhiteButton {
+  background-color: var(--brand-white) !important;
+  color: var(--brand-black) !important;
+  border: 2px solid var(--brand-white-border) !important;
+}
+
+.bigwhiteButton:hover {
+  background-color: var(--brand-white-hover-bg) !important;
+}
+
+.bigwhiteButton:active {
+  background-color: var(--brand-white-active-bg) !important;
 }
 
 /* Disabled States */
@@ -1953,3 +1902,823 @@ textarea:focus,
 #view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active {
   cursor: grabbing !important;
 }
+
+/* ===================================
+   CONFLICT RESOLUTION STYLING
+   =================================== */
+
+/* Highlight conflicting fields */
+.kn-input.has-conflict {
+  border: 2px solid #ffc107 !important;
+  border-radius: 4px;
+  background: #fffbf0 !important;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.kn-input.has-conflict input,
+.kn-input.has-conflict textarea,
+.kn-input.has-conflict select {
+  border-color: #ffc107 !important;
+  background: #fff !important;
+}
+
+/* Conflict marker messages */
+.conflict-marker {
+  animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Resolution banner */
+.conflict-resolution-banner {
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.conflict-resolution-banner button {
+  transition: all 0.2s ease;
+}
+
+.conflict-resolution-banner button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.conflict-resolution-banner button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Hide processing_status field when needed */
+#view_5563 #kn-input-field_4028 {
+  /* Uncomment to hide the field */
+  /* display: none !important; */
+}
+
+/* Hide submit button during conflict resolution */
+.conflict-mode-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Disabled button state */
+.conflict-resolution-banner button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.conflict-resolution-banner button:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Conflict message transitions */
+.conflict-marker {
+  transition: all 0.3s ease;
+}
+
+.kn-input.has-conflict {
+  transition: all 0.3s ease;
+}
+
+/* ===================================
+   CLICKABLE CONTACT ICONS & LINKS
+   Icon-only phone/mobile with tooltips
+   Text email links
+   =================================== */
+
+/* Phone/Mobile Icons */
+.contact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--lt-color-gray-500) !important;
+  text-decoration: none !important;
+  border: none !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.contact-icon i {
+  font-size: 20px;
+  color: inherit !important;
+  transition: all 0.2s ease;
+}
+
+.contact-icon:hover {
+  background: var(--brand-green);
+  color: var(--lt-color-white) !important;
+  transform: scale(1.1);
+  text-decoration: none !important;
+}
+
+.contact-icon:hover i {
+  color: var(--lt-color-white) !important;
+}
+
+.contact-icon:active {
+  transform: scale(0.95);
+}
+
+/* View icon - different hover style (no background, just turn green) */
+.view-icon:hover {
+  background: transparent !important;
+  color: var(--brand-green) !important;
+  transform: scale(1.15);
+}
+
+.view-icon:hover i {
+  color: var(--brand-green) !important;
+}
+
+/* Custom tooltip on hover - only shows when data-tooltip attribute exists */
+.contact-icon[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  background: var(--lt-color-gray-800);
+  color: var(--lt-color-white);
+  border-radius: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  margin-bottom: 8px;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Tooltip arrow - only shows when data-tooltip attribute exists */
+.contact-icon[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  border: 6px solid transparent;
+  border-top-color: var(--lt-color-gray-800);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Email Links */
+.email-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand-blue) !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.email-link i {
+  font-size: 14px;
+  color: var(--brand-blue) !important;
+  transition: all 0.2s ease;
+}
+
+.email-link:hover {
+  color: var(--brand-blue-hover) !important;
+  border-bottom-color: var(--brand-blue-hover);
+  text-decoration: none !important;
+}
+
+.email-link:hover i {
+  color: var(--brand-blue-hover) !important;
+}
+
+.email-link:active {
+  color: var(--brand-blue-active) !important;
+}
+
+/* Table cell adjustments for icons */
+.kn-table td .contact-icon {
+  margin: 0 auto;
+}
+
+/* Center icons in table cells if they're alone */
+.kn-table td:has(.contact-icon:only-child) {
+  text-align: center;
+}
+
+/* ===================================
+   XERO-STYLE SEARCH-TO-CREATE UX
+   =================================== */
+
+/* Hide filters */
+#view_5581 .kn-filters {
+  display: none !important;
+}
+
+/* Table presentation improvements for view_5581 */
+/* Make Name column 20% bigger */
+#view_5581 table.kn-table tbody td:nth-child(2) {
+  font-size: 1.2em !important;
+}
+
+/* Vertically center all table cells */
+#view_5581 table.kn-table tbody td {
+  vertical-align: middle !important;
+}
+
+#view_5581 table.kn-table thead th {
+  vertical-align: middle !important;
+}
+
+/* Center the '#' column header */
+#view_5581 table.kn-table thead th:first-child {
+  text-align: center !important;
+}
+
+/* Also center the '#' column data cells */
+#view_5581 table.kn-table tbody td:first-child {
+  text-align: center !important;
+}
+
+/* Phone/Mobile link styling - clickable with hover */
+#view_5581 .phone-link {
+  color: #333 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+}
+
+#view_5581 .phone-link:hover {
+  background-color: #f0f0f0 !important;
+  color: var(--brand-green) !important;
+  text-decoration: none !important;
+}
+
+#view_5581 .phone-link i {
+  margin-right: 6px !important;
+  color: var(--brand-green) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Email link styling - matches phone/mobile presentation */
+#view_5581 .email-link {
+  color: #333 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+}
+
+#view_5581 .email-link:hover {
+  background-color: #f0f0f0 !important;
+  color: var(--brand-green) !important;
+  text-decoration: none !important;
+}
+
+#view_5581 .email-link i {
+  margin-right: 6px !important;
+  color: var(--brand-green) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Style the "+ Add contact" link - brand green button with hover */
+#view_5581 .xero-add-new-link {
+  display: inline-block !important;
+  margin: 8px 0 0 0 !important;
+  padding: 8px 16px !important;
+  color: var(--brand-green) !important;
+  background: white !important;
+  border: 2px solid var(--brand-green) !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+#view_5581 .xero-add-new-link:hover,
+#view_5581 .xero-add-new-link:focus,
+#view_5581 .xero-add-new-link.keyboard-focused {
+  background: var(--brand-green) !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(57, 181, 74, 0.25) !important;
+  outline: none !important;
+}
+
+#view_5581 .xero-add-new-link:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(57, 181, 74, 0.2) !important;
+}
+
+/* Hide specific "Add" buttons - these exist only for structural purposes */
+#view_5576 {
+  /* Company Add button */
+  display: none !important;
+}
+
+/* Add more hidden buttons here as needed:
+#view_XXXX {
+  display: none !important;
+}
+*/
+
+
+/* Highlight exact match rows in search results */
+tr.xero-exact-match {
+  background-color: #e8f5e9 !important;
+  border-left: 4px solid var(--brand-green) !important;
+  animation: xero-highlight-pulse 0.5s ease-in-out;
+}
+
+tr.xero-exact-match:hover {
+  background-color: #c8e6c9 !important;
+}
+
+@keyframes xero-highlight-pulse {
+  0% {
+    background-color: #ffffff;
+  }
+  50% {
+    background-color: #a5d6a7;
+  }
+  100% {
+    background-color: #e8f5e9;
+  }
+}
+
+/* Entity type selection modal */
+.xero-entity-type-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10000 !important;
+  animation: xero-modal-fade-in 0.2s ease !important;
+}
+
+.xero-entity-type-content {
+  background: white !important;
+  border-radius: 8px !important;
+  padding: 32px !important;
+  max-width: 450px !important;
+  width: 90% !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  animation: xero-modal-slide-up 0.3s ease !important;
+}
+
+.xero-entity-type-content h3 {
+  margin: 0 0 24px 0 !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.xero-entity-type-options {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.xero-entity-option {
+  padding: 16px 20px !important;
+  border: 2px solid #e0e0e0 !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-align: left !important;
+  background: white !important;
+}
+
+.xero-entity-option:hover {
+  border-color: var(--brand-green) !important;
+  background: #f8f9fc !important;
+  transform: translateX(4px) !important;
+}
+
+.xero-entity-option-title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  margin-bottom: 4px !important;
+}
+
+.xero-entity-option-desc {
+  font-size: 13px !important;
+  color: #666 !important;
+}
+
+.xero-modal-cancel {
+  margin-top: 16px !important;
+  text-align: center !important;
+  color: #666 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+}
+
+.xero-modal-cancel:hover {
+  color: #333 !important;
+}
+
+@keyframes xero-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes xero-modal-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===================================
+   EDIT BUTTON SPACING - view_5601
+   =================================== */
+#view_5601 .kn-details-link {
+  margin-top: 20px !important;
+}
+
+/* ===================================
+   HEADING SPACING - view_5585
+   =================================== */
+#view_5585 .field_4081 h2 {
+  margin-bottom: 0 !important;
+}
+
+#view_5585 .kn-detail-body span span {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#view_5585 .kn-detail-body {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remove gap below view_5585 */
+#view_5585 {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remove gaps above and below view_5601 and view_5602 */
+#view_5601, #view_5602 {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ========================================================================
+   XERO-STYLE SEARCH-TO-CREATE MODULE STYLES
+   ======================================================================== */
+
+/* Hide the hidden button view for modal triggers */
+#view_5576 {
+  display: none !important;
+}
+
+/* Hide native Knack search button on view_5581 (we trigger it programmatically) */
+#view_5581 .table-keyword-search a.kn-button.search {
+  display: none !important;
+}
+
+/* Make search form inline to accommodate our button */
+#view_5581 .table-keyword-search {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  flex-wrap: nowrap !important;
+}
+
+#view_5581 .table-keyword-search p.control.has-addons {
+  margin: 0 !important;
+  flex: 1 !important;
+  min-width: 300px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+}
+
+/* "+ New" Link Styling - match input exactly */
+#view_5581 .table-keyword-search .xero-add-new-link {
+  /* Match Bulma .input exactly */
+  -moz-appearance: none !important;
+  -webkit-appearance: none !important;
+  align-items: center !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0.0625em 0.125em rgba(10, 10, 10, 0.05) !important;
+  display: inline-flex !important;
+  font-size: 1rem !important;
+  height: 2.5em !important;
+  justify-content: flex-start !important;
+  line-height: 1.5 !important;
+  padding-bottom: calc(0.5em - 1px) !important;
+  padding-left: calc(0.75em - 1px) !important;
+  padding-right: calc(0.75em - 1px) !important;
+  padding-top: calc(0.5em - 1px) !important;
+  position: relative !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  width: auto !important;
+
+  /* Force alignment to top of flex container */
+  align-self: flex-start !important;
+  margin-top: 0 !important;
+  margin-bottom: auto !important;
+
+  /* Custom styling */
+  background: #f8f9fc !important;
+  border-color: #39b54a !important;
+  border-width: 2px !important;
+  color: #39b54a !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  gap: 8px !important;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+/* Hidden state - keep in DOM but invisible */
+.xero-add-new-link.xero-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+#view_5581 .table-keyword-search .xero-add-new-link:hover {
+  background: #39b54a !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(57, 181, 74, 0.3) !important;
+}
+
+.xero-add-new-link svg {
+  flex-shrink: 0 !important;
+}
+
+/* Exact match highlighting for duplicate companies */
+.xero-exact-match-highlight {
+  background-color: #fff3cd !important;
+  border-left: 4px solid #ffc107 !important;
+  animation: xero-pulse 2s ease-in-out infinite;
+}
+
+@keyframes xero-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Modal Overlay */
+.xero-entity-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  transition: background 0.3s ease;
+}
+
+.xero-entity-modal-overlay.xero-entity-modal-show {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal Container */
+.xero-entity-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.xero-entity-modal-show .xero-entity-modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Modal Header */
+.xero-entity-modal h3 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.xero-entity-modal-search-term {
+  font-size: 18px;
+  color: #39b54a;
+  font-weight: 600;
+  text-align: center;
+  margin: 0 0 24px 0;
+}
+
+/* Modal Buttons Container */
+.xero-entity-modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Entity Type Buttons */
+.xero-entity-modal-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f8f9fc;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+/* Keyboard mode: .keyboard-focused shows highlight, hover is suppressed */
+.xero-entity-modal.keyboard-mode .xero-entity-modal-btn.keyboard-focused {
+  background: #39b54a !important;
+  border-color: #39b54a !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(57, 181, 74, 0.3) !important;
+  outline: none !important;
+}
+
+/* Mouse mode (default): hover shows highlight */
+.xero-entity-modal:not(.keyboard-mode) .xero-entity-modal-btn:hover {
+  background: #39b54a !important;
+  border-color: #39b54a !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(57, 181, 74, 0.3) !important;
+  outline: none !important;
+}
+
+/* Always remove default focus outline - we handle it ourselves */
+.xero-entity-modal-btn:focus {
+  outline: none !important;
+}
+
+.xero-entity-modal-btn svg {
+  flex-shrink: 0;
+}
+
+/* SVG color in keyboard mode */
+.xero-entity-modal.keyboard-mode .xero-entity-modal-btn.keyboard-focused svg {
+  stroke: white !important;
+}
+
+/* SVG color in mouse mode */
+.xero-entity-modal:not(.keyboard-mode) .xero-entity-modal-btn:hover svg {
+  stroke: white !important;
+}
+
+/* Cancel Button */
+.xero-entity-modal-cancel {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.xero-entity-modal-cancel:hover,
+.xero-entity-modal-cancel:focus {
+  color: #333;
+  text-decoration: underline;
+  outline: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .xero-entity-modal {
+    padding: 24px;
+  }
+
+  .xero-entity-modal h3 {
+    font-size: 20px;
+  }
+
+  .xero-entity-modal-search-term {
+    font-size: 16px;
+  }
+
+  .xero-entity-modal-btn {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+}
+/* ===================================
+   FIELD ERROR STYLES
+   =================================== */
+.field-has-error {
+  border-color: #d32f2f !important;
+  border-width: 2px !important;
+}
+
+.field-has-error:focus {
+  border-color: #d32f2f !important;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1) !important;
+}
+
+.field-error-message {
+  animation: field-error-slide-in 0.3s ease-out;
+}
+
+@keyframes field-error-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Warning messages (orange/yellow - for conflicts/shared contacts) */
+.field-warning-message {
+  animation: field-error-slide-in 0.3s ease-out;
+}
+
+/* Info messages (green - for confirmations) */
+.field-info-message {
+  animation: field-error-slide-in 0.3s ease-out;
+}
+

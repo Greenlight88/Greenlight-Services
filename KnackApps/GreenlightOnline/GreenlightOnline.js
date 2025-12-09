@@ -117,7 +117,7 @@ window.ktlReady = function (appInfo = {}) {
     });
 
     // Check if KTL accepted our configuration
-    setTimeout(function() {
+    setTimeout(function () {
         console.log('🔍 Checking KTL auto-refresh internals...');
 
         // Try to access KTL's internal configuration
@@ -1236,228 +1236,6 @@ window.ktlReady = function (appInfo = {}) {
             reconstructConfirmationPage();
         }
     };
-    // ============================================
-    // FORM ASSISTANCE
-    // ============================================
-
-    $(document).on('knack-view-render.view_5444', function (event, view, data) {
-        // Get the value from the details view field_3704
-        var detailsValue = $('#view_5445 .field_3704 .kn-detail-body').text().trim();
-
-        console.log('Details value found:', detailsValue); // Debug log
-
-        // Check if the value exists and is not empty
-        if (detailsValue && detailsValue !== '') {
-            // Set the value in the form's number field
-            $('#field_3606').val(detailsValue);
-            console.log('Form field populated with:', detailsValue);
-
-            // Make field read-only if value is not 0 or blank
-            if (detailsValue !== '0' && detailsValue !== '0.00') {
-                $('#field_3606').prop('readonly', true).css({
-                    'background-color': '#f0f0f0',
-                    'cursor': 'not-allowed'
-                });
-                console.log('Field made read-only');
-            }
-        } else {
-            console.log('Details field is empty or not found');
-            // Leave the field editable when blank
-        }
-
-        // Add validation function
-        function validateOdometer() {
-            var startValue = parseFloat($('#field_3606').val()) || 0;
-            var finishValue = parseFloat($('#field_3607').val()) || 0;
-
-            if (startValue > finishValue && finishValue !== 0) {
-                // Show error using unified notification system
-                notificationSystem.showFieldNotification(
-                    'view_5444',
-                    'field_3607',
-                    'Odometer Start cannot be greater than Odometer Finish',
-                    'error'
-                );
-
-                // Disable submit button using unified system
-                notificationSystem.submitButton.setState('view_5444', 'disabled');
-
-                return false;
-            } else {
-                // Clear error and enable submit button
-                notificationSystem.clearFieldNotification('view_5444', 'field_3607');
-                notificationSystem.submitButton.setState('view_5444', 'ready');
-                return true;
-            }
-        }
-
-        // Validate on field change
-        $('#field_3606, #field_3607').on('change blur keyup', function () {
-            validateOdometer();
-        });
-
-        // Validate on form submission
-        $(document).on('knack-form-submit.view_5444', function (event, view, response) {
-            if (!validateOdometer()) {
-                event.preventDefault();
-                return false;
-            }
-        });
-
-        // Initial validation
-        setTimeout(function () {
-            validateOdometer();
-        }, 500);
-    });
-    //Time Sheet Assistance
-    $(document).on('knack-scene-render.any', function () {
-        console.log('Universal Knack Popup Enhancer loaded');
-
-        // Watch for ANY popup opening anywhere in the app
-        var popupWatcher = setInterval(function () {
-            var $popup = $('.drop-content:visible');
-
-            if ($popup.length > 0 && !$popup.data('universal-enhanced')) {
-                $popup.data('universal-enhanced', true);
-
-                var popupTitle = $popup.find('h1.kn-title').text();
-                console.log('Popup detected:', popupTitle);
-
-                // Detect field type and enhance
-                detectAndEnhancePopup($popup);
-            }
-        }, 100);
-    });
-
-    function detectAndEnhancePopup($popup) {
-        // Detect field type by looking at the content
-
-        // 1. Chosen dropdowns (Activity, Booking, etc.)
-        if ($popup.find('.chzn-container').length) {
-            console.log('Detected: Chosen dropdown');
-            enhanceChosenDropdown($popup);
-        }
-        // 2. Native select dropdowns (Trip Type)
-        else if ($popup.find('select.select').length) {
-            console.log('Detected: Native select');
-            enhanceNativeSelect($popup);
-        }
-        // 3. Address fields
-        else if ($popup.find('input#street').length) {
-            console.log('Detected: Address field');
-            enhanceAddressField($popup);
-        }
-        // 4. Time fields
-        else if ($popup.find('input.kn-time').length) {
-            console.log('Detected: Time field');
-            enhanceTimeField($popup);
-        }
-        // 5. Date fields
-        else if ($popup.find('input.knack-date').length) {
-            console.log('Detected: Date field');
-            enhanceDateField($popup);
-        }
-        // 6. Textarea (Comments)
-        else if ($popup.find('textarea').length) {
-            console.log('Detected: Textarea');
-            enhanceTextarea($popup);
-        }
-        // 7. Number/text inputs
-        else if ($popup.find('input[type="text"]').length) {
-            console.log('Detected: Text/number input');
-            enhanceTextInput($popup);
-        }
-
-        // Add universal enter key submit (except for textareas)
-        if (!$popup.find('textarea').length) {
-            $popup.on('keypress.universal', 'input', function (e) {
-                if (e.which === 13) {
-                    e.preventDefault();
-                    $popup.find('.kn-button.is-primary').click();
-                }
-            });
-        }
-    }
-
-    // Individual enhancement functions
-    function enhanceChosenDropdown($popup) {
-        var attempts = 0;
-        var checker = setInterval(function () {
-            var $container = $popup.find('.chzn-container:visible');
-            if ($container.length) {
-                clearInterval(checker);
-                // Open dropdown
-                $container.find('a.chzn-single').trigger('mousedown');
-                // Focus search
-                setTimeout(function () {
-                    $popup.find('.chzn-search input:visible').focus();
-                }, 100);
-            } else if (attempts++ > 20) {
-                clearInterval(checker);
-            }
-        }, 50);
-    }
-
-    function enhanceNativeSelect($popup) {
-        setTimeout(function () {
-            var $select = $popup.find('select:visible').first();
-            if ($select.length) {
-                $select.focus();
-                // Optional: show all options
-                var optionCount = $select.find('option').length;
-                if (optionCount <= 10) { // Only for small lists
-                    $select.attr('size', optionCount);
-                    $select.on('blur change', function () {
-                        $(this).attr('size', 1);
-                    });
-                }
-            }
-        }, 100);
-    }
-
-    function enhanceAddressField($popup) {
-        // Fix labels
-        $popup.find('label:contains("City")').text('Suburb');
-        $popup.find('label:contains("Province / Region")').text('State');
-
-        // Google Maps integration
-        if (window.google && window.google.maps) {
-            initGoogleMapsForAddress($popup);
-        }
-    }
-
-    function enhanceTimeField($popup) {
-        setTimeout(function () {
-            $popup.find('input.kn-time').focus().select();
-        }, 100);
-    }
-
-    function enhanceDateField($popup) {
-        setTimeout(function () {
-            $popup.find('input.knack-date').focus().select();
-        }, 100);
-    }
-
-    function enhanceTextarea($popup) {
-        setTimeout(function () {
-            $popup.find('textarea').focus();
-        }, 100);
-
-        // Ctrl+Enter to submit
-        $popup.on('keydown.universal', 'textarea', function (e) {
-            if (e.ctrlKey && e.which === 13) {
-                e.preventDefault();
-                $popup.find('.kn-button.is-primary').click();
-            }
-        });
-    }
-
-    function enhanceTextInput($popup) {
-        setTimeout(function () {
-            $popup.find('input[type="text"]:visible').first().focus().select();
-        }, 100);
-    }
-
     // ========================================================================
     // FORM VALIDATION AND WEBHOOK CONTROL SYSTEM
     // ========================================================================
@@ -1486,51 +1264,212 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             // Name fields validation (first and last name required)
+            // Smart name formatting with support for prefixes, hyphens, Mc/Mac/O'/d'
             'name-fields': {
+                // Surname prefixes that stay lowercase when followed by another word
+                // Note: 'van' is handled separately (Dutch - always capitalised)
+                // Note: 'de' is handled separately (preserve user input for Dutch vs other languages)
+                lowercasePrefixes: ['von', 'di', 'la', 'le', 'del', 'della', 'dos', 'das', 'du'],
+
+                // Dutch 'van' variations - always capitalised
+                dutchVanPrefixes: ['van', 'van de', 'van den', 'van der'],
+
+                // Check if text has mixed case (user intentionally cased it)
+                hasMixedCase: function (text) {
+                    if (!text) return false;
+                    const hasUpper = /[A-Z]/.test(text);
+                    const hasLower = /[a-z]/.test(text);
+                    return hasUpper && hasLower;
+                },
+
+                // Format a single name part (handles hyphens, Mc, Mac, O', d', Fitz)
+                formatNamePart: function (name) {
+                    if (!name) return '';
+
+                    // Handle hyphenated names - format each part
+                    if (name.includes('-')) {
+                        return name.split('-').map(part => this.formatNamePart(part)).join('-');
+                    }
+
+                    const lowerName = name.toLowerCase();
+
+                    // Handle d' prefix (d'Arcy, d'Angelo)
+                    if (lowerName.startsWith("d'") && lowerName.length > 2) {
+                        return "d'" + lowerName.charAt(2).toUpperCase() + lowerName.slice(3);
+                    }
+
+                    // Handle O' prefix (O'Brien, O'Connor)
+                    if (lowerName.startsWith("o'") && lowerName.length > 2) {
+                        return "O'" + lowerName.charAt(2).toUpperCase() + lowerName.slice(3);
+                    }
+
+                    // Handle Mc prefix (McDonald, McGregor)
+                    if (lowerName.startsWith('mc') && lowerName.length > 2 && /[a-z]/.test(lowerName.charAt(2))) {
+                        return 'Mc' + lowerName.charAt(2).toUpperCase() + lowerName.slice(3);
+                    }
+
+                    // Handle Mac prefix (MacDonald) - followed by consonant (not e,h,i,k to avoid Mace, Mach, etc.)
+                    if (lowerName.startsWith('mac') && lowerName.length > 3) {
+                        const charAfterMac = lowerName.charAt(3);
+                        if (/[bcdfgjlmnpqrstvwxyz]/.test(charAfterMac)) {
+                            return 'Mac' + lowerName.charAt(3).toUpperCase() + lowerName.slice(4);
+                        }
+                    }
+
+                    // Handle Fitz prefix (FitzGerald, FitzPatrick)
+                    if (lowerName.startsWith('fitz') && lowerName.length > 4) {
+                        return 'Fitz' + lowerName.charAt(4).toUpperCase() + lowerName.slice(5);
+                    }
+
+                    // Default: simple proper case
+                    return lowerName.charAt(0).toUpperCase() + lowerName.slice(1);
+                },
+
+                // Format first name - always proper case (with special pattern handling)
+                // Handles multi-word first names like "Mary Jane", "Jean Pierre"
+                formatFirstName: function (firstName) {
+                    if (!firstName) return '';
+                    const trimmed = firstName.trim();
+
+                    // If user has mixed case, preserve it
+                    if (this.hasMixedCase(trimmed)) {
+                        console.log(`📝 First name has mixed case - preserving: "${trimmed}"`);
+                        return trimmed;
+                    }
+
+                    // Handle multi-word first names - proper case each word
+                    if (trimmed.includes(' ')) {
+                        return trimmed.split(/\s+/).map(part => this.formatNamePart(part)).join(' ');
+                    }
+
+                    return this.formatNamePart(trimmed);
+                },
+
+                // Format last name - handles prefixes, hyphens, special patterns
+                formatLastName: function (lastName) {
+                    if (!lastName) return '';
+                    const trimmed = lastName.trim();
+
+                    // If user has mixed case, preserve entire surname as-is
+                    if (this.hasMixedCase(trimmed)) {
+                        console.log(`📝 Last name has mixed case - preserving: "${trimmed}"`);
+                        return trimmed;
+                    }
+
+                    // Single word surname - use formatNamePart
+                    if (!trimmed.includes(' ')) {
+                        return this.formatNamePart(trimmed);
+                    }
+
+                    // Multi-word surname - check for prefixes
+                    const words = trimmed.split(/\s+/).filter(w => w.length > 0);
+                    const result = [];
+
+                    for (let i = 0; i < words.length; i++) {
+                        const word = words[i].toLowerCase();
+                        const isLastWord = (i === words.length - 1);
+
+                        if (isLastWord) {
+                            // Last word always gets proper case formatting
+                            result.push(this.formatNamePart(words[i]));
+                        } else if (word === 'van') {
+                            // Dutch 'van' - always capitalised
+                            result.push('Van');
+                        } else if (word === 'de') {
+                            // 'de' - preserve original case if capitalised, otherwise lowercase
+                            // Since we already checked hasMixedCase above, here it's all lower/upper
+                            // Default to lowercase (more common internationally)
+                            result.push('de');
+                        } else if (word === 'den' || word === 'der') {
+                            // Part of Dutch 'van den'/'van der' - lowercase as secondary particle
+                            result.push(word);
+                        } else if (this.lowercasePrefixes.includes(word)) {
+                            // Other known lowercase prefixes
+                            result.push(word);
+                        } else {
+                            // Unknown word in middle - proper case it
+                            result.push(this.formatNamePart(words[i]));
+                        }
+                    }
+
+                    return result.join(' ');
+                },
+
                 validate: function (config, fieldValue, $field) {
                     const firstName = $(config.selectors.first).val().trim();
                     const lastName = $(config.selectors.last).val().trim();
 
-                    // Convert to proper case (capitalize first letter, lowercase rest)
-                    function toProperCase(name) {
-                        if (!name) return '';
-                        return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-                    }
-
-                    const properFirstName = toProperCase(firstName);
-                    const properLastName = toProperCase(lastName);
+                    // Format names using smart formatting
+                    const formattedFirstName = this.formatFirstName(firstName);
+                    const formattedLastName = this.formatLastName(lastName);
 
                     // Update the fields if they were changed
-                    if (firstName && firstName !== properFirstName) {
-                        $(config.selectors.first).val(properFirstName);
-                        console.log(`📝 First name corrected: '${firstName}' → '${properFirstName}'`);
+                    if (firstName && firstName !== formattedFirstName) {
+                        $(config.selectors.first).val(formattedFirstName);
+                        console.log(`📝 First name formatted: '${firstName}' → '${formattedFirstName}'`);
                     }
-                    if (lastName && lastName !== properLastName) {
-                        $(config.selectors.last).val(properLastName);
-                        console.log(`📝 Last name corrected: '${lastName}' → '${properLastName}'`);
+                    if (lastName && lastName !== formattedLastName) {
+                        $(config.selectors.last).val(formattedLastName);
+                        console.log(`📝 Last name formatted: '${lastName}' → '${formattedLastName}'`);
                     }
 
                     return {
-                        isValid: properFirstName.length > 0 && properLastName.length > 0,
-                        normalizedValue: { first: properFirstName, last: properLastName }
+                        isValid: formattedFirstName.length > 0 && formattedLastName.length > 0,
+                        normalizedValue: { first: formattedFirstName, last: formattedLastName }
                     };
                 },
                 defaultMessage: 'Both First and Last names are required',
-                displayError: function (fieldId, message, utils) {
-                    const $nameContainer = $('input[name="key"][value="' + fieldId + '"]').closest('.kn-input');
-                    $nameContainer.addClass('kn-error');
-                    let $nameErrorDiv = $nameContainer.find('.validation-error-message');
-                    if ($nameErrorDiv.length === 0) {
-                        $nameErrorDiv = $('<div class="kn-message is-error validation-error-message" style="margin-top: 5px;"><span class="kn-message-body"></span></div>');
-                        $nameContainer.append($nameErrorDiv);
+                displayError: function (fieldId, message, utils, fieldConfig, viewId) {
+                    // Name fields are composite (first/last), so we need to find the container
+                    // and manually create the notification with unified styling
+                    const $firstInput = $(fieldConfig.selectors.first);
+                    const $lastInput = $(fieldConfig.selectors.last);
+                    const $nameContainer = $firstInput.closest('.kn-input');
+
+                    if (!$nameContainer.length) {
+                        console.warn(`⚠️ Could not find container for name field ${fieldId}`);
+                        return;
                     }
-                    $nameErrorDiv.find('.kn-message-body').text(message);
-                    $nameErrorDiv.show();
+
+                    // Remove any existing notification
+                    $nameContainer.find('.field-notification-message').remove();
+
+                    // Use same styling as unified notification system
+                    const $notification = $(`<div class="field-notification-message field-error-message" style="
+                        color: #d32f2f;
+                        font-size: 13px;
+                        margin-top: 5px;
+                        padding: 8px 12px;
+                        background: #ffebee;
+                        border-left: 3px solid #d32f2f;
+                        border-radius: 3px;
+                        line-height: 1.5;
+                    ">
+                        <div style="display: flex; align-items: flex-start; gap: 8px;">
+                            <span style="flex-shrink: 0; font-size: 14px;">❌</span>
+                            <div style="flex: 1;">${message}</div>
+                        </div>
+                    </div>`);
+
+                    $nameContainer.append($notification);
+                    console.log(`❌ Name field error shown: ${message}`);
+
+                    // Focus on the appropriate field - first name if missing, otherwise last name
+                    const firstName = $firstInput.val().trim();
+                    const lastName = $lastInput.val().trim();
+
+                    if (!firstName) {
+                        $firstInput.focus();
+                    } else if (!lastName) {
+                        $lastInput.focus();
+                    } else {
+                        $firstInput.focus(); // Default to first
+                    }
                 },
-                clearError: function (fieldId, utils) {
-                    const $nameContainer = $('input[name="key"][value="' + fieldId + '"]').closest('.kn-input');
-                    $nameContainer.removeClass('kn-error');
-                    $nameContainer.find('.validation-error-message').remove();
+                clearError: function (fieldId, utils, fieldConfig, viewId) {
+                    const $firstInput = $(fieldConfig.selectors.first);
+                    const $nameContainer = $firstInput.closest('.kn-input');
+                    $nameContainer.find('.field-notification-message').remove();
                 }
             },
 
@@ -1660,11 +1599,20 @@ window.ktlReady = function (appInfo = {}) {
                     };
                 },
                 defaultMessage: 'Please provide at least one contact method (Email, Mobile, or Phone)',
-                displayError: function (fieldId, message, utils) {
-                    utils.addFieldError('field_3959', message); // Show on email field
+                displayError: function (fieldId, message, utils, fieldConfig, viewId) {
+                    // Get email field ID from selector (e.g., '#field_4164' -> 'field_4164')
+                    const emailSelector = fieldConfig.selectors.email;
+                    const emailFieldId = emailSelector.replace('#', '');
+                    // Use unified notification system for consistent styling
+                    utils.addFieldError(emailFieldId, message, null, viewId);
+                    // Focus on email field
+                    $(emailSelector).focus();
                 },
-                clearError: function (fieldId, utils) {
-                    utils.removeFieldError('field_3959'); // Clear from email field only
+                clearError: function (fieldId, utils, fieldConfig, viewId) {
+                    // Get email field ID from selector
+                    const emailSelector = fieldConfig.selectors.email;
+                    const emailFieldId = emailSelector.replace('#', '');
+                    utils.removeFieldError(emailFieldId, null, viewId);
                 }
             },
 
@@ -1782,7 +1730,7 @@ window.ktlReady = function (appInfo = {}) {
                  * - Proper case with hyphenation support
                  * - PO Box variants
                  */
-                normalizeStreetAddress: function(address) {
+                normalizeStreetAddress: function (address) {
                     if (!address || address.trim() === '') return '';
 
                     let normalized = address.trim();
@@ -1833,7 +1781,7 @@ window.ktlReady = function (appInfo = {}) {
 
                     // Apply proper case with hyphenation support
                     // Split by spaces, capitalize first letter of each word
-                    normalized = normalized.replace(/\b\w+/g, function(word) {
+                    normalized = normalized.replace(/\b\w+/g, function (word) {
                         // Handle hyphenated words (e.g., Marcus-Dreyfus)
                         if (word.includes('-')) {
                             return word.split('-').map(part =>
@@ -1855,7 +1803,7 @@ window.ktlReady = function (appInfo = {}) {
                  * Normalize suburb name
                  * - Convert to ALL CAPS
                  */
-                normalizeSuburb: function(suburb) {
+                normalizeSuburb: function (suburb) {
                     if (!suburb || suburb.trim() === '') return '';
                     return suburb.trim().toUpperCase();
                 },
@@ -1864,7 +1812,7 @@ window.ktlReady = function (appInfo = {}) {
                  * Normalize state
                  * - Convert to uppercase abbreviation
                  */
-                normalizeState: function(state) {
+                normalizeState: function (state) {
                     if (!state || state.trim() === '') return '';
 
                     const stateMap = {
@@ -2293,6 +2241,67 @@ window.ktlReady = function (appInfo = {}) {
                         rule: 'company-phone',
                         selector: '#field_4056',
                         required: false
+                    }
+                }
+            },
+
+            // ===== CONTACT CREATION FORM =====
+            view_5612: {
+                formType: 'contact-creation',
+                allowSharedContacts: true,  // Contact creation allows shared contacts (confirm scenario)
+                webhook: {
+                    url: 'https://hook.us1.make.com/nwacilwm8c5sg3w5w2xd7qxwwp250fbu',
+                    enabled: true
+                },
+                postSubmissionWebhook: {
+                    url: 'https://hook.us1.make.com/ov8njud5b8cwbuwaf39shqxx2jijmysl',
+                    enabled: true
+                },
+                fields: {
+                    field_3860: {
+                        rule: 'name-fields',
+                        selectors: {
+                            first: 'input[name="first"]',
+                            last: 'input[name="last"]'
+                        },
+                        required: true
+                    },
+                    field_3861: {
+                        rule: 'proper-case-text',
+                        selector: '#field_3861',
+                        required: false
+                    },
+                    field_4164: {
+                        rule: 'company-email',  // Re-using company-email rule for consistency
+                        selector: '#field_4164',
+                        required: false,
+                        conflictType: 'email'
+                    },
+                    field_4165: {
+                        rule: 'mobile-number',
+                        selector: '#field_4165',
+                        required: false,
+                        conflictType: 'mobile'
+                    },
+                    field_4056: {
+                        rule: 'landline-number',  // Re-using landline-number rule
+                        selector: '#field_4056',
+                        required: false,
+                        conflictType: 'phone'
+                    },
+                    contact_group: {
+                        rule: 'contact-group',
+                        selectors: {
+                            email: '#field_4164',
+                            mobile: '#field_4165',
+                            phone: '#field_4056'
+                        },
+                        required: true,
+                        conflictTypes: {
+                            email: 'email',
+                            mobile: 'mobile',
+                            phone: 'phone'
+                        }
                     }
                 }
             }
@@ -2842,7 +2851,7 @@ window.ktlReady = function (appInfo = {}) {
                         if (cleaned.length !== 6 && cleaned.length !== 10) {
                             return {
                                 isValid: false,
-                                error: `${firstFourDigits} numbers must be either 6 digits (${firstFourDigits.substring(0,4)} XX) or 10 digits (${firstFourDigits} XXX XXX)`,
+                                error: `${firstFourDigits} numbers must be either 6 digits (${firstFourDigits.substring(0, 4)} XX) or 10 digits (${firstFourDigits} XXX XXX)`,
                                 normalizedValue: '',
                                 hasAreaCodeCorrection: false
                             };
@@ -3125,12 +3134,24 @@ window.ktlReady = function (appInfo = {}) {
 
                     if (!fieldValid) {
                         const errorMessage = result.errorMessage || fieldConfig.message || ruleDefinition.defaultMessage;
-                        utils.addFieldError(fieldId, errorMessage, null, viewId);
+
+                        // Use custom displayError if defined (e.g., contact-group, name-fields), otherwise use standard
+                        if (ruleDefinition.displayError) {
+                            ruleDefinition.displayError(fieldId, errorMessage, utils, fieldConfig, viewId);
+                        } else {
+                            utils.addFieldError(fieldId, errorMessage, null, viewId);
+                        }
+
                         errors.push(errorMessage);
                         console.log(`❌ ${fieldConfig.rule} validation failed for ${fieldId}: ${errorMessage}`);
                         isValid = false;
                     } else {
-                        utils.removeFieldError(fieldId, null, viewId);
+                        // Use custom clearError if defined (e.g., contact-group, name-fields), otherwise use standard
+                        if (ruleDefinition.clearError) {
+                            ruleDefinition.clearError(fieldId, utils, fieldConfig, viewId);
+                        } else {
+                            utils.removeFieldError(fieldId, null, viewId);
+                        }
 
                         // Update field with normalized value if provided
                         if (result.normalizedValue && result.normalizedValue !== fieldValue) {
@@ -3179,7 +3200,7 @@ window.ktlReady = function (appInfo = {}) {
              * Normalize company name for searching
              * Removes common suffixes and normalizes text
              */
-            normalizeCompanyName: function(companyName) {
+            normalizeCompanyName: function (companyName) {
                 if (!companyName) return '';
 
                 return companyName
@@ -3194,7 +3215,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Normalize street address for searching
              */
-            normalizeStreetAddress: function(address) {
+            normalizeStreetAddress: function (address) {
                 if (!address) return '';
 
                 return address
@@ -3209,7 +3230,7 @@ window.ktlReady = function (appInfo = {}) {
              * - Converts domain (after @) to lowercase
              * - Removes all whitespace
              */
-            normalizeEmail: function(email) {
+            normalizeEmail: function (email) {
                 if (!email) return '';
 
                 // Remove all whitespace first
@@ -3232,7 +3253,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Normalize phone number (adds +61 prefix if needed)
              */
-            normalizePhone: function(phone) {
+            normalizePhone: function (phone) {
                 if (!phone) return '';
 
                 // Use existing validator normalization
@@ -3257,7 +3278,7 @@ window.ktlReady = function (appInfo = {}) {
              * Build payload for company forms (create or update)
              * This is called BEFORE form submission for duplicate checking
              */
-            buildPreSubmissionPayload: function(viewId, formData) {
+            buildPreSubmissionPayload: function (viewId, formData) {
                 const config = viewConfigs[viewId];
                 const formType = config.formType; // 'company-creation' or 'company-update'
 
@@ -3459,7 +3480,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Get existing record IDs from hidden view (for update forms only)
              */
-            getExistingRecordIds: function(viewId) {
+            getExistingRecordIds: function (viewId) {
                 const config = viewConfigs[viewId];
                 const hiddenView = config.hiddenView;
 
@@ -3502,7 +3523,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Get original values from hidden view (for update forms only)
              */
-            getOriginalValues: function(viewId) {
+            getOriginalValues: function (viewId) {
                 const config = viewConfigs[viewId];
                 const hiddenView = config.hiddenView;
 
@@ -3532,7 +3553,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Detect changes between original and current values (for update forms only)
              */
-            detectChanges: function(originalValues, companyName, companyShortName, streetAddress, email, phone) {
+            detectChanges: function (originalValues, companyName, companyShortName, streetAddress, email, phone) {
                 const originalNameSearch = this.normalizeCompanyName(originalValues.company_name || '');
                 const currentNameSearch = this.normalizeCompanyName(companyName);
 
@@ -3567,7 +3588,7 @@ window.ktlReady = function (appInfo = {}) {
              * Build post-submission payload with actual company_id
              * This is called AFTER form submission completes
              */
-            buildPostSubmissionPayload: function(viewId, submissionResponse) {
+            buildPostSubmissionPayload: function (viewId, submissionResponse) {
                 const config = viewConfigs[viewId];
                 const formType = config.formType;
 
@@ -3904,7 +3925,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Fire post-submission webhook
              */
-            firePostSubmissionWebhook: function(viewId, submissionResponse) {
+            firePostSubmissionWebhook: function (viewId, submissionResponse) {
                 const config = viewConfigs[viewId];
 
                 if (!config || !config.postSubmissionWebhook || !config.postSubmissionWebhook.enabled) {
@@ -3970,6 +3991,542 @@ window.ktlReady = function (appInfo = {}) {
                         delete window._isTest;
                         delete window._knackApiPayloads;
                         console.log(`🧹 Cleaned up post-submission variables`);
+                    });
+            }
+        };
+
+        // ========================================================================
+        // CONTACT FORM HANDLER
+        // Specialized handler for contact creation forms
+        // ========================================================================
+        const contactFormHandler = {
+
+            /**
+             * Normalize contact name for searching
+             * Removes extra whitespace and converts to lowercase
+             */
+            normalizeContactName: function (name) {
+                if (!name) return '';
+                return name
+                    .toLowerCase()
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            },
+
+            /**
+             * Normalize email for searching
+             * Converts to lowercase and removes whitespace
+             */
+            normalizeEmail: function (email) {
+                if (!email) return '';
+                return email.toLowerCase().replace(/\s+/g, '').trim();
+            },
+
+            /**
+             * Normalize phone/mobile for comparison
+             * Removes all non-digit characters except leading +
+             */
+            normalizePhone: function (phone) {
+                if (!phone) return '';
+                const cleaned = phone.replace(/[^\d+]/g, '');
+                return cleaned;
+            },
+
+            /**
+             * Format Australian mobile number for display
+             * Input: national number without country code (e.g., "412345678")
+             * Output: formatted (e.g., "0412 345 678")
+             */
+            formatAustralianMobile: function (nationalNumber) {
+                if (!nationalNumber) return '';
+                // Strip any non-digits
+                let digits = nationalNumber.replace(/\D/g, '');
+                // Add leading 0 if not present
+                if (!digits.startsWith('0')) {
+                    digits = '0' + digits;
+                }
+                // Format as 0XXX XXX XXX (mobile format)
+                if (digits.length === 10) {
+                    return `${digits.substring(0, 4)} ${digits.substring(4, 7)} ${digits.substring(7)}`;
+                }
+                // Return with leading 0 if wrong length
+                return digits;
+            },
+
+            /**
+             * Format Australian landline number for display
+             * Input: national number without country code (e.g., "296564651")
+             * Output: formatted (e.g., "02 9656 4651")
+             */
+            formatAustralianPhone: function (nationalNumber) {
+                if (!nationalNumber) return '';
+                // Strip any non-digits
+                let digits = nationalNumber.replace(/\D/g, '');
+                // Add leading 0 if not present
+                if (!digits.startsWith('0')) {
+                    digits = '0' + digits;
+                }
+                // Format as 0X XXXX XXXX (landline format)
+                if (digits.length === 10) {
+                    return `${digits.substring(0, 2)} ${digits.substring(2, 6)} ${digits.substring(6)}`;
+                }
+                // Handle 1300/1800 numbers (format: 1300 XXX XXX)
+                if (digits.startsWith('1300') || digits.startsWith('1800')) {
+                    if (digits.length === 10) {
+                        return `${digits.substring(0, 4)} ${digits.substring(4, 7)} ${digits.substring(7)}`;
+                    }
+                }
+                // Return with leading 0 if wrong length
+                return digits;
+            },
+
+            /**
+             * Build payload for contact creation forms
+             * This is called BEFORE form submission for duplicate checking
+             */
+            buildPreSubmissionPayload: function (viewId, formData) {
+                const config = viewConfigs[viewId];
+                const formType = config.formType; // 'contact-creation'
+
+                console.log(`👤 Building ${formType} payload for ${viewId}`);
+
+                // Get current user
+                let currentUserId = null;
+                let currentUserEmail = null;
+                try {
+                    if (Knack && Knack.getUserAttributes) {
+                        const userAttrs = Knack.getUserAttributes();
+                        currentUserId = userAttrs.id || null;
+                        currentUserEmail = userAttrs.email || null;
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not get current user info:`, error);
+                }
+
+                // Get tenant_id from hidden view (view_5623 contains field_3925)
+                let tenantId = '';
+                try {
+                    // The value is in a span with data-kn="connection-value" inside .field_3925
+                    const tenantField = $('#view_5623 .field_3925 [data-kn="connection-value"]');
+                    if (tenantField.length > 0) {
+                        tenantId = tenantField.text().trim();
+                    }
+                    // Fallback: try .kn-detail-body span
+                    if (!tenantId) {
+                        const altField = $('#view_5623 .field_3925 .kn-detail-body span');
+                        if (altField.length > 0) {
+                            tenantId = altField.text().trim();
+                        }
+                    }
+                    console.log(`🏢 Tenant ID from hidden view (view_5623): "${tenantId}"`);
+                } catch (error) {
+                    console.warn(`⚠️ Could not get tenant_id from hidden view:`, error);
+                }
+
+                // Extract form field values using config selectors
+                const fields = config.fields;
+
+                // Name (composite field)
+                let firstName = '';
+                let lastName = '';
+                if (fields.field_3860 && fields.field_3860.selectors) {
+                    firstName = $(fields.field_3860.selectors.first).val() || '';
+                    lastName = $(fields.field_3860.selectors.last).val() || '';
+                }
+
+                // Preferred name
+                const preferredName = fields.field_3861 ? $(fields.field_3861.selector).val() || '' : '';
+
+                // Email
+                const emailRaw = fields.field_4164 ? $(fields.field_4164.selector).val() || '' : '';
+
+                // Mobile
+                const mobileRaw = fields.field_4165 ? $(fields.field_4165.selector).val() || '' : '';
+
+                // Phone
+                const phoneRaw = fields.field_4056 ? $(fields.field_4056.selector).val() || '' : '';
+
+                // Normalize all fields
+                const firstNameNormalised = firstName.trim();
+                const lastNameNormalised = lastName.trim();
+                const fullName = (firstNameNormalised + ' ' + lastNameNormalised).trim();
+                const firstNameSearch = this.normalizeContactName(firstName);
+                const lastNameSearch = this.normalizeContactName(lastName);
+                const fullNameSearch = this.normalizeContactName(fullName);
+                const emailNormalised = this.normalizeEmail(emailRaw);
+                const mobileNormalised = this.normalizePhone(mobileRaw);
+                const phoneNormalised = this.normalizePhone(phoneRaw);
+
+                // Build payload
+                const payload = {
+                    view: viewId,
+                    form_type: formType,
+                    allow_shared_contacts: config.allowSharedContacts !== false,  // Default true if not specified
+                    timestamp: new Date().toISOString(),
+                    tenant_id: tenantId,
+                    current_user: {
+                        id: currentUserId,
+                        email: currentUserEmail
+                    },
+                    first_name: firstNameNormalised,
+                    last_name: lastNameNormalised,
+                    full_name: fullName,
+                    first_name_search: firstNameSearch,
+                    last_name_search: lastNameSearch,
+                    full_name_search: fullNameSearch,
+                    preferred_name: preferredName.trim(),
+                    email_normalised: emailNormalised,
+                    mobile_normalised: mobileNormalised,
+                    phone_normalised: phoneNormalised,
+                    data: {
+                        form_type: formType,
+                        allow_shared_contacts: config.allowSharedContacts !== false,
+                        first_name: firstNameNormalised,
+                        last_name: lastNameNormalised,
+                        full_name: fullName,
+                        first_name_search: firstNameSearch,
+                        last_name_search: lastNameSearch,
+                        full_name_search: fullNameSearch,
+                        preferred_name: preferredName.trim(),
+                        email: emailNormalised,
+                        mobile: mobileNormalised,
+                        phone: phoneNormalised,
+                        tenant_id: tenantId
+                    }
+                };
+
+                console.log(`📦 Built ${formType} payload:`, payload);
+                return payload;
+            },
+
+            /**
+             * Build post-submission payload for contact forms
+             * This is called AFTER form submission completes
+             * Uses on-form values (captured at submission time) as user may have resolved conflicts
+             */
+            buildPostSubmissionPayload: function (viewId, submissionResponse) {
+                const config = viewConfigs[viewId];
+                const formType = config.formType;
+
+                console.log(`👤 Building post-submission payload for ${formType} (${viewId})`);
+
+                // Get current user
+                let currentUserId = null;
+                let currentUserEmail = null;
+                try {
+                    if (Knack && Knack.getUserAttributes) {
+                        const userAttrs = Knack.getUserAttributes();
+                        currentUserId = userAttrs.id || null;
+                        currentUserEmail = userAttrs.email || null;
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not get current user info:`, error);
+                }
+
+                // Extract contact_id (ENT record ID) from submission response
+                let contactId = null;
+                try {
+                    if (submissionResponse && submissionResponse.id) {
+                        contactId = submissionResponse.id;
+                        console.log(`✅ Extracted contact_id from submission response.id: ${contactId}`);
+                    } else if (submissionResponse && submissionResponse.record && submissionResponse.record.id) {
+                        contactId = submissionResponse.record.id;
+                        console.log(`✅ Extracted contact_id from submission response.record.id: ${contactId}`);
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ Could not extract contact_id from submission:`, error);
+                }
+
+                // Get tenant_id from hidden view (view_5623 contains field_3925)
+                let tenantId = '';
+                try {
+                    // The value is in a span with data-kn="connection-value" inside .field_3925
+                    const tenantField = $('#view_5623 .field_3925 [data-kn="connection-value"]');
+                    if (tenantField.length > 0) {
+                        tenantId = tenantField.text().trim();
+                    }
+                    // Fallback: try .kn-detail-body span
+                    if (!tenantId) {
+                        const altField = $('#view_5623 .field_3925 .kn-detail-body span');
+                        if (altField.length > 0) {
+                            tenantId = altField.text().trim();
+                        }
+                    }
+                    console.log(`🏢 Tenant ID from hidden view (view_5623): "${tenantId}"`);
+                } catch (error) {
+                    console.warn(`⚠️ Could not get tenant_id from hidden view:`, error);
+                }
+
+                // Get stored form data (captured at submission time - reflects user's final on-form values)
+                // This is important because user may have resolved conflicts by deleting values
+                const storedFormData = window._preSubmissionFormData || {};
+                console.log(`📂 Using stored form data for post-submission:`, storedFormData);
+
+                // Extract name fields
+                const firstName = storedFormData.field_3860 ? storedFormData.field_3860.first || '' : '';
+                const lastName = storedFormData.field_3860 ? storedFormData.field_3860.last || '' : '';
+                const preferredName = storedFormData.field_3861 || '';
+
+                // Extract contact info - use contact_info object or individual field values
+                const emailRaw = storedFormData.contact_info ? storedFormData.contact_info.email : (storedFormData.field_4164 || '');
+                const mobileRaw = storedFormData.contact_info ? storedFormData.contact_info.mobile : (storedFormData.field_4165 || '');
+                const phoneRaw = storedFormData.contact_info ? storedFormData.contact_info.phone : (storedFormData.field_4056 || '');
+
+                // Normalize communication values
+                const emailNormalised = this.normalizeEmail(emailRaw);
+                const mobileNormalised = this.normalizePhone(mobileRaw);
+                const phoneNormalised = this.normalizePhone(phoneRaw);
+
+                // Build knack_api_payloads for communication channels
+                const knackApiPayloads = [];
+
+                const emailHasValue = emailNormalised && emailNormalised.trim() !== '';
+                const mobileHasValue = mobileNormalised && mobileNormalised.trim() !== '';
+                const phoneHasValue = phoneNormalised && phoneNormalised.trim() !== '';
+
+                // Build email payload if email exists
+                if (emailHasValue) {
+                    const emailParts = emailNormalised.split('@');
+                    const emailLocal = emailParts[0] || '';
+                    const emailDomain = emailParts[1] || '';
+
+                    knackApiPayloads.push({
+                        field_3988: 'Email',                    // Communication type
+                        field_3869: emailNormalised,            // Email normalized (lowercase for search)
+                        field_3968: emailRaw,                   // Email formatted (original as entered)
+                        field_3969: emailDomain,                // Domain
+                        field_3970: emailLocal.charAt(0).toUpperCase() + emailLocal.slice(1), // Contact name
+                        field_3982: 'Personal',                 // Entity type (Personal for contacts)
+                        field_3876: 'Active',                   // Status
+                        field_3881: currentUserId,              // Created by (current user ID)
+                        field_4016: tenantId                    // Tenant ID
+                    });
+                }
+
+                // Build mobile payload if mobile exists
+                if (mobileHasValue) {
+                    // Extract country code and national number
+                    let countryCode = '61';  // Default to Australia
+                    let nationalNumber = mobileNormalised;
+
+                    if (mobileNormalised.startsWith('+')) {
+                        const phoneWithoutPlus = mobileNormalised.substring(1);
+                        if (phoneWithoutPlus.startsWith('61')) {
+                            countryCode = '61';
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        } else if (phoneWithoutPlus.startsWith('1')) {
+                            countryCode = '1';
+                            nationalNumber = phoneWithoutPlus.substring(1);
+                        } else if (phoneWithoutPlus.startsWith('44')) {
+                            countryCode = '44';
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        } else {
+                            countryCode = phoneWithoutPlus.substring(0, 2);
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        }
+                    }
+
+                    // Format mobile for display (Australian format: 0412 345 678)
+                    const mobileFormatted = this.formatAustralianMobile(nationalNumber);
+
+                    knackApiPayloads.push({
+                        field_3988: 'Mobile',                   // Communication type
+                        field_3975: mobileNormalised,           // mobile_normalised_text (full international)
+                        field_3976: mobileFormatted,            // mobile_formatted_text (display format)
+                        field_3977: `+${countryCode}`,          // mobile_country_code_text
+                        field_3982: 'Personal',                 // Entity type (Personal for contacts)
+                        field_3876: 'Active',                   // Status
+                        field_3881: currentUserId,              // Created by (current user ID)
+                        field_4016: tenantId                    // Tenant ID
+                    });
+                }
+
+                // Build phone payload if phone exists AND user hasn't confirmed sharing an existing phone
+                // When window._phoneIsShared is true, we link to existing COM instead of creating new one
+                if (phoneHasValue && !window._phoneIsShared) {
+                    // Extract country code and national number
+                    let countryCode = '61';  // Default to Australia
+                    let nationalNumber = phoneNormalised;
+
+                    if (phoneNormalised.startsWith('+')) {
+                        const phoneWithoutPlus = phoneNormalised.substring(1);
+                        if (phoneWithoutPlus.startsWith('61')) {
+                            countryCode = '61';
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        } else if (phoneWithoutPlus.startsWith('1')) {
+                            countryCode = '1';
+                            nationalNumber = phoneWithoutPlus.substring(1);
+                        } else if (phoneWithoutPlus.startsWith('44')) {
+                            countryCode = '44';
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        } else {
+                            countryCode = phoneWithoutPlus.substring(0, 2);
+                            nationalNumber = phoneWithoutPlus.substring(2);
+                        }
+                    }
+
+                    // Format phone for display (Australian format: 02 9656 4651)
+                    const phoneFormatted = this.formatAustralianPhone(nationalNumber);
+
+                    knackApiPayloads.push({
+                        field_3988: 'Phone',                    // Communication type
+                        field_3886: phoneNormalised,            // phone_number_normalised_text (full international)
+                        field_3971: phoneFormatted,             // phone_number_formatted_text (display format)
+                        field_3885: countryCode,                // phone_number_country_code_text
+                        field_3982: 'Personal',                 // Entity type (Personal for contacts)
+                        field_3876: 'Active',                   // Status
+                        field_3881: currentUserId,              // Created by (current user ID)
+                        field_4016: tenantId                    // Tenant ID
+                    });
+                } else if (phoneHasValue && window._phoneIsShared) {
+                    console.log(`📞 Phone is shared - skipping COM creation, will link to existing COM instead`);
+                }
+
+                console.log(`📦 Built knack_api_payloads from form data (${knackApiPayloads.length} payloads)`);
+                console.log('Payloads:', knackApiPayloads);
+
+                // Get action type and shared IDs from pre-submission webhook response
+                const comActionType = window._comActionType || 'create_all';
+                const sharedComIds = window._sharedComIds || '';
+                const isTest = window._isTest || false;
+
+                // Get shared phone COM IDs (from phone sharing confirmation UI)
+                // Only include if phone field still has a value at submission time
+                const sharedPhoneComIds = window._sharedPhoneComIds || [];
+                const phoneIsShared = window._phoneIsShared || false;
+
+                // Build shared_com_ids only from actual on-form state
+                // If user confirmed sharing but then cleared the phone field, don't include the COM ID
+                let finalSharedComIdsList = [];
+
+                // Add any existing shared COM IDs from pre-submission response
+                if (sharedComIds) {
+                    finalSharedComIdsList = sharedComIds.split(',').filter(id => id);
+                }
+
+                // Only add phone COM IDs if phone field still has a value AND user confirmed sharing
+                if (phoneIsShared && phoneHasValue && sharedPhoneComIds.length > 0) {
+                    finalSharedComIdsList = [...finalSharedComIdsList, ...sharedPhoneComIds];
+                    console.log(`📞 Phone is shared and has value - including COM IDs: ${sharedPhoneComIds.join(',')}`);
+                } else if (phoneIsShared && !phoneHasValue) {
+                    console.log(`📞 Phone was marked as shared but field is now empty - NOT including COM IDs`);
+                }
+
+                const finalSharedComIds = finalSharedComIdsList.join(',');
+                console.log(`🔗 Final shared_com_ids: "${finalSharedComIds}"`);
+
+                // Build full name as it appears in the data (First Last)
+                const fullName = (firstName + ' ' + lastName).trim();
+
+                // Build payload
+                const payload = {
+                    view: viewId,
+                    form_type: formType,
+                    timestamp: new Date().toISOString(),
+                    tenant_id: tenantId,
+                    current_user: {
+                        id: currentUserId,
+                        email: currentUserEmail
+                    },
+                    contact_id: contactId,
+                    entity_id: contactId,
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: fullName,
+                    first_name_search: this.normalizeContactName(firstName),
+                    last_name_search: this.normalizeContactName(lastName),
+                    full_name_search: this.normalizeContactName(fullName),
+                    preferred_name: preferredName,
+                    email_normalised: emailNormalised,
+                    mobile_normalised: mobileNormalised,
+                    phone_normalised: phoneNormalised,
+                    knack_api_payloads: knackApiPayloads.map(p => JSON.stringify(p)).join(':::'),
+                    com_action_type: comActionType,
+                    shared_com_ids: finalSharedComIds,  // Combined: pre-submission shared IDs + phone sharing COM IDs
+                    phone_is_shared: phoneIsShared,
+                    is_test: isTest,
+                    is_post_submission: true,
+                    data: {
+                        form_type: formType,
+                        tenant_id: tenantId,
+                        first_name: firstName,
+                        last_name: lastName,
+                        full_name: fullName,
+                        first_name_search: this.normalizeContactName(firstName),
+                        last_name_search: this.normalizeContactName(lastName),
+                        full_name_search: this.normalizeContactName(fullName),
+                        preferred_name: preferredName,
+                        email_normalised: emailNormalised,
+                        mobile_normalised: mobileNormalised,
+                        phone_normalised: phoneNormalised
+                    }
+                };
+
+                console.log(`📦 Built post-submission ${formType} payload:`, payload);
+                return payload;
+            },
+
+            /**
+             * Fire post-submission webhook for contact forms
+             */
+            firePostSubmissionWebhook: function (viewId, submissionResponse) {
+                const config = viewConfigs[viewId];
+
+                if (!config || !config.postSubmissionWebhook || !config.postSubmissionWebhook.enabled) {
+                    console.log(`🔗 Post-submission webhook not configured for ${viewId}`);
+                    return;
+                }
+
+                const webhookUrl = config.postSubmissionWebhook.url;
+                if (!webhookUrl || webhookUrl.includes('YOUR_CONTACT_POST_WEBHOOK_URL_HERE')) {
+                    console.log(`⚠️ Post-submission webhook URL not configured for ${viewId}`);
+                    return;
+                }
+
+                console.log(`🚀 Firing post-submission webhook for ${viewId}`);
+
+                const payload = this.buildPostSubmissionPayload(viewId, submissionResponse);
+
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log(`✅ Post-submission webhook fired successfully for ${viewId}`);
+                        console.log(`📦 Post-submission webhook response:`, result);
+
+                        // Extract ECN ID from webhook response for redirect
+                        let ecnId = null;
+                        if (result && result.ecn_id) {
+                            ecnId = result.ecn_id;
+                        } else if (result && result.ecn_record_id) {
+                            ecnId = result.ecn_record_id;
+                        }
+
+                        // Redirect to contact view if we have ECN ID
+                        if (ecnId && viewId === 'view_5612') {
+                            const redirectUrl = `#contacts6/view-contact3/${ecnId}`;
+                            console.log(`🔀 Redirecting to contact view: ${redirectUrl}`);
+                            window.location.hash = redirectUrl;
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`❌ Post-submission webhook error for ${viewId}:`, error);
+                    })
+                    .finally(() => {
+                        // Cleanup window variables
+                        delete window._preSubmissionFormData;
+                        delete window._comActionType;
+                        delete window._sharedComIds;
+                        delete window._isTest;
+                        // Cleanup phone sharing variables
+                        delete window._phoneIsShared;
+                        delete window._sharedPhoneComIds;
+                        console.log(`🧹 Cleaned up post-submission variables for contact form`);
                     });
             }
         };
@@ -4047,8 +4604,9 @@ window.ktlReady = function (appInfo = {}) {
                     return Promise.reject('Webhook URL not configured - please contact system administrator');
                 }
 
-                // Check if this is a company form
+                // Check form type and use appropriate handler
                 const isCompanyForm = (config.formType === 'company-creation' || config.formType === 'company-update');
+                const isContactForm = (config.formType === 'contact-creation');
 
                 let payload;
 
@@ -4056,8 +4614,12 @@ window.ktlReady = function (appInfo = {}) {
                     // Use company-specific payload builder
                     console.log(`🏢 Detected company form: ${config.formType}`);
                     payload = companyFormHandler.buildPreSubmissionPayload(viewId, formData);
+                } else if (isContactForm) {
+                    // Use contact-specific payload builder
+                    console.log(`👤 Detected contact form: ${config.formType}`);
+                    payload = contactFormHandler.buildPreSubmissionPayload(viewId, formData);
                 } else {
-                    // Use generic payload (for contact forms, etc.)
+                    // Use generic payload (for other forms)
                     // Get current user information
                     let currentUserId = null;
                     let currentUserEmail = null;
@@ -4207,7 +4769,7 @@ window.ktlReady = function (appInfo = {}) {
              * @param {string} actionLink - Optional link URL
              * @param {string} actionText - Optional link text (default: "View details")
              */
-            showFieldNotification: function(viewId, fieldId, message, type = 'error', actionLink = null, actionText = 'View details') {
+            showFieldNotification: function (viewId, fieldId, message, type = 'error', actionLink = null, actionText = 'View details') {
                 const color = this.colors[type];
                 const icon = this.icons[type];
 
@@ -4264,14 +4826,14 @@ window.ktlReady = function (appInfo = {}) {
                 `);
 
                 // Add hover effects to the link
-                $notification.find('.notification-view-link').on('mouseenter', function() {
+                $notification.find('.notification-view-link').on('mouseenter', function () {
                     $(this).css({
                         'background': 'rgba(255, 255, 255, 0.9)',
                         'border-color': color.border,
                         'transform': 'translateY(-1px)',
                         'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'
                     });
-                }).on('mouseleave', function() {
+                }).on('mouseleave', function () {
                     $(this).css({
                         'background': 'rgba(255, 255, 255, 0.7)',
                         'border-color': color.border,
@@ -4282,7 +4844,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Prevent clicks on the notification itself from doing anything unexpected
                 // But allow links to work normally
-                $notification.on('click', function(e) {
+                $notification.on('click', function (e) {
                     // If clicking the link, let it through
                     if ($(e.target).hasClass('notification-view-link') || $(e.target).closest('.notification-view-link').length) {
                         // Let the link work (target="_blank" will open in new tab)
@@ -4314,7 +4876,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Clear all notifications from a field
              */
-            clearFieldNotification: function(viewId, fieldId) {
+            clearFieldNotification: function (viewId, fieldId) {
                 const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
 
                 if (!$field.length) return;
@@ -4328,7 +4890,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Clear all notifications from all fields in a view
              */
-            clearAllNotifications: function(viewId) {
+            clearAllNotifications: function (viewId) {
                 $(`#${viewId} .field-notification-message`).remove();
                 $(`#${viewId} .field-has-error, #${viewId} .field-has-warning, #${viewId} .field-has-info, #${viewId} .field-has-success`)
                     .removeClass('field-has-error field-has-warning field-has-info field-has-success');
@@ -4346,7 +4908,7 @@ window.ktlReady = function (appInfo = {}) {
              * @param {function} onCancel - Callback when user clicks No/Cancel
              * @param {object} options - { confirmText: 'Yes', cancelText: 'No', type: 'warning' }
              */
-            showInlineConfirmation: function(viewId, message, onConfirm, onCancel, options = {}) {
+            showInlineConfirmation: function (viewId, message, onConfirm, onCancel, options = {}) {
                 const {
                     confirmText = 'Yes, Proceed',
                     cancelText = 'Cancel',
@@ -4414,13 +4976,13 @@ window.ktlReady = function (appInfo = {}) {
                 }
 
                 // Handle confirmation
-                $confirmation.find('.confirmation-confirm').on('click', function() {
+                $confirmation.find('.confirmation-confirm').on('click', function () {
                     $confirmation.remove();
                     if (onConfirm) onConfirm();
                 });
 
                 // Handle cancellation
-                $confirmation.find('.confirmation-cancel').on('click', function() {
+                $confirmation.find('.confirmation-cancel').on('click', function () {
                     $confirmation.remove();
                     if (onCancel) onCancel();
                 });
@@ -4446,7 +5008,7 @@ window.ktlReady = function (appInfo = {}) {
                  * @param {string} state - 'ready', 'loading', 'disabled', 'success', 'error'
                  * @param {string} customText - Optional custom text
                  */
-                setState: function(viewId, state, customText = null) {
+                setState: function (viewId, state, customText = null) {
                     const $submitBtn = $(`#${viewId} .kn-button.is-primary, #${viewId} button[type="submit"]`).first();
 
                     if (!$submitBtn.length) {
@@ -4504,7 +5066,7 @@ window.ktlReady = function (appInfo = {}) {
                 /**
                  * Get original button text (stored on first call)
                  */
-                getOriginalText: function(viewId) {
+                getOriginalText: function (viewId) {
                     const $submitBtn = $(`#${viewId} .kn-button.is-primary, #${viewId} button[type="submit"]`).first();
 
                     if (!$submitBtn.data('originalText')) {
@@ -4517,7 +5079,7 @@ window.ktlReady = function (appInfo = {}) {
                 /**
                  * Reset to original state
                  */
-                reset: function(viewId) {
+                reset: function (viewId) {
                     const originalText = this.getOriginalText(viewId);
                     this.setState(viewId, 'ready', originalText);
                 }
@@ -4642,10 +5204,71 @@ window.ktlReady = function (appInfo = {}) {
                 city: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' },
                 state: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' },
                 zip: { strategy: 'post_only', reason: 'Address changes need post-submission webhook for SCN' }
+            },
+
+            // ===== CONTACT CREATION FORM =====
+            view_5612: {
+                // Name fields (first/last) - always require revalidation (duplicate detection)
+                field_3860: {
+                    strategy: 'revalidate',
+                    reason: 'Name changed - must check for duplicate person'
+                },
+                // Preferred name - no validation needed
+                field_3861: {
+                    strategy: 'allow',
+                    reason: 'Preferred name does not require validation'
+                },
+                // Email - conditional based on whether cleared or changed
+                field_4164: {
+                    strategy: 'conditional',
+                    reason: 'Email validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📧 Email deleted - allowing submission without revalidation');
+                            return 'allow';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📧 Email changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                },
+                // Mobile - conditional based on whether cleared or changed
+                field_4165: {
+                    strategy: 'conditional',
+                    reason: 'Mobile validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📱 Mobile deleted - allowing submission without revalidation');
+                            return 'allow';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📱 Mobile changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                },
+                // Phone - conditional based on whether cleared or changed
+                field_4056: {
+                    strategy: 'conditional',
+                    reason: 'Phone validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📞 Phone deleted - allowing submission without revalidation');
+                            return 'allow';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📞 Phone changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                }
             }
 
             // PLACEHOLDER: Add other forms here as needed
-            // view_XXXX: { ... } // Create Contact Form
             // view_YYYY: { ... } // Update Contact Form
         };
 
@@ -4739,6 +5362,13 @@ window.ktlReady = function (appInfo = {}) {
                 // No validation state means no fields have changed
                 if (!state) {
                     return false;
+                }
+
+                // Check if explicitly marked for revalidation (e.g., name change cleared comm errors)
+                // This takes precedence over changedFields check
+                if (state.needsRevalidation === true && state.forceRevalidation === true) {
+                    console.log(`🔄 Revalidation required: explicitly marked via forceRevalidation flag`);
+                    return true;
                 }
 
                 const changedFields = state.changedFields || [];
@@ -4938,9 +5568,12 @@ window.ktlReady = function (appInfo = {}) {
                 }
 
                 // Store other values from pre-submission response
+                // Handle is_test as boolean or Knack Yes/No string
                 if (typeof result.is_test !== 'undefined') {
-                    window._isTest = result.is_test;
-                    console.log(`📌 Stored is_test from pre-submission response: ${result.is_test}`);
+                    // Convert "Yes"/"No" strings to boolean, or keep boolean as-is
+                    const isTestValue = result.is_test === 'Yes' || result.is_test === true;
+                    window._isTest = isTestValue;
+                    console.log(`📌 Stored is_test from pre-submission response: ${result.is_test} → ${isTestValue}`);
                 }
 
                 if (result.com_action_type) {
@@ -4999,9 +5632,15 @@ window.ktlReady = function (appInfo = {}) {
             lastErrorValues: {},
 
             /**
+             * Pending shareable conflicts that need resolution before submission
+             * These are shown as orange warnings (not red errors) but still block submission
+             */
+            pendingShareableConflicts: {},
+
+            /**
              * Show inline error for a specific field
              */
-            showFieldError: function(viewId, fieldId, errorMessage, viewLink = null) {
+            showFieldError: function (viewId, fieldId, errorMessage, viewLink = null) {
                 // Set flag to prevent change handler from interfering
                 if (!window._showingError) {
                     window._showingError = {};
@@ -5081,7 +5720,7 @@ window.ktlReady = function (appInfo = {}) {
              * Show warning message for a field (orange/yellow - used for conflicts/shared contacts)
              * Color scheme: #ffc107 border, #fff3cd background, #856404 text
              */
-            showFieldWarning: function(viewId, fieldId, warningMessage, actionLink = null) {
+            showFieldWarning: function (viewId, fieldId, warningMessage, actionLink = null) {
                 // Use unified notification system
                 notificationSystem.showFieldNotification(
                     viewId,
@@ -5097,7 +5736,7 @@ window.ktlReady = function (appInfo = {}) {
              * Show info message for a field (green - used for confirmations)
              * Color scheme: #39b54a border, #e8f5e8 background, #2d7a2d text
              */
-            showFieldInfo: function(viewId, fieldId, infoMessage) {
+            showFieldInfo: function (viewId, fieldId, infoMessage) {
                 // Use unified notification system
                 notificationSystem.showFieldNotification(
                     viewId,
@@ -5110,7 +5749,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Clear error for a specific field
              */
-            clearFieldError: function(viewId, fieldId) {
+            clearFieldError: function (viewId, fieldId) {
                 console.log(`✅ Clearing field error for ${fieldId}`);
 
                 // Use unified notification system to clear
@@ -5135,7 +5774,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Clear warning for a specific field
              */
-            clearFieldWarning: function(viewId, fieldId) {
+            clearFieldWarning: function (viewId, fieldId) {
                 console.log(`✅ Clearing field warning for ${fieldId}`);
 
                 const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
@@ -5148,7 +5787,7 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Clear info for a specific field
              */
-            clearFieldInfo: function(viewId, fieldId) {
+            clearFieldInfo: function (viewId, fieldId) {
                 console.log(`✅ Clearing field info for ${fieldId}`);
 
                 const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
@@ -5161,23 +5800,70 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Clear all warnings from a view
              */
-            clearAllWarnings: function(viewId) {
+            clearAllWarnings: function (viewId) {
                 console.log(`✅ Clearing all warnings for ${viewId}`);
                 // Use unified notification system to clear all notifications
                 notificationSystem.clearAllNotifications(viewId);
             },
 
             /**
-             * Check if form has any field errors
+             * Check if form has any field errors or pending shareable conflicts
              */
-            hasNoErrors: function(viewId) {
-                return !this.fieldErrors[viewId] || Object.keys(this.fieldErrors[viewId]).length === 0;
+            hasNoErrors: function (viewId) {
+                const hasFieldErrors = this.fieldErrors[viewId] && Object.keys(this.fieldErrors[viewId]).length > 0;
+                const hasPendingShareable = this.pendingShareableConflicts[viewId] && Object.keys(this.pendingShareableConflicts[viewId]).length > 0;
+
+                if (hasFieldErrors) {
+                    console.log(`🚫 hasNoErrors: Found field errors for ${viewId}`);
+                }
+                if (hasPendingShareable) {
+                    console.log(`🚫 hasNoErrors: Found pending shareable conflicts for ${viewId}:`, Object.keys(this.pendingShareableConflicts[viewId]));
+                }
+
+                return !hasFieldErrors && !hasPendingShareable;
+            },
+
+            /**
+             * Reset all form state for a fresh form session
+             * Called when user clicks "Add Contact" or "Add Company" button from search
+             */
+            resetFormState: function (viewId) {
+                console.log(`🧹 Resetting form state for ${viewId || 'all views'}`);
+
+                // Clear field errors
+                if (viewId) {
+                    delete this.fieldErrors[viewId];
+                    delete this.lastErrorValues[viewId];
+                    delete this.pendingShareableConflicts[viewId];
+                } else {
+                    this.fieldErrors = {};
+                    this.lastErrorValues = {};
+                    this.pendingShareableConflicts = {};
+                }
+
+                // Clear window-level tracking variables
+                delete window._problematicValues;
+                delete window._phoneIsShared;
+                delete window._sharedPhoneComIds;
+                delete window._sharedComIds;
+                delete window._fieldValidationState;
+                delete window._preSubmissionFormData;
+                delete window._ecnRecordId;
+                delete window._isTest;
+                delete window.skipValidationForSubmit;
+
+                // Clear change tracker state
+                if (viewId) {
+                    changeTracker.clearValidationState(viewId);
+                }
+
+                console.log(`✅ Form state reset complete - ready for new ${viewId || 'form'} session`);
             },
 
             /**
              * Disable submit button
              */
-            disableSubmit: function(viewId) {
+            disableSubmit: function (viewId) {
                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                 $submitBtn.prop('disabled', true).css({
                     'opacity': '0.5',
@@ -5192,7 +5878,7 @@ window.ktlReady = function (appInfo = {}) {
              * - "Validate" if validation-required fields were changed (company name, short name, email, phone)
              * - "Save" if no revalidation needed (can proceed directly)
              */
-            enableSubmit: function(viewId) {
+            enableSubmit: function (viewId) {
                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
 
                 // Determine if revalidation is needed based on changed fields
@@ -5217,29 +5903,46 @@ window.ktlReady = function (appInfo = {}) {
              * Update Processing Status field (field_4023) for view_5605 based on email/phone changes
              * NOTE: This function is deprecated - polling system handles status detection instead
              */
-            updateProcessingStatus: function(viewId) {
+            updateProcessingStatus: function (viewId) {
                 // Deprecated - polling system in scene_2397 handles status detection
                 return;
             },
 
             /**
              * Setup field change listeners to clear errors and trigger re-validation
+             * Uses view-specific fields from viewConfigs instead of a global list
              */
-            setupFieldErrorListeners: function(viewId) {
+            setupFieldErrorListeners: function (viewId) {
                 const self = this;
-                const fieldsToWatch = ['field_992', 'field_3783', 'field_4164', 'field_4056'];
 
-                console.log(`👂 Setting up field error listeners for ${viewId}`);
+                // Get fields from viewConfigs for this specific view
+                const viewConfig = viewConfigs[viewId];
+                if (!viewConfig || !viewConfig.fields) {
+                    console.log(`⚠️ No viewConfig or fields defined for ${viewId}, skipping listener setup`);
+                    return;
+                }
+
+                // Extract field IDs from the view's configuration
+                // Skip virtual fields like 'contact_group' and 'address' that don't have direct selectors
+                const fieldsToWatch = Object.keys(viewConfig.fields).filter(fieldId => {
+                    // Only include actual field IDs (field_XXXX pattern)
+                    return fieldId.startsWith('field_');
+                });
+
+                console.log(`👂 Setting up field error listeners for ${viewId}:`, fieldsToWatch);
 
                 fieldsToWatch.forEach(fieldId => {
-                    const $field = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
+                    const fieldConfig = viewConfig.fields[fieldId];
+                    // Use selector from config if available, otherwise fall back to standard patterns
+                    const selector = fieldConfig.selector || `#${fieldId}`;
+                    const $field = $(`#${viewId} ${selector}, #${viewId} input[name="${fieldId}"], #${viewId} [name="${fieldId}"]`).first();
 
                     if (!$field.length) {
                         console.log(`⚠️ Field ${fieldId} not found in ${viewId}, skipping listener setup`);
                         return;
                     }
 
-                    $field.on('input change', function() {
+                    $field.on('input change', function () {
                         const fieldValue = $(this).val().trim();
 
                         console.log(`🔄 Field ${fieldId} changed (${$(this).attr('type')} input), value: "${fieldValue}"`);
@@ -5325,9 +6028,23 @@ window.ktlReady = function (appInfo = {}) {
                                 const isSameErrorValue = currentNormalized === problematicNormalized;
 
                                 if (isSameErrorValue) {
-                                    // User re-entered the problematic value - re-show the error
-                                    console.log(`⚠️ User re-entered problematic value "${fieldValue}" (normalized: "${currentNormalized}") - re-showing error`);
-                                    self.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
+                                    // User re-entered the problematic value
+                                    console.log(`⚠️ User re-entered problematic value "${fieldValue}" (normalized: "${currentNormalized}")`);
+
+                                    // Check if this was a shareable phone - show phone sharing UI instead of regular error
+                                    if (problematicValue.is_shareable && problematicValue.conflict) {
+                                        console.log(`📞 Re-showing phone sharing notification for shareable conflict`);
+                                        // Reset phone sharing flag since they re-entered the value
+                                        window._phoneIsShared = false;
+                                        // Get the original submit button text for the callback
+                                        const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                        const originalText = $submitBtn.data('original-text') || 'Submit';
+                                        // Re-show the phone sharing notification
+                                        self.showPhoneSharingNotification(viewId, problematicValue.conflict, originalText);
+                                    } else {
+                                        // Regular error - re-show the error message
+                                        self.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
+                                    }
                                 }
                             }
 
@@ -5442,6 +6159,77 @@ window.ktlReady = function (appInfo = {}) {
 
                     console.log(`✅ Listener setup for ${fieldId}`);
                 });
+
+                // =====================================================================
+                // NAME FIELD LISTENERS (for contact forms that allow shared contacts)
+                // =====================================================================
+                // For forms where shared contacts ARE allowed (e.g., Create Contact with Company),
+                // changing the name means the combination is different → needs revalidation.
+                // For standalone Create Contact form (view_5612), shared contacts are NOT allowed,
+                // so name changes are irrelevant - the comm channel itself is blocked.
+
+                // Skip name listener for forms that don't allow shared contacts
+                // (viewConfig already defined at top of function)
+                if (viewConfig.allowSharedContacts === false || viewId === 'view_5612') {
+                    console.log(`⏭️ Skipping name change listener for ${viewId} (shared contacts not allowed)`);
+                } else {
+                    const nameFields = ['input[name="first"]', 'input[name="last"]'];
+                    const commFieldIds = ['field_4164', 'field_4165', 'field_4056']; // email, mobile, phone
+
+                    nameFields.forEach(selector => {
+                        const $nameField = $(`#${viewId} ${selector}`);
+
+                        if (!$nameField.length) {
+                            // Name fields only exist on contact forms, skip silently for company forms
+                            return;
+                        }
+
+                        $nameField.off('input.nameErrorClear').on('input.nameErrorClear', function () {
+                            const fieldValue = $(this).val().trim();
+                            console.log(`👤 Name field changed: "${selector}" = "${fieldValue}"`);
+
+                            // Check if any communication fields have errors
+                            let hadErrors = false;
+                            commFieldIds.forEach(commFieldId => {
+                                if (self.fieldErrors[viewId] && self.fieldErrors[viewId][commFieldId]) {
+                                    console.log(`🧹 Clearing ${commFieldId} error due to name change`);
+                                    self.clearFieldError(viewId, commFieldId);
+                                    hadErrors = true;
+
+                                    // Also clear from problematic values since combination changed
+                                    if (window._problematicValues && window._problematicValues[viewId]) {
+                                        delete window._problematicValues[viewId][commFieldId];
+                                        console.log(`🧹 Cleared problematic value for ${commFieldId}`);
+                                    }
+                                }
+                            });
+
+                            if (hadErrors) {
+                                // Mark for revalidation with forceRevalidation flag
+                                // This ensures revalidation even without changedFields
+                                if (!window._fieldValidationState) {
+                                    window._fieldValidationState = {};
+                                }
+                                if (!window._fieldValidationState[viewId]) {
+                                    window._fieldValidationState[viewId] = { needsRevalidation: true, changedFields: [] };
+                                }
+                                window._fieldValidationState[viewId].needsRevalidation = true;
+                                window._fieldValidationState[viewId].forceRevalidation = true;
+
+                                // Update button to "Validate"
+                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                if ($submitBtn.text() !== 'Validate') {
+                                    $submitBtn.text('Validate');
+                                    console.log(`🔘 Button text changed to "Validate" (name changed)`);
+                                }
+
+                                console.log(`⏳ Marked for revalidation due to name change (forceRevalidation=true)`);
+                            }
+                        });
+
+                        console.log(`✅ Name field listener setup for ${selector}`);
+                    });
+                }
             },
 
             /**
@@ -5488,20 +6276,29 @@ window.ktlReady = function (appInfo = {}) {
                     this.showFieldError(viewId, 'field_4056', errorMessage, viewLink);
 
                 } else if (blockReason === 'shared_contacts_not_allowed') {
-                    // Handle shared contacts when not allowed (view_4059)
+                    // Handle shared contacts when not allowed
                     // Show field-level errors for each conflicting contact
+                    // BUT: shareable conflicts (phones) get special orange UI with share option
                     const conflicts = result.conflicts || [];
 
                     console.log(`🔍 Processing ${conflicts.length} conflict(s):`, conflicts);
 
                     conflicts.forEach((conflict, index) => {
-                        const fieldId = conflict.field_id; // 'field_4164' (email) or 'field_4056' (phone)
+                        const fieldId = conflict.field_id;
                         const errorMessage = conflict.conflict_message || 'This contact detail is already in use.';
                         const viewLink = conflict.view_link || null;
 
-                        console.log(`  [${index + 1}] Showing error for ${fieldId}: "${errorMessage}"`);
-                        this.showFieldError(viewId, fieldId, errorMessage, viewLink);
-                        console.log(`  [${index + 1}] ✓ Error shown for ${fieldId}`);
+                        // Check if this conflict is shareable (phone with Personal/Shared ownership)
+                        if (conflict.is_shareable) {
+                            console.log(`  [${index + 1}] Showing SHAREABLE phone UI for ${fieldId}`);
+                            // Show orange phone sharing UI with 3 buttons
+                            this.showPhoneSharingNotification(viewId, conflict, originalText);
+                        } else {
+                            // Regular blocking error (red)
+                            console.log(`  [${index + 1}] Showing error for ${fieldId}: "${errorMessage}"`);
+                            this.showFieldError(viewId, fieldId, errorMessage, viewLink);
+                        }
+                        console.log(`  [${index + 1}] ✓ Notification shown for ${fieldId}`);
                     });
 
                     // Also show general instruction if provided
@@ -5523,6 +6320,12 @@ window.ktlReady = function (appInfo = {}) {
              */
             showConfirmationDialog: function (result, formData, viewId, $form, $submitBtn, originalText) {
                 console.log('❓ Showing inline confirmation for conflicts');
+
+                // Check if this is the new phone sharing scenario
+                if (result.confirm_reason === 'shareable_phone') {
+                    this.showPhoneSharingConfirmation(result, formData, viewId, $form, $submitBtn, originalText);
+                    return;
+                }
 
                 const conflicts = result.conflicts || [];
                 const emailValidationWarning = result.email_validation_warning;
@@ -5607,6 +6410,447 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Disable submit button while waiting for user decision
                 notificationSystem.submitButton.setState(viewId, 'disabled', 'Waiting for confirmation...');
+            },
+
+            /**
+             * Show phone sharing confirmation UI (orange warning with 3 options)
+             * Used when a phone number is found that could be shared (Personal/Shared ownership)
+             *
+             * Options:
+             * - View Contact: Opens the existing contact in a new tab
+             * - Share Contact: Confirms sharing and allows form submission
+             * - Clear Value: Clears the phone field and removes notification
+             */
+            showPhoneSharingConfirmation: function (result, formData, viewId, $form, $submitBtn, originalText) {
+                console.log('📞 Showing phone sharing confirmation UI');
+
+                const conflicts = result.conflicts || [];
+                const sharedContactIds = result.shared_contact_ids || [];
+                const messages = result.messages || {};
+
+                // Process each shareable phone conflict
+                conflicts.forEach(conflict => {
+                    const fieldId = conflict.field_id;
+                    const existingEntity = conflict.existing_entity;
+                    const viewLink = conflict.view_link;
+                    const comId = conflict.existing_com_id;
+
+                    // Build the notification content with 3 buttons
+                    const notificationMessage = `
+                        <div style="margin-bottom: 10px;">
+                            This phone number is already associated with <strong>${existingEntity}</strong>.
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                            ${viewLink ? `
+                                <a href="${viewLink}" target="_blank" class="phone-share-btn phone-share-view" style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
+                                    padding: 6px 12px;
+                                    background: rgba(255, 255, 255, 0.8);
+                                    border: 1px solid #ffc107;
+                                    border-radius: 4px;
+                                    color: #856404;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    text-decoration: none;
+                                    cursor: pointer;
+                                    transition: all 0.2s ease;
+                                ">
+                                    <i class="fa fa-user"></i> View Contact
+                                </a>
+                            ` : ''}
+                            <button type="button" class="phone-share-btn phone-share-confirm" data-field-id="${fieldId}" data-com-id="${comId}" style="
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 4px;
+                                padding: 6px 12px;
+                                background: #39b54a;
+                                border: none;
+                                border-radius: 4px;
+                                color: white;
+                                font-size: 12px;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">
+                                <i class="fa fa-share-alt"></i> Share Contact
+                            </button>
+                            <button type="button" class="phone-share-btn phone-share-clear" data-field-id="${fieldId}" style="
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 4px;
+                                padding: 6px 12px;
+                                background: rgba(255, 255, 255, 0.8);
+                                border: 1px solid #ccc;
+                                border-radius: 4px;
+                                color: #666;
+                                font-size: 12px;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">
+                                <i class="fa fa-times"></i> Clear Value
+                            </button>
+                        </div>
+                    `;
+
+                    // Show warning notification (orange) with the buttons
+                    notificationSystem.showFieldNotification(viewId, fieldId, notificationMessage, 'warning');
+
+                    // Register as pending shareable conflict (blocks submission until resolved)
+                    if (!this.pendingShareableConflicts[viewId]) {
+                        this.pendingShareableConflicts[viewId] = {};
+                    }
+                    this.pendingShareableConflicts[viewId][fieldId] = {
+                        conflict: conflict,
+                        comId: comId
+                    };
+                    console.log(`🚫 Registered pending shareable conflict for ${fieldId} - submission blocked until resolved`);
+
+                    // Get the notification element to attach event handlers
+                    const $notification = $(`#${viewId} #notification-warning-${fieldId}`);
+
+                    // Remove any existing handlers first to prevent accumulation
+                    $notification.find('.phone-share-confirm').off('click.phoneShare');
+                    $notification.find('.phone-share-clear').off('click.phoneShare');
+                    $notification.find('.phone-share-btn').off('mouseenter.phoneShare mouseleave.phoneShare');
+
+                    // Handle "Share Contact" click
+                    $notification.find('.phone-share-confirm').on('click.phoneShare', (e) => {
+                        e.preventDefault();
+                        const clickedComId = $(e.currentTarget).data('com-id');
+                        const clickedFieldId = $(e.currentTarget).data('field-id');
+
+                        console.log(`✅ User confirmed phone sharing for ${clickedFieldId}, COM ID: ${clickedComId}`);
+
+                        // Store the shared COM ID for the post-submission payload
+                        if (!window._sharedPhoneComIds) {
+                            window._sharedPhoneComIds = [];
+                        }
+                        if (clickedComId && !window._sharedPhoneComIds.includes(clickedComId)) {
+                            window._sharedPhoneComIds.push(clickedComId);
+                        }
+
+                        // Mark this phone as shared (so it won't be included in knack_api_payloads)
+                        window._phoneIsShared = true;
+
+                        // Clear the pending shareable conflict (allows submission)
+                        if (this.pendingShareableConflicts[viewId]) {
+                            delete this.pendingShareableConflicts[viewId][clickedFieldId];
+                            console.log(`✅ Cleared pending shareable conflict for ${clickedFieldId} - user chose to share`);
+                        }
+
+                        // Clear the notification and show success
+                        notificationSystem.clearFieldNotification(viewId, clickedFieldId);
+
+                        // Show brief success message
+                        notificationSystem.showFieldNotification(
+                            viewId,
+                            clickedFieldId,
+                            'Phone will be shared with this contact.',
+                            'success'
+                        );
+
+                        // Check if there are any remaining conflicts/errors
+                        this.checkAndResetSubmitButton(viewId, originalText);
+
+                        // If no more errors or pending conflicts, auto-submit the form
+                        if (this.hasNoErrors(viewId)) {
+                            console.log(`✅ All conflicts resolved - auto-submitting form`);
+
+                            // Brief delay to show the success message before submitting
+                            setTimeout(() => {
+                                // Clear the success notification before submission
+                                notificationSystem.clearFieldNotification(viewId, clickedFieldId);
+
+                                // Set flag to skip validation (already validated)
+                                window.skipValidationForSubmit = true;
+
+                                // Trigger form submission
+                                this.submitForm(viewId);
+                            }, 800);
+                        }
+                    });
+
+                    // Handle "Clear Value" click
+                    $notification.find('.phone-share-clear').on('click.phoneShare', (e) => {
+                        e.preventDefault();
+                        const clickedFieldId = $(e.currentTarget).data('field-id');
+
+                        console.log(`🧹 User chose to clear phone field ${clickedFieldId}`);
+
+                        // Clear the field value
+                        const $field = $(`#${viewId} #${clickedFieldId}, #${viewId} input[name="${clickedFieldId}"], #${viewId} [name="${clickedFieldId}"]`).first();
+                        $field.val('').trigger('change');
+
+                        // Clear the pending shareable conflict (allows submission)
+                        if (this.pendingShareableConflicts[viewId]) {
+                            delete this.pendingShareableConflicts[viewId][clickedFieldId];
+                            console.log(`✅ Cleared pending shareable conflict for ${clickedFieldId} - user cleared the value`);
+                        }
+
+                        // Clear the notification
+                        notificationSystem.clearFieldNotification(viewId, clickedFieldId);
+
+                        // Reset phone sharing flag
+                        window._phoneIsShared = false;
+
+                        // Check if there are any remaining conflicts/errors
+                        this.checkAndResetSubmitButton(viewId, originalText);
+                    });
+
+                    // Add hover effects to buttons
+                    $notification.find('.phone-share-btn').on('mouseenter.phoneShare', function () {
+                        $(this).css('transform', 'translateY(-1px)');
+                        $(this).css('box-shadow', '0 2px 4px rgba(0,0,0,0.15)');
+                    }).on('mouseleave.phoneShare', function () {
+                        $(this).css('transform', 'translateY(0)');
+                        $(this).css('box-shadow', 'none');
+                    });
+                });
+
+                // Disable submit button while waiting for user decision
+                notificationSystem.submitButton.setState(viewId, 'disabled', 'Review phone conflict...');
+            },
+
+            /**
+             * Check if all conflicts are resolved and reset submit button
+             */
+            checkAndResetSubmitButton: function (viewId, originalText) {
+                // Check if there are any remaining error or warning notifications
+                const $remainingErrors = $(`#${viewId} .field-error-message`);
+                const $remainingWarnings = $(`#${viewId} .field-warning-message`);
+
+                // Don't count success messages as blocking
+                const hasBlockingNotifications = $remainingErrors.length > 0 || $remainingWarnings.length > 0;
+
+                if (!hasBlockingNotifications) {
+                    console.log('✅ All conflicts resolved, enabling submit button');
+                    notificationSystem.submitButton.setState(viewId, 'ready', originalText);
+
+                    // Clear any success messages after a short delay
+                    setTimeout(() => {
+                        $(`#${viewId} .field-success-message`).fadeOut(300, function () {
+                            $(this).remove();
+                        });
+                    }, 2000);
+                } else {
+                    console.log(`⏳ Still have ${$remainingErrors.length} errors and ${$remainingWarnings.length} warnings`);
+                }
+            },
+
+            /**
+             * Show phone sharing notification (orange) for a single shareable conflict
+             * Called from blockSubmission when a conflict has is_shareable = true
+             */
+            showPhoneSharingNotification: function (viewId, conflict, originalText) {
+                const fieldId = conflict.field_id;
+                const existingEntity = conflict.existing_entity;
+                const viewLink = conflict.view_link;
+                const comId = conflict.existing_com_id;
+
+                console.log(`📞 Showing phone sharing notification for ${fieldId}`, conflict);
+
+                // Build the notification content with 3 buttons
+                const notificationMessage = `
+                    <div style="margin-bottom: 10px;">
+                        This phone number is already associated with <strong>${existingEntity}</strong>.
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                        ${viewLink ? `
+                            <a href="${viewLink}" target="_blank" class="phone-share-btn phone-share-view" style="
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 4px;
+                                padding: 6px 12px;
+                                background: rgba(255, 255, 255, 0.8);
+                                border: 1px solid #ffc107;
+                                border-radius: 4px;
+                                color: #856404;
+                                font-size: 12px;
+                                font-weight: 500;
+                                text-decoration: none;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">
+                                <i class="fa fa-user"></i> View Contact
+                            </a>
+                        ` : ''}
+                        <button type="button" class="phone-share-btn phone-share-confirm" data-field-id="${fieldId}" data-com-id="${comId}" style="
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 4px;
+                            padding: 6px 12px;
+                            background: #39b54a;
+                            border: none;
+                            border-radius: 4px;
+                            color: white;
+                            font-size: 12px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">
+                            <i class="fa fa-share-alt"></i> Share Contact
+                        </button>
+                        <button type="button" class="phone-share-btn phone-share-clear" data-field-id="${fieldId}" style="
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 4px;
+                            padding: 6px 12px;
+                            background: rgba(255, 255, 255, 0.8);
+                            border: 1px solid #ccc;
+                            border-radius: 4px;
+                            color: #666;
+                            font-size: 12px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">
+                            <i class="fa fa-times"></i> Clear Value
+                        </button>
+                    </div>
+                `;
+
+                // Show warning notification (orange) with the buttons
+                notificationSystem.showFieldNotification(viewId, fieldId, notificationMessage, 'warning');
+
+                // Store this conflict in _problematicValues so we can re-show it if user re-enters same value
+                // This is different from regular errors - we store the full conflict object for shareable phones
+                if (!window._problematicValues) {
+                    window._problematicValues = {};
+                }
+                if (!window._problematicValues[viewId]) {
+                    window._problematicValues[viewId] = {};
+                }
+
+                // Get the current phone value to store as the problematic value
+                const $phoneField = $(`#${viewId} #${fieldId}, #${viewId} input[name="${fieldId}"]`).first();
+                const phoneValue = $phoneField.val() || '';
+
+                window._problematicValues[viewId][fieldId] = {
+                    value: phoneValue,
+                    message: conflict.conflict_message,
+                    viewLink: viewLink,
+                    is_shareable: true,  // Flag to indicate this needs phone sharing UI
+                    conflict: conflict   // Store full conflict for re-display
+                };
+                console.log(`📝 Stored shareable phone conflict for ${fieldId}: "${phoneValue}"`);
+
+                // Register as pending shareable conflict (blocks submission until resolved)
+                if (!this.pendingShareableConflicts[viewId]) {
+                    this.pendingShareableConflicts[viewId] = {};
+                }
+                this.pendingShareableConflicts[viewId][fieldId] = {
+                    conflict: conflict,
+                    phoneValue: phoneValue
+                };
+                console.log(`🚫 Registered pending shareable conflict for ${fieldId} - submission blocked until resolved`);
+
+                // Disable submit button while conflict is pending
+                this.disableSubmit(viewId);
+
+                // Get the notification element to attach event handlers
+                const $notification = $(`#${viewId} #notification-warning-${fieldId}`);
+                const self = this;
+
+                // Remove any existing handlers first to prevent accumulation
+                $notification.find('.phone-share-confirm').off('click.phoneShare');
+                $notification.find('.phone-share-clear').off('click.phoneShare');
+                $notification.find('.phone-share-btn').off('mouseenter.phoneShare mouseleave.phoneShare');
+
+                // Handle "Share Contact" click
+                $notification.find('.phone-share-confirm').on('click.phoneShare', function (e) {
+                    e.preventDefault();
+                    const clickedComId = $(this).data('com-id');
+                    const clickedFieldId = $(this).data('field-id');
+
+                    console.log(`✅ User confirmed phone sharing for ${clickedFieldId}, COM ID: ${clickedComId}`);
+
+                    // Store the shared COM ID for the post-submission payload
+                    if (!window._sharedPhoneComIds) {
+                        window._sharedPhoneComIds = [];
+                    }
+                    if (clickedComId && !window._sharedPhoneComIds.includes(clickedComId)) {
+                        window._sharedPhoneComIds.push(clickedComId);
+                    }
+
+                    // Mark this phone as shared (so it won't be included in knack_api_payloads)
+                    window._phoneIsShared = true;
+
+                    // Clear the pending shareable conflict (allows submission)
+                    if (self.pendingShareableConflicts[viewId]) {
+                        delete self.pendingShareableConflicts[viewId][clickedFieldId];
+                        console.log(`✅ Cleared pending shareable conflict for ${clickedFieldId} - user chose to share`);
+                    }
+
+                    // Clear the notification and show success
+                    notificationSystem.clearFieldNotification(viewId, clickedFieldId);
+
+                    // Show brief success message
+                    notificationSystem.showFieldNotification(
+                        viewId,
+                        clickedFieldId,
+                        'Phone will be shared with this contact.',
+                        'success'
+                    );
+
+                    // Check if there are any remaining conflicts/errors and reset submit button
+                    self.checkAndResetSubmitButton(viewId, originalText);
+
+                    // If no more errors or pending conflicts, auto-submit the form
+                    if (self.hasNoErrors(viewId)) {
+                        console.log(`✅ All conflicts resolved - auto-submitting form`);
+
+                        // Brief delay to show the success message before submitting
+                        setTimeout(() => {
+                            // Clear the success notification before submission
+                            notificationSystem.clearFieldNotification(viewId, clickedFieldId);
+
+                            // Set flag to skip validation (already validated)
+                            window.skipValidationForSubmit = true;
+
+                            // Trigger form submission
+                            self.submitForm(viewId);
+                        }, 800);
+                    }
+                });
+
+                // Handle "Clear Value" click
+                $notification.find('.phone-share-clear').on('click.phoneShare', function (e) {
+                    e.preventDefault();
+                    const clickedFieldId = $(this).data('field-id');
+
+                    console.log(`🧹 User chose to clear phone field ${clickedFieldId}`);
+
+                    // Clear the field value
+                    const $field = $(`#${viewId} #${clickedFieldId}, #${viewId} input[name="${clickedFieldId}"], #${viewId} [name="${clickedFieldId}"]`).first();
+                    $field.val('').trigger('change');
+
+                    // Clear the pending shareable conflict (allows submission)
+                    if (self.pendingShareableConflicts[viewId]) {
+                        delete self.pendingShareableConflicts[viewId][clickedFieldId];
+                        console.log(`✅ Cleared pending shareable conflict for ${clickedFieldId} - user cleared the value`);
+                    }
+
+                    // Clear the notification
+                    notificationSystem.clearFieldNotification(viewId, clickedFieldId);
+
+                    // Reset phone sharing flag
+                    window._phoneIsShared = false;
+
+                    // Check if there are any remaining conflicts/errors
+                    self.checkAndResetSubmitButton(viewId, originalText);
+                });
+
+                // Add hover effects to buttons
+                $notification.find('.phone-share-btn').on('mouseenter.phoneShare', function () {
+                    $(this).css('transform', 'translateY(-1px)');
+                    $(this).css('box-shadow', '0 2px 4px rgba(0,0,0,0.15)');
+                }).on('mouseleave.phoneShare', function () {
+                    $(this).css('transform', 'translateY(0)');
+                    $(this).css('box-shadow', 'none');
+                });
             },
 
             /**
@@ -6060,7 +7304,7 @@ window.ktlReady = function (appInfo = {}) {
                 `);
 
                 // Add click handler - use testDataGenerator object directly
-                $button.find('.test-data-prefill-btn').on('click', function(e) {
+                $button.find('.test-data-prefill-btn').on('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log(`🎲 Fill Test Data button clicked for ${viewId}`);
@@ -6085,7 +7329,7 @@ window.ktlReady = function (appInfo = {}) {
                 Object.keys(viewConfigs).forEach(viewId => {
 
                     // Setup field error listeners for this view
-                    $(document).on(`knack-view-render.${viewId}`, function(event, view) {
+                    $(document).on(`knack-view-render.${viewId}`, function (event, view) {
                         duplicateHandler.setupFieldErrorListeners(viewId);
                     });
 
@@ -6376,7 +7620,8 @@ window.ktlReady = function (appInfo = {}) {
                                 selectors = fieldConfig.selector;
                                 break;
                             case 'name-fields':
-                                events = 'input blur';
+                                // Only blur - don't use 'input' as it strips spaces while user is typing
+                                events = 'blur';
                                 selectors = `${fieldConfig.selectors.first}, ${fieldConfig.selectors.last}`;
                                 break;
                             case 'mobile-number':
@@ -6398,12 +7643,19 @@ window.ktlReady = function (appInfo = {}) {
                                 selectors = Object.values(fieldConfig.selectors).join(', ');
                                 break;
                             case 'contact-group':
-                                events = 'input blur';
-                                selectors = Object.values(fieldConfig.selectors).join(', ');
+                                // Skip - contact-group validation only runs on form submission
+                                // Individual field format validation handles blur events
+                                events = null;
+                                selectors = null;
                                 break;
                             default:
                                 events = 'blur';
                                 selectors = fieldConfig.selector;
+                        }
+
+                        // Skip event listener setup if events is null (e.g., contact-group)
+                        if (!events || !selectors) {
+                            continue;
                         }
 
                         $(document).on(events, selectors, function () {
@@ -6461,15 +7713,42 @@ window.ktlReady = function (appInfo = {}) {
                                         // Current value matches the problematic value - ALWAYS show error and skip validation
                                         console.log(`⚠️ Problematic value detected for ${fieldId} - ensuring error is visible`);
                                         console.log(`   Field value before error show: "${$field.val()}"`);
+                                        console.log(`   Problematic value is_shareable: ${problematicValue.is_shareable}`);
 
-                                        // Always ensure error is showing for this problematic value
-                                        if (!webhookSystem.fieldErrors[viewId] || !webhookSystem.fieldErrors[viewId][fieldId]) {
-                                            // Error not showing - show it
-                                            console.log(`   Re-showing error for ${fieldId}`);
-                                            webhookSystem.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
-                                            console.log(`   Field value after error show: "${$field.val()}"`);
+                                        // Check if this is a shareable phone conflict
+                                        if (problematicValue.is_shareable && problematicValue.conflict) {
+                                            // Check if phone sharing notification is already showing
+                                            const $existingWarning = $(`#${viewId} #notification-warning-${fieldId}`);
+                                            if (!$existingWarning.length || !$existingWarning.is(':visible')) {
+                                                console.log(`   📞 Re-showing phone sharing notification for shareable conflict`);
+                                                // Get original submit button text for callback
+                                                const $submitBtn = $(`#${viewId} button[type="submit"]`);
+                                                const originalText = $submitBtn.data('original-text') || 'Submit';
+                                                // Show phone sharing notification (orange with buttons)
+                                                if (typeof duplicateHandler !== 'undefined' && duplicateHandler.showPhoneSharingNotification) {
+                                                    duplicateHandler.showPhoneSharingNotification(viewId, problematicValue.conflict, originalText);
+                                                }
+                                            } else {
+                                                console.log(`   Phone sharing notification already visible for ${fieldId}`);
+                                            }
                                         } else {
-                                            console.log(`   Error already visible for ${fieldId}`);
+                                            // Regular error - show red error notification
+                                            const hasFieldError = webhookSystem && webhookSystem.fieldErrors &&
+                                                webhookSystem.fieldErrors[viewId] && webhookSystem.fieldErrors[viewId][fieldId];
+                                            if (!hasFieldError && webhookSystem && typeof webhookSystem.showFieldError === 'function') {
+                                                // Error not showing - show it (only if webhookSystem is available)
+                                                console.log(`   Re-showing error for ${fieldId}`);
+                                                webhookSystem.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
+                                                console.log(`   Field value after error show: "${$field.val()}"`);
+                                            } else if (!hasFieldError) {
+                                                // webhookSystem not available yet - try using duplicateHandler directly
+                                                console.log(`   webhookSystem not ready, trying duplicateHandler for ${fieldId}`);
+                                                if (typeof duplicateHandler !== 'undefined' && duplicateHandler.showFieldError) {
+                                                    duplicateHandler.showFieldError(viewId, fieldId, problematicValue.message, problematicValue.viewLink);
+                                                }
+                                            } else {
+                                                console.log(`   Error already visible for ${fieldId}`);
+                                            }
                                         }
 
                                         // SKIP validation entirely - this value is known to be problematic
@@ -6545,54 +7824,84 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Sets up listeners to normalize address fields after Google Maps autocomplete
              * Knack uses Google Places API which fills fields without triggering blur events
+             * Now conditional - only sets up listeners for views that have address fields
+             * and registers view render handlers instead of trying to find fields immediately
              */
             setupAddressAutocompleteListeners: function () {
+                // Find views that have address fields and register render handlers for them
                 Object.keys(viewConfigs).forEach(viewId => {
                     const config = viewConfigs[viewId];
                     if (!config || !config.fields) return;
 
-                    // Find address fields
-                    for (const fieldId in config.fields) {
-                        const fieldConfig = config.fields[fieldId];
-                        if (fieldConfig.rule !== 'melbourne-address') continue;
+                    // Check if this view has an address field
+                    const hasAddressField = Object.keys(config.fields).some(fieldId => {
+                        return config.fields[fieldId].rule === 'melbourne-address';
+                    });
 
-                        const selectors = fieldConfig.selectors;
-                        console.log(`🗺️ Setting up autocomplete listeners for address in ${viewId}`);
+                    if (!hasAddressField) return;
 
-                        // Monitor all address input fields for changes using MutationObserver
-                        // This catches Google Maps autocomplete which changes value without triggering events
-                        Object.keys(selectors).forEach(subField => {
-                            const selector = selectors[subField];
-                            const $field = $(selector);
+                    // Register a render handler for this view
+                    $(document).on(`knack-view-render.${viewId}`, function (event, view) {
+                        eventListeners.setupAddressAutocompleteForView(viewId);
+                    });
 
-                            if ($field.length === 0) {
-                                console.log(`⚠️ Address field ${subField} not found: ${selector}`);
-                                return;
-                            }
-
-                            // Use input event to catch autocomplete changes
-                            // Google autocomplete triggers 'input' event when filling fields
-                            $(document).on('input change', selector, function() {
-                                console.log(`🗺️ Address field ${subField} changed, scheduling normalization`);
-
-                                // Debounce the normalization to avoid multiple rapid triggers
-                                clearTimeout(window.addressNormalizationTimer);
-                                window.addressNormalizationTimer = setTimeout(() => {
-                                    console.log(`🗺️ Running address normalization after autocomplete for ${viewId}`);
-                                    eventListeners.normalizeAddressFieldsAfterAutocomplete(viewId, fieldId, fieldConfig);
-                                }, 500); // Wait 500ms after last change
-                            });
-
-                            console.log(`✓ Autocomplete listener added for ${subField}: ${selector}`);
-                        });
-                    }
+                    console.log(`📋 Registered address autocomplete handler for ${viewId}`);
                 });
+            },
+
+            /**
+             * Sets up address autocomplete listeners for a specific view
+             * Called when the view is actually rendered
+             */
+            setupAddressAutocompleteForView: function (viewId) {
+                const config = viewConfigs[viewId];
+                if (!config || !config.fields) return;
+
+                // Find address fields
+                for (const fieldId in config.fields) {
+                    const fieldConfig = config.fields[fieldId];
+                    if (fieldConfig.rule !== 'melbourne-address') continue;
+
+                    const selectors = fieldConfig.selectors;
+                    console.log(`🗺️ Setting up autocomplete listeners for address in ${viewId}`);
+
+                    // Monitor all address input fields for changes using MutationObserver
+                    // This catches Google Maps autocomplete which changes value without triggering events
+                    Object.keys(selectors).forEach(subField => {
+                        const selector = selectors[subField];
+                        const $field = $(`#${viewId} ${selector}, ${selector}`).first();
+
+                        if ($field.length === 0) {
+                            console.log(`⚠️ Address field ${subField} not found in ${viewId}: ${selector}`);
+                            return;
+                        }
+
+                        // Namespace the event to avoid duplicate bindings on re-render
+                        const eventNamespace = `addressAutoComplete.${viewId}.${subField}`;
+                        $(document).off(`input.${eventNamespace} change.${eventNamespace}`, selector);
+
+                        // Use input event to catch autocomplete changes
+                        // Google autocomplete triggers 'input' event when filling fields
+                        $(document).on(`input.${eventNamespace} change.${eventNamespace}`, selector, function () {
+                            console.log(`🗺️ Address field ${subField} changed, scheduling normalization`);
+
+                            // Debounce the normalization to avoid multiple rapid triggers
+                            clearTimeout(window.addressNormalizationTimer);
+                            window.addressNormalizationTimer = setTimeout(() => {
+                                console.log(`🗺️ Running address normalization after autocomplete for ${viewId}`);
+                                eventListeners.normalizeAddressFieldsAfterAutocomplete(viewId, fieldId, fieldConfig);
+                            }, 500); // Wait 500ms after last change
+                        });
+
+                        console.log(`✓ Autocomplete listener added for ${subField}: ${selector}`);
+                    });
+                }
             },
 
             /**
              * Normalizes address fields after autocomplete fills them
              */
-            normalizeAddressFieldsAfterAutocomplete: function(viewId, fieldId, fieldConfig) {
+            normalizeAddressFieldsAfterAutocomplete: function (viewId, fieldId, fieldConfig) {
                 const ruleDefinition = validationRuleTypes['melbourne-address'];
                 if (!ruleDefinition) return;
 
@@ -6715,7 +8024,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Change submit button text to "Validate" for company forms
                 $(document).on('knack-view-render.view_4059', function (event, view, data) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         const $submitBtn = $('#view_4059 button[type="submit"], #view_4059 input[type="submit"]');
                         if ($submitBtn.length) {
                             $submitBtn.text('Validate');
@@ -6730,7 +8039,7 @@ window.ktlReady = function (appInfo = {}) {
                         }
 
                         // Trim email field on blur
-                        $('#field_4164').off('blur.trim').on('blur.trim', function() {
+                        $('#field_4164').off('blur.trim').on('blur.trim', function () {
                             const trimmed = $(this).val().trim();
                             if (trimmed !== $(this).val()) {
                                 $(this).val(trimmed);
@@ -6741,7 +8050,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Company Update Form (view_5605)
                 $(document).on('knack-view-render.view_5605', function (event, view, data) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         const viewId = 'view_5605';
                         const $submitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
 
@@ -6785,7 +8094,7 @@ window.ktlReady = function (appInfo = {}) {
                         duplicateHandler.setupFieldErrorListeners(viewId);
 
                         // Trim email field on blur
-                        $('#field_4164').off('blur.trim').on('blur.trim', function() {
+                        $('#field_4164').off('blur.trim').on('blur.trim', function () {
                             const trimmed = $(this).val().trim();
                             if (trimmed !== $(this).val()) {
                                 $(this).val(trimmed);
@@ -6844,6 +8153,60 @@ window.ktlReady = function (appInfo = {}) {
                     }, 1000);
                 });
 
+                // ===== CONTACT CREATION FORM (view_5612) =====
+                $(document).on('knack-view-render.view_5612', function (event, view, data) {
+                    setTimeout(function () {
+                        const viewId = 'view_5612';
+                        // Try multiple selectors - form may be in modal or inline
+                        let $submitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
+                        if (!$submitBtn.length) {
+                            // Try within modal context
+                            $submitBtn = $('.kn-modal button[type="submit"], .kn-modal input[type="submit"]');
+                        }
+                        if (!$submitBtn.length) {
+                            // Try generic form submit button
+                            $submitBtn = $(`#${viewId}`).find('.kn-button.is-primary, button.is-primary');
+                        }
+
+                        if ($submitBtn.length) {
+                            // Set submit button text to "Validate" for duplicate checking
+                            $submitBtn.text('Validate');
+                            console.log('✏️ Changed submit button text to "Validate" for view_5612 (Create Contact)');
+                        } else {
+                            console.warn('⚠️ Could not find submit button for view_5612');
+                        }
+
+                        // Focus on first name field
+                        const $firstNameField = $('input[name="first"]');
+                        if ($firstNameField.length) {
+                            $firstNameField.focus();
+                            console.log('⌨️ Focused first name field');
+                        }
+
+                        // Trim email field on blur
+                        $('#field_4164').off('blur.trim').on('blur.trim', function () {
+                            const trimmed = $(this).val().trim();
+                            if (trimmed !== $(this).val()) {
+                                $(this).val(trimmed);
+                            }
+                        });
+
+                        // Set up field error listeners for conflict handling
+                        duplicateHandler.setupFieldErrorListeners(viewId);
+
+                        console.log('✅ Contact creation form (view_5612) initialized');
+                    }, 100);
+                });
+
+                // Contact Creation Form submit handler (view_5612)
+                $(document).on('knack-form-submit.view_5612', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_5612 (contact-creation)`);
+                    console.log(`📦 Submission response:`, response);
+
+                    // Fire post-submission webhook if enabled
+                    contactFormHandler.firePostSubmissionWebhook('view_5612', response);
+                });
+
                 // Add test data prefill buttons to configured views
                 $(document).on('knack-view-render.any', function (event, view, data) {
                     const viewId = view.key;
@@ -6853,9 +8216,9 @@ window.ktlReady = function (appInfo = {}) {
                             testDataGenerator.addPrefillButton(viewId);
                         }, 100);
 
-                        // Validate prefilled fields for company forms
-                        if (viewId === 'view_4059' || viewId === 'view_5605') {
-                            console.log(`📋 Company form (${viewId}) rendered - checking for prefilled fields`);
+                        // Validate prefilled fields for company and contact forms
+                        if (viewId === 'view_4059' || viewId === 'view_5605' || viewId === 'view_5612') {
+                            console.log(`📋 Form (${viewId}) rendered - checking for prefilled fields`);
                             setTimeout(() => {
                                 eventListeners.validatePrefilledFields(viewId);
                             }, 500);
@@ -6988,7 +8351,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Normalize spaces: preserve trailing space, collapse multiples, remove leading
          */
-        normalizeSpaces: function(str) {
+        normalizeSpaces: function (str) {
             if (!str) return '';
 
             // Check if original has trailing space
@@ -7008,7 +8371,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Convert string to Proper Case
          */
-        toProperCase: function(str) {
+        toProperCase: function (str) {
             if (!str) return '';
             return str
                 .toLowerCase()
@@ -7020,7 +8383,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Register a new entity for search-to-create
          */
-        register: function(config) {
+        register: function (config) {
             const {
                 entityName,
                 listViewId,
@@ -7054,7 +8417,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Initialize search for a registered view
          */
-        init: function(cfg) {
+        init: function (cfg) {
             console.log(`🔍 Initializing Xero-style search for ${cfg.entityName}...`);
 
             // Wait for view to be ready
@@ -7079,7 +8442,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Set up live search functionality
          */
-        setupLiveSearch: function(cfg) {
+        setupLiveSearch: function (cfg) {
             const $searchInput = $(`#${cfg.listViewId} input[name="keyword"]`);
             const $searchForm = $(`#${cfg.listViewId} .table-keyword-search`);
             const $searchContainer = $searchForm.length ? $searchForm : $(`#${cfg.listViewId} .kn-records-nav`);
@@ -7107,7 +8470,7 @@ window.ktlReady = function (appInfo = {}) {
             let searchInProgress = false;
 
             // Prevent form submission on Enter key
-            $searchInput.on('keydown', function(e) {
+            $searchInput.on('keydown', function (e) {
                 if (e.key === 'Enter' || e.keyCode === 13) {
                     e.preventDefault();
                     console.log(`   ⏎ Enter key pressed - preventing form submission`);
@@ -7138,7 +8501,7 @@ window.ktlReady = function (appInfo = {}) {
             });
 
             // Input handler with debouncing
-            $searchInput.on('input', function() {
+            $searchInput.on('input', function () {
                 const rawValue = $(this).val();
                 const searchTerm = XeroStyleSearch.normalizeSpaces(rawValue);
 
@@ -7197,7 +8560,7 @@ window.ktlReady = function (appInfo = {}) {
             });
 
             // Clear button handler
-            $searchContainer.find('.search-clear').on('click', function() {
+            $searchContainer.find('.search-clear').on('click', function () {
                 XeroStyleSearch.hideAddNewLink($searchContainer);
             });
 
@@ -7207,7 +8570,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Filter table using server-side search with MutationObserver
          */
-        filterTableDirectly: function(viewId, searchTerm) {
+        filterTableDirectly: function (viewId, searchTerm) {
             const $searchInput = $(`#${viewId} input[name="keyword"]`);
             const $searchButton = $(`#${viewId} a.kn-button.search`);
 
@@ -7276,7 +8639,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Normalize company name by removing "Pty Ltd" and "Ltd" variations
          */
-        normalizeCompanyName: function(name) {
+        normalizeCompanyName: function (name) {
             if (!name) return '';
 
             return name.toLowerCase().trim()
@@ -7289,7 +8652,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Check for exact match and determine if it's a contact or company
          */
-        checkForDuplicate: function(cfg, searchTerm) {
+        checkForDuplicate: function (cfg, searchTerm) {
             if (!cfg.checkForExactMatch || !cfg.connectionTypeFieldId) {
                 return null;
             }
@@ -7301,7 +8664,7 @@ window.ktlReady = function (appInfo = {}) {
 
             console.log(`   🔍 Checking for duplicates. Search term: "${searchTermLower}", Normalized: "${searchTermNormalized}", Rows found: ${$tableRows.length}`);
 
-            $tableRows.each(function(index) {
+            $tableRows.each(function (index) {
                 const $row = $(this);
                 const $cells = $row.find('td');
 
@@ -7309,7 +8672,7 @@ window.ktlReady = function (appInfo = {}) {
                 let foundMatchInRow = false;
                 let matchedCellIndex = -1;
 
-                $cells.each(function(cellIndex) {
+                $cells.each(function (cellIndex) {
                     const cellText = $(this).text().trim();
                     const cellTextLower = cellText.toLowerCase();
                     const cellTextNormalized = XeroStyleSearch.normalizeCompanyName(cellText);
@@ -7317,7 +8680,7 @@ window.ktlReady = function (appInfo = {}) {
                     // Check for EXACT match (exact or normalized match for company names)
                     const exactTextMatch = cellTextLower === searchTermLower;
                     const normalizedMatch = (searchTermNormalized.length > 0) &&
-                                          (cellTextNormalized === searchTermNormalized);
+                        (cellTextNormalized === searchTermNormalized);
 
                     if (exactTextMatch || normalizedMatch) {
                         foundMatchInRow = true;
@@ -7332,7 +8695,7 @@ window.ktlReady = function (appInfo = {}) {
                 if (foundMatchInRow) {
                     console.log(`   📋 Checking cells in matched row ${index}:`);
 
-                    $cells.each(function(cellIndex) {
+                    $cells.each(function (cellIndex) {
                         const cellText = $(this).text().trim();
                         console.log(`      Cell ${cellIndex}: "${cellText}"`);
 
@@ -7372,7 +8735,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Show the "+ New" link (or update existing)
          */
-        showAddNewLink: function(cfg, searchTerm, $container) {
+        showAddNewLink: function (cfg, searchTerm, $container) {
             // Clear any previous highlights first
             const $view = $container.closest(`[id^="view_"]`);
             $view.find('.xero-exact-match-highlight').removeClass('xero-exact-match-highlight');
@@ -7435,13 +8798,13 @@ window.ktlReady = function (appInfo = {}) {
                 });
 
                 // Add focus/blur handlers for keyboard navigation styling
-                $link.on('focus', function() {
+                $link.on('focus', function () {
                     $(this).addClass('keyboard-focused');
                     // Force apply hover styles using attr() to set style with !important
                     const focusStyles = 'background: #39b54a !important; color: white !important; transform: translateY(-2px) !important; box-shadow: 0 4px 8px rgba(57, 181, 74, 0.25) !important;';
                     $(this).attr('style', focusStyles);
                     console.log('⌨️ Add-new-link focused, applied !important styles via attr');
-                }).on('blur', function() {
+                }).on('blur', function () {
                     $(this).removeClass('keyboard-focused');
                     // Remove inline styles to return to default
                     $(this).attr('style', '');
@@ -7449,7 +8812,7 @@ window.ktlReady = function (appInfo = {}) {
                 });
 
                 // Add keyboard handler for Tab key to cycle back to search field
-                $link.on('keydown', function(e) {
+                $link.on('keydown', function (e) {
                     if (e.key === 'Tab' && !e.shiftKey) {
                         // Tab pressed (not Shift+Tab) - cycle back to search field
                         e.preventDefault();
@@ -7482,7 +8845,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Convert text to Proper Case (Title Case)
          */
-        toProperCase: function(text) {
+        toProperCase: function (text) {
             if (!text) return '';
             return text
                 .toLowerCase()
@@ -7503,7 +8866,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Show modal to choose between Company and Contact
          */
-        showEntityTypeModal: function(cfg, searchTerm) {
+        showEntityTypeModal: function (cfg, searchTerm) {
             const properCaseTerm = this.toProperCase(searchTerm);
             console.log(`   📋 Showing entity type modal for: "${properCaseTerm}"`);
 
@@ -7561,12 +8924,12 @@ window.ktlReady = function (appInfo = {}) {
             }
 
             // Mouse enters a button: switch to mouse mode
-            $allButtons.on('mouseenter', function() {
+            $allButtons.on('mouseenter', function () {
                 enterMouseMode();
             });
 
             // Tab key pressed: switch to keyboard mode
-            $allButtons.on('keydown', function(e) {
+            $allButtons.on('keydown', function (e) {
                 if (e.key === 'Tab') {
                     // Determine which button will receive focus
                     let $nextBtn;
@@ -7589,14 +8952,14 @@ window.ktlReady = function (appInfo = {}) {
                             $nextBtn = $companyBtn;
                         }
                     }
-                    
+
                     e.preventDefault();
                     if ($nextBtn) {
                         $nextBtn.focus();
                         enterKeyboardMode($nextBtn);
                     }
                 }
-                
+
                 // Enter key activates button
                 if (e.key === 'Enter') {
                     $(this).click();
@@ -7605,7 +8968,7 @@ window.ktlReady = function (appInfo = {}) {
             });
 
             // Track focus for keyboard mode (in case focus changes another way)
-            $allButtons.on('focus', function() {
+            $allButtons.on('focus', function () {
                 // Only apply keyboard-focused if we're in keyboard mode
                 if ($modalInner.hasClass('keyboard-mode')) {
                     $allButtons.removeClass('keyboard-focused');
@@ -7634,14 +8997,14 @@ window.ktlReady = function (appInfo = {}) {
             });
 
             // Click outside to close
-            $modal.on('click', function(e) {
+            $modal.on('click', function (e) {
                 if ($(e.target).hasClass('xero-entity-modal-overlay')) {
                     $modal.remove();
                 }
             });
 
             // Escape key to close
-            $(document).on('keydown.entityModal', function(e) {
+            $(document).on('keydown.entityModal', function (e) {
                 if (e.key === 'Escape') {
                     $modal.remove();
                     $(document).off('keydown.entityModal');
@@ -7662,15 +9025,22 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Click a hidden button on view_5576 by button text
          */
-        clickHiddenButton: function(buttonText, searchTerm) {
+        clickHiddenButton: function (buttonText, searchTerm) {
             console.log(`   🔘 Clicking hidden button: "${buttonText}"`);
+
+            // Reset form state for fresh session (clears console and all tracking variables)
+            const isContact = buttonText.toLowerCase().includes('contact');
+            const viewId = isContact ? 'view_5612' : 'view_4059';
+            if (typeof duplicateHandler !== 'undefined' && duplicateHandler.resetFormState) {
+                duplicateHandler.resetFormState(viewId);
+            }
 
             const $button = $(`#view_5576 a:contains("${buttonText}")`);
 
             if ($button.length) {
                 // Store search term and button type for prefill
                 window.xeroSearchTerm = searchTerm;
-                window.xeroButtonType = buttonText.toLowerCase().includes('company') ? 'company' : 'contact';
+                window.xeroButtonType = isContact ? 'contact' : 'company';
                 $button[0].click();
                 console.log(`   ✅ Button clicked: "${buttonText}" (type: ${window.xeroButtonType})`);
 
@@ -7684,7 +9054,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Hide the "+ New" link (don't remove, just hide)
          */
-        hideAddNewLink: function($container) {
+        hideAddNewLink: function ($container) {
             const $link = $container.find('.xero-add-new-link');
             if ($link.length) {
                 $link.addClass('xero-hidden');
@@ -7695,8 +9065,15 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Open form and prefill name field
          */
-        openFormWithPrefill: function(cfg, searchTerm) {
+        openFormWithPrefill: function (cfg, searchTerm) {
             console.log(`   📝 Opening form for: "${searchTerm}"`);
+
+            // Reset form state for fresh session (clears console and all tracking variables)
+            // Determine view ID from config if available
+            const viewId = cfg.formViewId || null;
+            if (typeof duplicateHandler !== 'undefined' && duplicateHandler.resetFormState) {
+                duplicateHandler.resetFormState(viewId);
+            }
 
             // Find and click the hidden "Add" button
             const $addButton = $(`#${cfg.addButtonViewId} a`).first();
@@ -7720,9 +9097,9 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Set up prefill handler for forms
          */
-        setupPrefillHandler: function() {
+        setupPrefillHandler: function () {
             // Listen for any view render
-            const prefillHandler = function() {
+            const prefillHandler = function () {
                 // Check if the search term is still stored
                 if (window.xeroSearchTerm && window.xeroButtonType) {
                     const term = window.xeroSearchTerm;
@@ -7759,7 +9136,7 @@ window.ktlReady = function (appInfo = {}) {
         /**
          * Convert text to Proper Case (Title Case)
          */
-        toProperCase: function(text) {
+        toProperCase: function (text) {
             if (!text) return text;
 
             // Words that should remain lowercase (unless first word)
@@ -7781,10 +9158,194 @@ window.ktlReady = function (appInfo = {}) {
             }).join(' ');
         },
 
+        // ========================================================================
+        // NAME FORMATTING UTILITIES
+        // Smart name formatting with support for prefixes, hyphens, Mc/Mac/O'/d'
+        // ========================================================================
+
+        /**
+         * Surname prefixes that stay lowercase when followed by another word
+         * Note: 'van' handled separately (Dutch - always capitalised)
+         * Note: 'de' handled separately (preserve user input)
+         */
+        lowercasePrefixes: ['von', 'di', 'la', 'le', 'del', 'della', 'dos', 'das', 'du'],
+
+        /**
+         * Check if text has mixed case (not all lowercase or all uppercase)
+         * Used to detect if user has intentionally cased their input
+         */
+        hasMixedCase: function (text) {
+            if (!text) return false;
+            const hasUpper = /[A-Z]/.test(text);
+            const hasLower = /[a-z]/.test(text);
+            return hasUpper && hasLower;
+        },
+
+        /**
+         * Format a single name part handling special patterns
+         * Handles: hyphens, Mc, Mac, O', d', Fitz
+         * @param {string} name - Single name part (no spaces)
+         * @returns {string} Formatted name
+         */
+        formatNamePart: function (name) {
+            if (!name) return '';
+
+            // Handle hyphenated names - format each part
+            if (name.includes('-')) {
+                return name.split('-').map(part => this.formatNamePart(part)).join('-');
+            }
+
+            const lowerName = name.toLowerCase();
+
+            // Handle d' prefix (d'Arcy, d'Angelo)
+            if (lowerName.startsWith("d'") && lowerName.length > 2) {
+                return "d'" + lowerName.charAt(2).toUpperCase() + lowerName.slice(3);
+            }
+
+            // Handle O' prefix (O'Brien, O'Connor)
+            if (lowerName.startsWith("o'") && lowerName.length > 2) {
+                return "O'" + lowerName.charAt(2).toUpperCase() + lowerName.slice(3);
+            }
+
+            // Handle Mc prefix (McDonald, McGregor) - must have letter after Mc
+            if (lowerName.startsWith('mc') && lowerName.length > 2 && /[a-z]/.test(lowerName.charAt(2))) {
+                return 'Mc' + lowerName.charAt(2).toUpperCase() + lowerName.slice(3);
+            }
+
+            // Handle Mac prefix (MacDonald, MacGregor) - must be followed by consonant
+            // Avoids incorrectly capitalizing words like "Mace", "Machine", "Mach", "Mack"
+            if (lowerName.startsWith('mac') && lowerName.length > 3) {
+                const charAfterMac = lowerName.charAt(3);
+                if (/[bcdfgjlmnpqrstvwxyz]/.test(charAfterMac)) {
+                    return 'Mac' + lowerName.charAt(3).toUpperCase() + lowerName.slice(4);
+                }
+            }
+
+            // Handle Fitz prefix (FitzGerald, FitzPatrick)
+            if (lowerName.startsWith('fitz') && lowerName.length > 4) {
+                return 'Fitz' + lowerName.charAt(4).toUpperCase() + lowerName.slice(5);
+            }
+
+            // Default: simple proper case
+            return lowerName.charAt(0).toUpperCase() + lowerName.slice(1);
+        },
+
+        /**
+         * Format first name - always proper case with special pattern handling
+         * Handles multi-word first names like "Mary Jane", "Jean Pierre"
+         * @param {string} firstName - First name to format
+         * @returns {string} Formatted first name
+         */
+        formatFirstName: function (firstName) {
+            if (!firstName) return '';
+
+            const trimmed = firstName.trim();
+
+            // If user has provided mixed case, preserve it (they know what they want)
+            if (this.hasMixedCase(trimmed)) {
+                console.log(`   📝 First name has mixed case - preserving: "${trimmed}"`);
+                return trimmed;
+            }
+
+            // Handle multi-word first names - proper case each word
+            if (trimmed.includes(' ')) {
+                return trimmed.split(/\s+/).map(part => this.formatNamePart(part)).join(' ');
+            }
+
+            // Format the name part (handles hyphens, etc.)
+            return this.formatNamePart(trimmed);
+        },
+
+        /**
+         * Format last name - handles prefixes, hyphens, and special patterns
+         * Dutch 'van' always capitalised, 'de' defaults to lowercase
+         * @param {string} lastName - Last name to format (may contain spaces for prefixes)
+         * @returns {string} Formatted last name
+         */
+        formatLastName: function (lastName) {
+            if (!lastName) return '';
+
+            const trimmed = lastName.trim();
+
+            // If user has provided mixed case, preserve it (they know what they want)
+            if (this.hasMixedCase(trimmed)) {
+                console.log(`   📝 Last name has mixed case - preserving: "${trimmed}"`);
+                return trimmed;
+            }
+
+            // Single word surname
+            if (!trimmed.includes(' ')) {
+                return this.formatNamePart(trimmed);
+            }
+
+            // Multi-word surname - check for prefixes
+            const words = trimmed.split(/\s+/).filter(w => w.length > 0);
+            const result = [];
+
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i].toLowerCase();
+                const isLastWord = (i === words.length - 1);
+
+                if (isLastWord) {
+                    // Last word always gets proper case formatting
+                    result.push(this.formatNamePart(words[i]));
+                } else if (word === 'van') {
+                    // Dutch 'van' - always capitalised
+                    result.push('Van');
+                } else if (word === 'de') {
+                    // 'de' - default to lowercase (more common internationally)
+                    // User can provide mixed case like 'De Jong' to preserve capitalisation
+                    result.push('de');
+                } else if (word === 'den' || word === 'der') {
+                    // Part of Dutch 'van den'/'van der' - lowercase as secondary particle
+                    result.push(word);
+                } else if (this.lowercasePrefixes.includes(word)) {
+                    // Other known lowercase prefixes
+                    result.push(word);
+                } else {
+                    // Unknown word in middle - proper case it
+                    result.push(this.formatNamePart(words[i]));
+                }
+            }
+
+            return result.join(' ');
+        },
+
+        /**
+         * Format a full name from search input for contact form prefilling
+         * @param {string} searchTerm - The search term to parse and format
+         * @returns {object} { firstName: string, lastName: string }
+         */
+        formatSearchTermAsName: function (searchTerm) {
+            if (!searchTerm) return { firstName: '', lastName: '' };
+
+            const trimmed = searchTerm.trim();
+            const words = trimmed.split(/\s+/).filter(w => w.length > 0);
+
+            if (words.length === 0) {
+                return { firstName: '', lastName: '' };
+            }
+
+            if (words.length === 1) {
+                // Single word - goes to first name only
+                return {
+                    firstName: this.formatFirstName(words[0]),
+                    lastName: ''
+                };
+            }
+
+            // Two or more words: first word = first name, rest = last name
+            const firstName = this.formatFirstName(words[0]);
+            const lastNameParts = words.slice(1).join(' ');
+            const lastName = this.formatLastName(lastNameParts);
+
+            return { firstName, lastName };
+        },
+
         /**
          * Prefill company form (view_4059, scene_1653)
          */
-        prefillCompanyForm: function(searchTerm) {
+        prefillCompanyForm: function (searchTerm) {
             // Convert to proper case for display and prefilling
             const properCaseTerm = this.toProperCase(searchTerm);
             console.log(`   📝 Prefilling company form with: "${properCaseTerm}" (from search: "${searchTerm}")`);
@@ -7826,7 +9387,7 @@ window.ktlReady = function (appInfo = {}) {
                 } else {
                     console.warn(`   ⚠ Company Name field (field_992) not found after ${maxAttempts} attempts`);
                     console.log(`   🔍 Available visible inputs in modal:`);
-                    $('.kn-modal input:visible, #view_4059 input:visible, .kn-scene-1653 input:visible').each(function(i) {
+                    $('.kn-modal input:visible, #view_4059 input:visible, .kn-scene-1653 input:visible').each(function (i) {
                         console.log(`      Input ${i}: id="${this.id}", name="${this.name}", type="${this.type}"`);
                     });
                     // Still try to focus the Short Name field
@@ -7874,82 +9435,137 @@ window.ktlReady = function (appInfo = {}) {
         },
 
         /**
-         * Prefill contact form with name field
+         * Prefill contact form (view_5612) with name field from search term
+         * Uses smart name formatting with support for:
+         * - Prefixes (de, van, von, di, etc.)
+         * - Hyphenated names (Anderson-Whitely)
+         * - Special patterns (McDonald, O'Brien, d'Arcy, FitzGerald)
+         * - 1 word: First name only, focus on Last name
+         * - 2+ words: First word to First, rest to Last (with prefix handling), focus on Preferred
          */
-        prefillContactForm: function(searchTerm) {
-            console.log(`   🔍 Looking for contact form fields...`);
+        prefillContactForm: function (searchTerm) {
+            console.log(`   🔍 Looking for contact form fields (view_5612)...`);
+            console.log(`   📝 Search term to prefill: "${searchTerm}"`);
 
-            // Wait a bit for form to fully render
-            setTimeout(() => {
-                // Convert to proper case
-                const properCaseTerm = this.toProperCase(searchTerm.trim());
-                const words = properCaseTerm.split(/\s+/);
+            // Retry mechanism to wait for modal/form to fully render
+            const prefillNameFields = (attempt = 1, maxAttempts = 10) => {
+                console.log(`   🔍 Attempt ${attempt} to find name fields (field_3860)...`);
 
-                // Find the name field inputs (field_3967) - try multiple selectors
-                let $firstNameInput = $('#kn-input-field_3967 input#first');
-                let $lastNameInput = $('#kn-input-field_3967 input#last');
+                // Find the name field inputs for view_5612 (field_3860)
+                // Try multiple selector patterns
+                let $firstNameInput = $('input[name="first"]');
+                let $lastNameInput = $('input[name="last"]');
 
+                // Fallback to more specific selectors if needed
                 if (!$firstNameInput.length) {
-                    $firstNameInput = $('#kn-input-field_3967 input[name="first"]');
+                    $firstNameInput = $('#kn-input-field_3860 input#first');
                 }
                 if (!$lastNameInput.length) {
-                    $lastNameInput = $('#kn-input-field_3967 input[name="last"]');
+                    $lastNameInput = $('#kn-input-field_3860 input#last');
+                }
+                if (!$firstNameInput.length) {
+                    $firstNameInput = $('#view_5612 input[name="first"]');
+                }
+                if (!$lastNameInput.length) {
+                    $lastNameInput = $('#view_5612 input[name="last"]');
                 }
 
-                console.log(`   🔍 Name field search: First=${$firstNameInput.length}, Last=${$lastNameInput.length}`);
+                console.log(`   🔍 Name field search (attempt ${attempt}): First=${$firstNameInput.length}, Last=${$lastNameInput.length}`);
 
                 if ($firstNameInput.length && $lastNameInput.length) {
-                    if (words.length >= 2) {
-                        // Two or more words - first word to First, rest to Last
-                        const firstName = words[0];
-                        const lastName = words.slice(1).join(' ');
+                    // Use the smart name formatter
+                    const formattedName = this.formatSearchTermAsName(searchTerm);
 
-                        $firstNameInput.val(firstName);
-                        $lastNameInput.val(lastName);
-                        $firstNameInput.trigger('change');
-                        $lastNameInput.trigger('change');
+                    console.log(`   📝 Formatted name: First="${formattedName.firstName}", Last="${formattedName.lastName}"`);
 
-                        console.log(`   ✅ Prefilled Name (Proper Case): First="${firstName}", Last="${lastName}"`);
+                    if (!formattedName.firstName && !formattedName.lastName) {
+                        console.warn(`   ⚠ No words to prefill`);
+                        return;
+                    }
 
-                        // Focus on field_3984
-                        setTimeout(() => {
-                            let $nextField = $('#field_3984');
-                            if (!$nextField.length) {
-                                $nextField = $('input[name="field_3984"]');
-                            }
-                            if (!$nextField.length) {
-                                $nextField = $('#kn-input-field_3984 input');
-                            }
+                    if (!formattedName.lastName) {
+                        // Single word - goes to First name, focus on Last name
+                        $firstNameInput.val(formattedName.firstName);
+                        $firstNameInput.trigger('change').trigger('input');
 
-                            console.log(`   🔍 Next field (field_3984) search: found ${$nextField.length} elements`);
-
-                            if ($nextField.length) {
-                                $nextField.focus();
-                                console.log(`   ✅ Focus set to field_3984`);
-                            } else {
-                                console.warn(`   ⚠ field_3984 not found`);
-                            }
-                        }, 100);
-                    } else {
-                        // Single word - goes to First, focus on Last
-                        $firstNameInput.val(properCaseTerm);
-                        $firstNameInput.trigger('change');
-
-                        console.log(`   ✅ Prefilled First Name (Proper Case) with: "${properCaseTerm}"`);
+                        console.log(`   ✅ Prefilled First Name: "${formattedName.firstName}" (single word)`);
 
                         // Focus on Last name field
                         setTimeout(() => {
                             $lastNameInput.focus();
                             console.log(`   ✅ Focus set to Last Name field`);
                         }, 100);
+
+                    } else {
+                        // Two or more words - first to First, rest to Last
+                        $firstNameInput.val(formattedName.firstName);
+                        $lastNameInput.val(formattedName.lastName);
+                        $firstNameInput.trigger('change').trigger('input');
+                        $lastNameInput.trigger('change').trigger('input');
+
+                        console.log(`   ✅ Prefilled Name: First="${formattedName.firstName}", Last="${formattedName.lastName}"`);
+
+                        // Focus on Preferred field (field_3861)
+                        this.focusPreferredField();
                     }
+
+                } else if (attempt < maxAttempts) {
+                    // Try again after a delay
+                    console.log(`   ⏳ Name fields not found, retrying in ${150 * attempt}ms...`);
+                    setTimeout(() => prefillNameFields(attempt + 1, maxAttempts), 150 * attempt);
                 } else {
-                    console.warn(`   ⚠ Name field inputs not found (field_3967). Available inputs:`);
-                    $('input[type="text"]').each(function(i) {
+                    console.warn(`   ⚠ Name field inputs not found (field_3860) after ${maxAttempts} attempts`);
+                    console.log(`   🔍 Available visible inputs:`);
+                    $('input[type="text"]:visible').each(function (i) {
                         console.log(`      Input ${i}: id="${this.id}", name="${this.name}", placeholder="${$(this).attr('placeholder')}"`);
                     });
                 }
-            }, 500);
+            };
+
+            // Start the prefill attempts after a short delay for modal to render
+            setTimeout(() => prefillNameFields(), 300);
+        },
+
+        /**
+         * Focus on Preferred field (field_3861) with retry mechanism
+         */
+        focusPreferredField: function (attempt = 1, maxAttempts = 5) {
+            console.log(`   🔍 Attempt ${attempt} to find Preferred field (field_3861)...`);
+
+            // Try multiple selectors for the Preferred field
+            let $preferredField = $('#field_3861');
+
+            if (!$preferredField.length) {
+                $preferredField = $('input[name="field_3861"]');
+            }
+            if (!$preferredField.length) {
+                $preferredField = $('#kn-input-field_3861 input');
+            }
+            if (!$preferredField.length) {
+                $preferredField = $('#view_5612 #field_3861');
+            }
+
+            console.log(`   🔍 Preferred field search (attempt ${attempt}): found ${$preferredField.length} elements`);
+
+            if ($preferredField.length) {
+                $preferredField.focus();
+                console.log(`   ✅ Focus set to Preferred field (field_3861)`);
+
+                // Verify focus worked
+                setTimeout(() => {
+                    if (document.activeElement && (document.activeElement.id === 'field_3861' || document.activeElement.name === 'field_3861')) {
+                        console.log(`   ✅ Focus verified - Preferred field is now active`);
+                    } else {
+                        console.warn(`   ⚠ Focus may not have worked. Active element: id="${document.activeElement ? document.activeElement.id : 'none'}", name="${document.activeElement ? document.activeElement.name : 'none'}"`);
+                    }
+                }, 50);
+
+            } else if (attempt < maxAttempts) {
+                console.log(`   ⏳ Preferred field not found, retrying in ${100 * attempt}ms...`);
+                setTimeout(() => this.focusPreferredField(attempt + 1, maxAttempts), 100 * attempt);
+            } else {
+                console.warn(`   ⚠ Preferred field (field_3861) not found after ${maxAttempts} attempts`);
+            }
         }
     };
 
@@ -7986,7 +9602,7 @@ window.ktlReady = function (appInfo = {}) {
             clearInterval(view4829RefreshTimer);
         }
 
-        view4829RefreshTimer = setInterval(function() {
+        view4829RefreshTimer = setInterval(function () {
             // Only refresh if view is active, not paused, and on correct scene
             if (view4829IsActive && !view4829RefreshPaused && Knack.router.current_scene_key === 'scene_1973') {
                 console.log('⏰ 10 seconds elapsed - refreshing view_4829...');
@@ -8033,14 +9649,14 @@ window.ktlReady = function (appInfo = {}) {
             });
 
             // Remove animation after it completes
-            setTimeout(function() {
+            setTimeout(function () {
                 $timestamp.css('animation', '');
             }, 1000);
         }
     }
 
     // Remove button when ANY view renders (if it's not view_4829)
-    $(document).on('knack-view-render', function(event, view, data) {
+    $(document).on('knack-view-render', function (event, view, data) {
         if (view.key !== 'view_4829') {
             const $button = $('#view_4829_refresh_toggle');
             if ($button.length) {
@@ -8051,7 +9667,7 @@ window.ktlReady = function (appInfo = {}) {
     });
 
     // Monitor when view_4829 is rendered - start custom refresh and add button
-    $(document).on('knack-view-render.view_4829', function(event, view, data) {
+    $(document).on('knack-view-render.view_4829', function (event, view, data) {
         console.log('🔍 view_4829 (Enquiries Table) rendered');
         console.log('📍 Current scene:', Knack.router.current_scene_key);
         console.log('📊 Number of records:', data && data.length ? data.length : 'unknown');
@@ -8110,7 +9726,7 @@ window.ktlReady = function (appInfo = {}) {
                         'transition': 'all 0.3s ease'
                     })
                     .html('⏸️ Pause Auto-Refresh')
-                    .on('click', function() {
+                    .on('click', function () {
                         view4829RefreshPaused = !view4829RefreshPaused;
                         updateRefreshButton();
 
@@ -8120,10 +9736,10 @@ window.ktlReady = function (appInfo = {}) {
                             console.log('▶️ Auto-refresh resumed by user');
                         }
                     })
-                    .on('mouseenter', function() {
+                    .on('mouseenter', function () {
                         $(this).css('transform', 'scale(1.05)');
                     })
-                    .on('mouseleave', function() {
+                    .on('mouseleave', function () {
                         $(this).css('transform', 'scale(1)');
                     });
 
@@ -8137,7 +9753,7 @@ window.ktlReady = function (appInfo = {}) {
     });
 
     // Stop refresh timer when leaving scene_1973
-    $(document).on('knack-scene-render', function(event, scene) {
+    $(document).on('knack-scene-render', function (event, scene) {
         const currentScene = Knack.router.current_scene_key;
 
         // If we're not on scene_1973, stop the refresh timer
@@ -8244,7 +9860,7 @@ window.ktlReady = function (appInfo = {}) {
         const elapsedMs = Date.now() - processingPollStartTime;
         const hasMinimumTimePassed = elapsedMs >= MIN_POLL_DURATION_MS;
 
-        console.log(`🔍 Polling processing status (attempt ${processingPollAttempts}/${MAX_POLL_ATTEMPTS}, elapsed: ${Math.round(elapsedMs/1000)}s)`);
+        console.log(`🔍 Polling processing status (attempt ${processingPollAttempts}/${MAX_POLL_ATTEMPTS}, elapsed: ${Math.round(elapsedMs / 1000)}s)`);
 
         // Refresh view_5600 to get latest data using KTL
         if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
@@ -8258,7 +9874,7 @@ window.ktlReady = function (appInfo = {}) {
         }
 
         // Wait a moment for the refresh to complete, then check the value
-        setTimeout(function() {
+        setTimeout(function () {
             // Get the field value from view_5600 - it's in the kn-detail-body span
             const $statusField = $('#view_5600 .field_4028 .kn-detail-body span span');
 
@@ -8273,7 +9889,7 @@ window.ktlReady = function (appInfo = {}) {
                     // Only stop if minimum time has passed (5 seconds)
                     // Status might change to Loading in first 5 seconds
                     if (!hasMinimumTimePassed) {
-                        console.log(`⏳ Status is Ready but minimum polling time not reached (${Math.round(elapsedMs/1000)}s < 5s) - continuing to poll`);
+                        console.log(`⏳ Status is Ready but minimum polling time not reached (${Math.round(elapsedMs / 1000)}s < 5s) - continuing to poll`);
                         lastProcessingStatus = statusValue;
                         return;
                     }
@@ -8341,7 +9957,7 @@ window.ktlReady = function (appInfo = {}) {
     /**
      * Start polling when scene_2397 renders
      */
-    $(document).on('knack-scene-render.scene_2397', function(event, scene) {
+    $(document).on('knack-scene-render.scene_2397', function (event, scene) {
         console.log('📍 Entered scene_2397 - starting processing status polling');
 
         // Clear any existing timer
@@ -8383,7 +9999,7 @@ window.ktlReady = function (appInfo = {}) {
     /**
      * Stop polling when leaving scene_2397
      */
-    $(document).on('knack-scene-render', function(event, scene) {
+    $(document).on('knack-scene-render', function (event, scene) {
         const currentScene = Knack.router.current_scene_key;
 
         if (currentScene !== 'scene_2397' && processingPollTimer) {
@@ -8410,13 +10026,13 @@ window.ktlReady = function (appInfo = {}) {
 
         if ($view.length > 0) {
             // Look for divs that only contain <hr> inside the kn-table
-            $view.find('.kn-table > div').each(function() {
+            $view.find('.kn-table > div').each(function () {
                 const $div = $(this);
                 const content = $div.html().trim();
 
                 // Check if content is just <hr> with possible whitespace/newlines
                 const isHrOnly = content.replace(/\s+/g, '') === '<hr>' ||
-                                content.replace(/\s+/g, '') === '<hr/>';
+                    content.replace(/\s+/g, '') === '<hr/>';
 
                 if (isHrOnly) {
                     console.log('🙈 Hiding div with <hr> in view_5601');
@@ -8429,7 +10045,7 @@ window.ktlReady = function (appInfo = {}) {
     /**
      * Run on view_5601 render
      */
-    $(document).on('knack-view-render.view_5601', function(event, view, data) {
+    $(document).on('knack-view-render.view_5601', function (event, view, data) {
         console.log('👀 view_5601 rendered - checking for hr div');
         hideHrDivInView5601();
 
