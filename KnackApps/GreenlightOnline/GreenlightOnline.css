@@ -2422,6 +2422,31 @@ tr.xero-exact-match:hover {
   padding-bottom: 0 !important;
 }
 
+/* Hide view_5601 and view_5602 by default on contact view page (scene_2397)
+   JavaScript will show them after ECN type is determined from view_5600
+   Using visibility:hidden keeps layout space, prevents content flash */
+.kn-scene-scene_2397 #view_5601,
+.kn-scene-scene_2397 #view_5602 {
+  visibility: hidden !important;
+}
+
+/* Hide both Update buttons by default - JS will show the correct one */
+.kn-scene-scene_2397 #view_5601 a[href*="update-company"],
+.kn-scene-scene_2397 #view_5601 a[href*="update-contact"] {
+  display: none !important;
+}
+
+/* Hide "Back to Contacts" link globally - never want this visible */
+.kn-back-link a[href="#contacts6"],
+a.ang-link[href="#contacts6"] {
+  display: none !important;
+}
+
+/* Hide the parent container of Back to Contacts link */
+.kn-view.kn-back-link:has(a[href="#contacts6"]) {
+  display: none !important;
+}
+
 /* ========================================================================
    XERO-STYLE SEARCH-TO-CREATE MODULE STYLES
    ======================================================================== */

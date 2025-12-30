@@ -26,8 +26,8 @@ console.log(`📍 Mode: ${isDevMode ? 'DEVELOPMENT (localhost)' : 'PRODUCTION (C
 console.log(`🔖 App Version: ${APP_VERSION}`);
 
 // Local development URLs
-const JS_LOCAL_URL = 'https://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.js';
-const CSS_LOCAL_URL = 'https://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
+const JS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.js';
+const CSS_LOCAL_URL = 'http://localhost:3000/KnackApps/GreenlightOnline/GreenlightOnline.css';
 
 // Function to get commit hash for version
 async function getCommitHash(version) {
