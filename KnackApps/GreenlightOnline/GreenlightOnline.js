@@ -108,52 +108,6 @@ window.ktlReady = function (appInfo = {}) {
     });
 
     console.log('🔄 Custom auto-refresh configured for view_4829');
-    console.log('📋 Auto-refresh settings:', {
-        viewId: 'view_4829',
-        sceneId: 'scene_1973',
-        interval: '10 seconds (custom implementation)',
-        onlyIfVisible: true,
-        preserveScrollPos: true
-    });
-
-    // Check if KTL accepted our configuration
-    setTimeout(function () {
-        console.log('🔍 Checking KTL auto-refresh internals...');
-
-        // Try to access KTL's internal configuration
-        if (window.ktl && window.ktl.views) {
-            console.log('✅ KTL views module exists');
-
-            // Check if getCfg exists
-            if (typeof window.ktl.views.getCfg === 'function') {
-                const viewsCfg = window.ktl.views.getCfg();
-                console.log('📦 KTL views configuration:', viewsCfg);
-
-                if (viewsCfg.autoRefresh) {
-                    console.log('✅ Auto-refresh config found:', viewsCfg.autoRefresh);
-                } else {
-                    console.warn('⚠️ No auto-refresh config in KTL views');
-                }
-            } else {
-                console.warn('⚠️ ktl.views.getCfg not available');
-            }
-
-            // Check if refreshView function exists
-            if (typeof window.ktl.views.refreshView === 'function') {
-                console.log('✅ ktl.views.refreshView function exists');
-            } else {
-                console.warn('⚠️ ktl.views.refreshView not found');
-            }
-        } else {
-            console.error('❌ KTL or ktl.views not available');
-        }
-
-        // Check KTL core config
-        if (window.ktl && window.ktl.core && typeof window.ktl.core.getCfg === 'function') {
-            const coreCfg = window.ktl.core.getCfg();
-            console.log('📦 KTL core enabled features:', coreCfg.enabled);
-        }
-    }, 2000);
 
     ktl.fields.setCfg({
         textAsNumeric: [''],
@@ -2304,6 +2258,159 @@ window.ktlReady = function (appInfo = {}) {
                         }
                     }
                 }
+            },
+
+            // ===== CONTACT UPDATE FORM =====
+            view_5626: {
+                formType: 'contact-update',
+                allowSharedContacts: true,  // Update forms allow shared contacts (confirm scenario)
+                webhook: {
+                    url: 'https://hook.us1.make.com/oj9c65b964r1wr4a3w7livb4a469nlgh',
+                    enabled: true
+                },
+                postSubmissionWebhook: {
+                    url: 'https://hook.us1.make.com/bs93x9sc5km5xiqgnb8w7dq6x78m0lhb',
+                    enabled: true
+                },
+                // Hidden views containing existing record IDs and original values
+                hiddenView: {
+                    // Record IDs from details view (view_5630)
+                    recordIds: {
+                        tenant_id: '#view_5629 .field_3925 .kn-detail-body',
+                        parent_record_id: '#view_5630 .field_4135 .kn-detail-body',
+                        ecn_record_id: '#view_5630 .field_3926 .kn-detail-body',
+                        primary_email_record_id: '#view_5630 .field_4136 .kn-detail-body',
+                        primary_mobile_record_id: '#view_5630 .field_4220 .kn-detail-body',
+                        primary_phone_record_id: '#view_5630 .field_4137 .kn-detail-body',
+                        primary_scn_record_id: '#view_5630 .field_4146 .kn-detail-body',
+                        connection_type: '#view_5630 .field_3852 .kn-detail-body'
+                    },
+                    // Original values from Entity details view (view_5629)
+                    originalValues: {
+                        first_name: '#view_5629 .field_3860 .kn-detail-body span[data-part="first"]',
+                        last_name: '#view_5629 .field_3860 .kn-detail-body span[data-part="last"]',
+                        preferred_name: '#view_5629 .field_3861 .kn-detail-body',
+                        email: '#view_5629 .field_4164 .kn-detail-body',
+                        mobile: '#view_5629 .field_4165 .kn-detail-body',
+                        phone: '#view_5629 .field_4056 .kn-detail-body'
+                    }
+                },
+                // Form input fields (same as Create Contact)
+                fields: {
+                    field_3860: {
+                        rule: 'name-fields',
+                        selectors: {
+                            first: 'input[name="first"]',
+                            last: 'input[name="last"]'
+                        },
+                        required: true
+                    },
+                    field_3861: {
+                        rule: 'proper-case-text',
+                        selector: '#field_3861',
+                        required: false
+                    },
+                    field_4164: {
+                        rule: 'company-email',
+                        selector: '#field_4164',
+                        required: false,
+                        conflictType: 'email'
+                    },
+                    field_4165: {
+                        rule: 'mobile-number',
+                        selector: '#field_4165',
+                        required: false,
+                        conflictType: 'mobile'
+                    },
+                    field_4056: {
+                        rule: 'landline-number',
+                        selector: '#field_4056',
+                        required: false,
+                        conflictType: 'phone'
+                    },
+                    contact_group: {
+                        rule: 'contact-group',
+                        selectors: {
+                            email: '#field_4164',
+                            mobile: '#field_4165',
+                            phone: '#field_4056'
+                        },
+                        required: true,
+                        conflictTypes: {
+                            email: 'email',
+                            mobile: 'mobile',
+                            phone: 'phone'
+                        }
+                    }
+                }
+            },
+
+            // ===== CREATE CONTACT WITH COMPANY FORM =====
+            // This form creates a contact and links it to a company (parent record)
+            view_5631: {
+                formType: 'contact-creation',
+                allowSharedContacts: true,  // Contact creation allows shared contacts (confirm scenario)
+                webhook: {
+                    url: 'https://hook.us1.make.com/hhfz1ywcik857a3j3drfxzr221m4tois',
+                    enabled: true
+                },
+                postSubmissionWebhook: {
+                    url: 'https://hook.us1.make.com/s4n6e3ajcvh9sm4i0yf3vtzjp46bglqp',
+                    enabled: true
+                },
+                // Hidden view containing the parent company ID
+                hiddenView: {
+                    recordIds: {
+                        parent_record_id: '#view_5633 .field_984 .kn-detail-body'  // Company ID
+                    }
+                },
+                fields: {
+                    field_3860: {
+                        rule: 'name-fields',
+                        selectors: {
+                            first: 'input[name="first"]',
+                            last: 'input[name="last"]'
+                        },
+                        required: true
+                    },
+                    field_3861: {
+                        rule: 'proper-case-text',
+                        selector: '#field_3861',
+                        required: false
+                    },
+                    field_4164: {
+                        rule: 'company-email',
+                        selector: '#field_4164',
+                        required: false,
+                        conflictType: 'email'
+                    },
+                    field_4165: {
+                        rule: 'mobile-number',
+                        selector: '#field_4165',
+                        required: false,
+                        conflictType: 'mobile'
+                    },
+                    field_4056: {
+                        rule: 'landline-number',
+                        selector: '#field_4056',
+                        required: false,
+                        conflictType: 'phone'
+                    },
+                    contact_group: {
+                        rule: 'contact-group',
+                        selectors: {
+                            email: '#field_4164',
+                            mobile: '#field_4165',
+                            phone: '#field_4056'
+                        },
+                        required: true,
+                        conflictTypes: {
+                            email: 'email',
+                            mobile: 'mobile',
+                            phone: 'phone'
+                        }
+                    }
+                }
             }
         };
 
@@ -2350,6 +2457,25 @@ window.ktlReady = function (appInfo = {}) {
                 // Use unified notification system if viewId provided
                 if (viewId && typeof notificationSystem !== 'undefined') {
                     notificationSystem.clearFieldNotification(viewId, fieldId);
+
+                    // Also clear duplicate handler error state if it exists
+                    // This ensures webhook-based errors are cleared when validation clears the field
+                    if (typeof duplicateHandler !== 'undefined' && duplicateHandler.fieldErrors[viewId]) {
+                        if (duplicateHandler.fieldErrors[viewId][fieldId]) {
+                            console.log(`🔗 Also clearing duplicateHandler error for ${fieldId}`);
+                            delete duplicateHandler.fieldErrors[viewId][fieldId];
+
+                            // Clear last error value too
+                            if (duplicateHandler.lastErrorValues[viewId]) {
+                                delete duplicateHandler.lastErrorValues[viewId][fieldId];
+                            }
+
+                            // Re-enable submit if no more errors
+                            if (duplicateHandler.hasNoErrors(viewId)) {
+                                duplicateHandler.enableSubmit(viewId);
+                            }
+                        }
+                    }
                 } else {
                     // Fallback to old style if viewId not provided (legacy compatibility)
                     const selector = customSelector || `#kn-input-${fieldId}`;
@@ -2372,11 +2498,24 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Shows a custom green confirmation message for area code corrections
              */
-            addConfirmationMessage: function (fieldId, message, customSelector = null) {
-                const selector = customSelector || `#kn-input-${fieldId}`;
+            addConfirmationMessage: function (fieldId, message, customSelector = null, viewId = null) {
+                // Scope selector to view if viewId provided (prevents conflicts between views with same field)
+                let selector;
+                if (customSelector) {
+                    selector = customSelector;
+                } else if (viewId) {
+                    selector = `#${viewId} #kn-input-${fieldId}`;
+                } else {
+                    selector = `#kn-input-${fieldId}`;
+                }
                 const $field = $(selector);
 
-                console.log(`🟢 Adding confirmation to field: ${fieldId}, Message: '${message}'`);
+                console.log(`🟢 Adding confirmation to field: ${fieldId} (view: ${viewId || 'global'}), Message: '${message}'`);
+
+                if ($field.length === 0) {
+                    console.warn(`⚠️ Could not find field container for confirmation: ${selector}`);
+                    return;
+                }
 
                 // Remove any existing confirmation messages first
                 $field.find('.validation-confirmation-message').remove();
@@ -2392,8 +2531,16 @@ window.ktlReady = function (appInfo = {}) {
             /**
              * Removes confirmation message from a field
              */
-            removeConfirmationMessage: function (fieldId, customSelector = null) {
-                const selector = customSelector || `#kn-input-${fieldId}`;
+            removeConfirmationMessage: function (fieldId, customSelector = null, viewId = null) {
+                // Scope selector to view if viewId provided
+                let selector;
+                if (customSelector) {
+                    selector = customSelector;
+                } else if (viewId) {
+                    selector = `#${viewId} #kn-input-${fieldId}`;
+                } else {
+                    selector = `#kn-input-${fieldId}`;
+                }
                 const $field = $(selector);
                 $field.find('.validation-confirmation-message').remove();
             },
@@ -3160,11 +3307,11 @@ window.ktlReady = function (appInfo = {}) {
                         }
 
                         // Handle special cases for certain rule types
-                        if (fieldConfig.rule === 'landline-number') {
-                            utils.removeConfirmationMessage(fieldId);
+                        if (fieldConfig.rule === 'landline-number' || fieldConfig.rule === 'company-phone') {
+                            utils.removeConfirmationMessage(fieldId, null, viewId);
                             if (result.hasAreaCodeCorrection) {
-                                utils.addConfirmationMessage(fieldId, 'Please confirm area code');
-                                console.log(`🟢 Area code confirmation shown for ${fieldId}`);
+                                utils.addConfirmationMessage(fieldId, 'Please confirm area code', null, viewId);
+                                console.log(`🟢 Area code confirmation shown for ${fieldId} in ${viewId}`);
                             }
                         }
 
@@ -4081,12 +4228,13 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
-             * Build payload for contact creation forms
+             * Build payload for contact creation and update forms
              * This is called BEFORE form submission for duplicate checking
              */
             buildPreSubmissionPayload: function (viewId, formData) {
                 const config = viewConfigs[viewId];
-                const formType = config.formType; // 'contact-creation'
+                const formType = config.formType; // 'contact-creation' or 'contact-update'
+                const isUpdateForm = formType === 'contact-update';
 
                 console.log(`👤 Building ${formType} payload for ${viewId}`);
 
@@ -4103,24 +4251,111 @@ window.ktlReady = function (appInfo = {}) {
                     console.warn(`⚠️ Could not get current user info:`, error);
                 }
 
-                // Get tenant_id from hidden view (view_5623 contains field_3925)
+                // Get tenant_id from hidden view
+                // - Create Contact: view_5623 contains field_3925
+                // - Create Contact with Company: view_5633 may contain field_3925
+                // - Update Contact: view_5629 contains field_3925
                 let tenantId = '';
+                let tenantViewId = 'view_5623';  // Default for create forms
+                if (isUpdateForm) {
+                    tenantViewId = 'view_5629';
+                } else if (viewId === 'view_5631') {
+                    // Create Contact with Company - try view_5633 first, fallback to view_5623
+                    tenantViewId = 'view_5633';
+                }
                 try {
                     // The value is in a span with data-kn="connection-value" inside .field_3925
-                    const tenantField = $('#view_5623 .field_3925 [data-kn="connection-value"]');
+                    const tenantField = $(`#${tenantViewId} .field_3925 [data-kn="connection-value"]`);
                     if (tenantField.length > 0) {
                         tenantId = tenantField.text().trim();
                     }
                     // Fallback: try .kn-detail-body span
                     if (!tenantId) {
-                        const altField = $('#view_5623 .field_3925 .kn-detail-body span');
+                        const altField = $(`#${tenantViewId} .field_3925 .kn-detail-body span`);
                         if (altField.length > 0) {
                             tenantId = altField.text().trim();
                         }
                     }
-                    console.log(`🏢 Tenant ID from hidden view (view_5623): "${tenantId}"`);
+                    // Second fallback: try .kn-detail-body directly
+                    if (!tenantId) {
+                        const altField2 = $(`#${tenantViewId} .field_3925 .kn-detail-body`);
+                        if (altField2.length > 0) {
+                            tenantId = altField2.text().trim();
+                        }
+                    }
+                    // For view_5631, if tenant_id not found in view_5633, try view_5623
+                    if (!tenantId && viewId === 'view_5631') {
+                        const altTenantField = $(`#view_5623 .field_3925 .kn-detail-body`);
+                        if (altTenantField.length > 0) {
+                            tenantId = altTenantField.text().trim();
+                            console.log(`🏢 Tenant ID fallback from view_5623: "${tenantId}"`);
+                        }
+                    }
+                    console.log(`🏢 Tenant ID from hidden view (${tenantViewId}): "${tenantId}"`);
                 } catch (error) {
                     console.warn(`⚠️ Could not get tenant_id from hidden view:`, error);
+                }
+
+                // For Create Contact with Company (view_5631), get parent_record_id (company_id) from hidden view
+                let companyId = '';
+                if (viewId === 'view_5631') {
+                    try {
+                        // Get company_id from view_5633 field_984
+                        const companyIdSelector = config.hiddenView?.recordIds?.parent_record_id;
+                        if (companyIdSelector) {
+                            const $companyIdField = $(companyIdSelector);
+                            if ($companyIdField.length > 0) {
+                                companyId = $companyIdField.text().trim();
+                                console.log(`🏢 Company ID from hidden view (view_5633): "${companyId}"`);
+                            }
+                        }
+                        // Fallback: try window._parentRecordId if set during render
+                        if (!companyId && window._parentRecordId) {
+                            companyId = window._parentRecordId;
+                            console.log(`🏢 Company ID from window._parentRecordId: "${companyId}"`);
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Could not get company_id from hidden view:`, error);
+                    }
+                }
+
+                // For update forms, extract ecn_record_id from URL
+                // URL format: .../view-contact3/{ecn_record_id}/update-contact/{ecn_record_id}/
+                let ecnRecordId = '';
+                if (isUpdateForm) {
+                    try {
+                        const hash = window.location.hash || '';
+                        // Extract the ID from the URL - it appears after view-contact3/ or as the last slug
+                        const hashParts = hash.split('/').filter(part => part && part !== '#');
+                        // Look for the ECN record ID (24-character hex string)
+                        for (const part of hashParts) {
+                            // Knack record IDs are 24-character hex strings
+                            if (/^[a-f0-9]{24}$/i.test(part)) {
+                                ecnRecordId = part;
+                                break;  // Take the first one (should be the ECN ID)
+                            }
+                        }
+                        console.log(`🔗 ECN Record ID from URL: "${ecnRecordId}"`);
+                    } catch (error) {
+                        console.warn(`⚠️ Could not extract ecn_record_id from URL:`, error);
+                    }
+
+                    // Also try to get parent_record_id from hidden view (view_5630)
+                    // This is the ENT record ID for the parent company
+                    let parentRecordId = '';
+                    try {
+                        const parentField = $('#view_5630 .field_4135 .kn-detail-body');
+                        if (parentField.length > 0) {
+                            parentRecordId = parentField.text().trim();
+                        }
+                        console.log(`🏢 Parent Record ID from view_5630: "${parentRecordId}"`);
+                    } catch (error) {
+                        console.warn(`⚠️ Could not get parent_record_id from hidden view:`, error);
+                    }
+
+                    // Store for later use in payload
+                    window._ecnRecordId = ecnRecordId;
+                    window._parentRecordId = parentRecordId;
                 }
 
                 // Extract form field values using config selectors
@@ -4156,6 +4391,50 @@ window.ktlReady = function (appInfo = {}) {
                 const emailNormalised = this.normalizeEmail(emailRaw);
                 const mobileNormalised = this.normalizePhone(mobileRaw);
                 const phoneNormalised = this.normalizePhone(phoneRaw);
+
+                // For update forms, calculate change detection flags
+                let changeDetection = {};
+                if (isUpdateForm) {
+                    const originalValues = this.getOriginalValues(viewId);
+                    const recordIds = this.getExistingRecordIds(viewId);
+
+                    // Normalize original values for comparison
+                    const origFirstName = (originalValues.first_name || '').trim();
+                    const origLastName = (originalValues.last_name || '').trim();
+                    const origPreferredName = (originalValues.preferred_name || '').trim();
+                    const origEmail = this.normalizeEmail(originalValues.email || '');
+                    const origMobile = this.normalizePhone(originalValues.mobile || '');
+                    const origPhone = this.normalizePhone(originalValues.phone || '');
+
+                    // Determine what changed
+                    const nameChanged = (firstNameNormalised !== origFirstName) || (lastNameNormalised !== origLastName);
+                    const preferredNameChanged = preferredName.trim() !== origPreferredName;
+                    const emailChanged = emailNormalised !== origEmail;
+                    const mobileChanged = mobileNormalised !== origMobile;
+                    const phoneChanged = phoneNormalised !== origPhone;
+
+                    changeDetection = {
+                        name_has_changed: nameChanged,
+                        preferred_name_has_changed: preferredNameChanged,
+                        email_has_changed: emailChanged,
+                        mobile_has_changed: mobileChanged,
+                        phone_has_changed: phoneChanged,
+                        original_values: {
+                            first_name: origFirstName,
+                            last_name: origLastName,
+                            preferred_name: origPreferredName,
+                            email: origEmail,
+                            mobile: origMobile,
+                            phone: origPhone
+                        },
+                        record_ids: recordIds
+                    };
+
+                    // Store for post-submission webhook
+                    window._preSubmissionChangeDetection = changeDetection;
+
+                    console.log(`📊 Change detection for ${viewId}:`, changeDetection);
+                }
 
                 // Build payload
                 const payload = {
@@ -4194,6 +4473,42 @@ window.ktlReady = function (appInfo = {}) {
                         tenant_id: tenantId
                     }
                 };
+
+                // Add change detection and record IDs for update forms
+                if (isUpdateForm) {
+                    payload.change_detection = changeDetection;
+                    payload.data.change_detection = changeDetection;
+
+                    // Add ECN record ID (from URL) and parent record ID (ENT ID for email sharing check)
+                    payload.ecn_record_id = ecnRecordId || window._ecnRecordId || '';
+                    payload.ent_record_id = window._parentRecordId || '';  // Parent company ENT ID
+                    payload.data.ecn_record_id = payload.ecn_record_id;
+                    payload.data.ent_record_id = payload.ent_record_id;
+
+                    // Get connection_type from hidden view (view_5630)
+                    let connectionType = '';
+                    try {
+                        const $connectionTypeField = $('#view_5630 .field_3852 .kn-detail-body');
+                        if ($connectionTypeField.length > 0) {
+                            connectionType = $connectionTypeField.text().trim();
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Could not get connection_type from hidden view:`, error);
+                    }
+                    payload.connection_type = connectionType;
+                    payload.data.connection_type = connectionType;
+
+                    console.log(`🔗 Added update form IDs - ECN: "${payload.ecn_record_id}", ENT: "${payload.ent_record_id}", Connection Type: "${connectionType}"`);
+                }
+
+                // Add company_id for Create Contact with Company form (view_5631)
+                if (viewId === 'view_5631' && companyId) {
+                    payload.company_id = companyId;
+                    payload.parent_record_id = companyId;  // Also include as parent_record_id for clarity
+                    payload.data.company_id = companyId;
+                    payload.data.parent_record_id = companyId;
+                    console.log(`🏢 Added company_id to payload: "${companyId}"`);
+                }
 
                 console.log(`📦 Built ${formType} payload:`, payload);
                 return payload;
@@ -4284,8 +4599,30 @@ window.ktlReady = function (appInfo = {}) {
                 const mobileHasValue = mobileNormalised && mobileNormalised.trim() !== '';
                 const phoneHasValue = phoneNormalised && phoneNormalised.trim() !== '';
 
-                // Build email payload if email exists
-                if (emailHasValue) {
+                // For update forms, check if each field has changed (based on final values)
+                const isContactUpdateForm = formType === 'contact-update';
+                let emailChanged = true;  // Default true for create forms
+                let mobileChanged = true;
+                let phoneChanged = true;
+
+                if (isContactUpdateForm) {
+                    const originalValues = window._originalFormValues || {};
+                    const origEmail = this.normalizeEmail(originalValues.email || '');
+                    const origMobile = this.normalizePhone(originalValues.mobile || '');
+                    const origPhone = this.normalizePhone(originalValues.phone || '');
+
+                    emailChanged = emailNormalised !== origEmail;
+                    mobileChanged = mobileNormalised !== origMobile;
+                    phoneChanged = phoneNormalised !== origPhone;
+
+                    console.log(`📊 COM change detection for update form:`);
+                    console.log(`   Email: "${origEmail}" → "${emailNormalised}" (changed: ${emailChanged})`);
+                    console.log(`   Mobile: "${origMobile}" → "${mobileNormalised}" (changed: ${mobileChanged})`);
+                    console.log(`   Phone: "${origPhone}" → "${phoneNormalised}" (changed: ${phoneChanged})`);
+                }
+
+                // Build email payload if email has value AND (is create form OR has changed)
+                if (emailHasValue && (!isContactUpdateForm || emailChanged)) {
                     const emailParts = emailNormalised.split('@');
                     const emailLocal = emailParts[0] || '';
                     const emailDomain = emailParts[1] || '';
@@ -4303,8 +4640,8 @@ window.ktlReady = function (appInfo = {}) {
                     });
                 }
 
-                // Build mobile payload if mobile exists
-                if (mobileHasValue) {
+                // Build mobile payload if mobile has value AND (is create form OR has changed)
+                if (mobileHasValue && (!isContactUpdateForm || mobileChanged)) {
                     // Extract country code and national number
                     let countryCode = '61';  // Default to Australia
                     let nationalNumber = mobileNormalised;
@@ -4341,9 +4678,9 @@ window.ktlReady = function (appInfo = {}) {
                     });
                 }
 
-                // Build phone payload if phone exists AND user hasn't confirmed sharing an existing phone
+                // Build phone payload if phone has value AND (is create form OR has changed) AND user hasn't confirmed sharing
                 // When window._phoneIsShared is true, we link to existing COM instead of creating new one
-                if (phoneHasValue && !window._phoneIsShared) {
+                if (phoneHasValue && (!isContactUpdateForm || phoneChanged) && !window._phoneIsShared) {
                     // Extract country code and national number
                     let countryCode = '61';  // Default to Australia
                     let nationalNumber = phoneNormalised;
@@ -4418,6 +4755,57 @@ window.ktlReady = function (appInfo = {}) {
                 // Build full name as it appears in the data (First Last)
                 const fullName = (firstName + ' ' + lastName).trim();
 
+                // For update forms, calculate change detection based on FINAL submitted values
+                // This is important because user may have resolved conflicts by deleting values
+                const isUpdateForm = formType === 'contact-update';
+                let postSubmissionChangeDetection = {};
+
+                if (isUpdateForm) {
+                    // Get original values that were captured when form loaded
+                    const originalValues = window._originalFormValues || {};
+
+                    // Normalize original values for comparison
+                    const origFirstName = (originalValues.first_name || '').trim();
+                    const origLastName = (originalValues.last_name || '').trim();
+                    const origPreferredName = (originalValues.preferred_name || '').trim();
+                    const origEmail = this.normalizeEmail(originalValues.email || '');
+                    const origMobile = this.normalizePhone(originalValues.mobile || '');
+                    const origPhone = this.normalizePhone(originalValues.phone || '');
+
+                    // Compare FINAL submitted values (post-conflict resolution) against originals
+                    const nameChanged = (firstName.trim() !== origFirstName) || (lastName.trim() !== origLastName);
+                    const preferredNameChanged = preferredName.trim() !== origPreferredName;
+                    const emailChanged = emailNormalised !== origEmail;
+                    const mobileChanged = mobileNormalised !== origMobile;
+                    const phoneChanged = phoneNormalised !== origPhone;
+
+                    postSubmissionChangeDetection = {
+                        name_has_changed: nameChanged,
+                        preferred_name_has_changed: preferredNameChanged,
+                        email_has_changed: emailChanged,
+                        mobile_has_changed: mobileChanged,
+                        phone_has_changed: phoneChanged,
+                        original_values: {
+                            first_name: origFirstName,
+                            last_name: origLastName,
+                            preferred_name: origPreferredName,
+                            email: origEmail,
+                            mobile: origMobile,
+                            phone: origPhone
+                        },
+                        final_values: {
+                            first_name: firstName.trim(),
+                            last_name: lastName.trim(),
+                            preferred_name: preferredName.trim(),
+                            email: emailNormalised,
+                            mobile: mobileNormalised,
+                            phone: phoneNormalised
+                        }
+                    };
+
+                    console.log(`📊 Post-submission change detection for ${viewId}:`, postSubmissionChangeDetection);
+                }
+
                 // Build payload
                 const payload = {
                     view: viewId,
@@ -4462,8 +4850,114 @@ window.ktlReady = function (appInfo = {}) {
                     }
                 };
 
+                // Add change detection and record IDs for update forms
+                if (isUpdateForm) {
+                    payload.change_detection = postSubmissionChangeDetection;
+                    payload.data.change_detection = postSubmissionChangeDetection;
+
+                    // Get record IDs from hidden view (captured at form render)
+                    const recordIds = window._existingRecordIds || this.getExistingRecordIds(viewId);
+
+                    // Add record IDs to payload
+                    payload.record_ids = recordIds;
+                    payload.parent_record_id = recordIds.parent_record_id || '';
+                    payload.ecn_record_id = recordIds.ecn_record_id || '';
+                    payload.primary_email_record_id = recordIds.primary_email_record_id || '';
+                    payload.primary_mobile_record_id = recordIds.primary_mobile_record_id || '';
+                    payload.primary_phone_record_id = recordIds.primary_phone_record_id || '';
+                    payload.primary_scn_record_id = recordIds.primary_scn_record_id || '';
+                    payload.connection_type = recordIds.connection_type || '';
+
+                    // Also add to data object
+                    payload.data.record_ids = recordIds;
+                    payload.data.connection_type = recordIds.connection_type || '';
+
+                    console.log(`🆔 Added record IDs to post-submission payload:`, recordIds);
+                }
+
+                // Add company_id for Create Contact with Company form (view_5631)
+                if (viewId === 'view_5631') {
+                    // Get company_id from window._parentRecordId (set during render)
+                    // or from hidden view config
+                    let companyId = window._parentRecordId || '';
+                    if (!companyId && config.hiddenView && config.hiddenView.recordIds) {
+                        const companyIdSelector = config.hiddenView.recordIds.parent_record_id;
+                        if (companyIdSelector) {
+                            const $companyIdField = $(companyIdSelector);
+                            if ($companyIdField.length > 0) {
+                                companyId = $companyIdField.text().trim();
+                            }
+                        }
+                    }
+                    if (companyId) {
+                        payload.company_id = companyId;
+                        payload.parent_record_id = companyId;
+                        payload.data.company_id = companyId;
+                        payload.data.parent_record_id = companyId;
+                        console.log(`🏢 Added company_id to post-submission payload: "${companyId}"`);
+                    }
+                }
+
                 console.log(`📦 Built post-submission ${formType} payload:`, payload);
                 return payload;
+            },
+
+            /**
+             * Get original values from hidden view for Update Contact form
+             * Used for change detection to determine if revalidation is needed
+             */
+            getOriginalValues: function (viewId) {
+                const config = viewConfigs[viewId];
+                if (!config || !config.hiddenView || !config.hiddenView.originalValues) {
+                    console.log(`⚠️ No hidden view configured for ${viewId}`);
+                    return {};
+                }
+
+                const selectors = config.hiddenView.originalValues;
+                const originalValues = {};
+
+                // Extract values using configured selectors
+                Object.keys(selectors).forEach(key => {
+                    const selector = selectors[key];
+                    const $el = $(selector);
+                    if ($el.length > 0) {
+                        originalValues[key] = $el.text().trim();
+                    } else {
+                        originalValues[key] = '';
+                    }
+                });
+
+                console.log(`📋 Original values from hidden view for ${viewId}:`, originalValues);
+                return originalValues;
+            },
+
+            /**
+             * Get existing record IDs from hidden view for Update Contact form
+             * Used for webhook payloads to reference existing records
+             */
+            getExistingRecordIds: function (viewId) {
+                const config = viewConfigs[viewId];
+                if (!config || !config.hiddenView || !config.hiddenView.recordIds) {
+                    console.log(`⚠️ No record IDs configured for ${viewId}`);
+                    return {};
+                }
+
+                const selectors = config.hiddenView.recordIds;
+                const recordIds = {};
+
+                // Extract record IDs using configured selectors
+                Object.keys(selectors).forEach(key => {
+                    const selector = selectors[key];
+                    const $el = $(selector);
+                    if ($el.length > 0) {
+                        recordIds[key] = $el.text().trim();
+                    } else {
+                        recordIds[key] = '';
+                    }
+                });
+
+                console.log(`🆔 Record IDs from hidden view for ${viewId}:`, recordIds);
+                return recordIds;
             },
 
             /**
@@ -4606,7 +5100,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Check form type and use appropriate handler
                 const isCompanyForm = (config.formType === 'company-creation' || config.formType === 'company-update');
-                const isContactForm = (config.formType === 'contact-creation');
+                const isContactForm = (config.formType === 'contact-creation' || config.formType === 'contact-update');
 
                 let payload;
 
@@ -4825,7 +5319,7 @@ window.ktlReady = function (appInfo = {}) {
                     </div>
                 `);
 
-                // Add hover effects to the link
+                // Add hover effects and click handler to the link
                 $notification.find('.notification-view-link').on('mouseenter', function () {
                     $(this).css({
                         'background': 'rgba(255, 255, 255, 0.9)',
@@ -4840,17 +5334,20 @@ window.ktlReady = function (appInfo = {}) {
                         'transform': 'translateY(0)',
                         'box-shadow': 'none'
                     });
+                }).on('click', function (e) {
+                    // Explicitly handle link clicks to ensure they work
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = $(this).attr('href');
+                    if (href) {
+                        console.log(`🔗 Opening link: ${href}`);
+                        window.open(href, '_blank');
+                    }
                 });
 
                 // Prevent clicks on the notification itself from doing anything unexpected
-                // But allow links to work normally
                 $notification.on('click', function (e) {
-                    // If clicking the link, let it through
-                    if ($(e.target).hasClass('notification-view-link') || $(e.target).closest('.notification-view-link').length) {
-                        // Let the link work (target="_blank" will open in new tab)
-                        return true;
-                    }
-                    // Otherwise prevent any default behavior on the notification div
+                    // Stop propagation to prevent any parent handlers
                     e.stopPropagation();
                 });
 
@@ -4860,14 +5357,11 @@ window.ktlReady = function (appInfo = {}) {
                 // Insert notification after the field's container
                 $field.closest('.kn-input').append($notification);
 
-                // Behavior based on type
-                if (type === 'error') {
-                    // Focus and select the field for errors
-                    $field.focus().select();
-                    // Scroll to field
-                    $field[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else if (type === 'warning') {
-                    // Just scroll, don't focus
+                // Behavior based on type - scroll into view but don't steal focus
+                // This allows users to interact with other parts of the form
+                if (type === 'error' || type === 'warning') {
+                    // Scroll to field so user can see the error, but don't focus
+                    // This prevents the aggressive focus-stealing that blocks other interactions
                     $field[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
                 // Success/info: no auto-scroll/focus
@@ -5266,10 +5760,69 @@ window.ktlReady = function (appInfo = {}) {
                         return 'allow';
                     }
                 }
-            }
+            },
 
-            // PLACEHOLDER: Add other forms here as needed
-            // view_YYYY: { ... } // Update Contact Form
+            // ===== CONTACT UPDATE FORM =====
+            view_5626: {
+                // Name fields (first/last) - always require revalidation (duplicate detection)
+                field_3860: {
+                    strategy: 'revalidate',
+                    reason: 'Name changed - must check for duplicate person'
+                },
+                // Preferred name - superficial change, no validation needed (submit directly)
+                field_3861: {
+                    strategy: 'allow',
+                    reason: 'Preferred name is superficial - does not require validation'
+                },
+                // Email - conditional based on whether cleared or changed
+                field_4164: {
+                    strategy: 'conditional',
+                    reason: 'Email validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📧 Email deleted - no pre-validation needed, post-submission required');
+                            return 'post_only';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📧 Email changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                },
+                // Mobile - conditional based on whether cleared or changed
+                field_4165: {
+                    strategy: 'conditional',
+                    reason: 'Mobile validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📱 Mobile deleted - no pre-validation needed, post-submission required');
+                            return 'post_only';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📱 Mobile changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                },
+                // Phone - conditional based on whether cleared or changed
+                field_4056: {
+                    strategy: 'conditional',
+                    reason: 'Phone validation depends on action',
+                    condition: (oldVal, newVal) => {
+                        if (!newVal || newVal.trim() === '') {
+                            console.log('📞 Phone deleted - no pre-validation needed, post-submission required');
+                            return 'post_only';
+                        }
+                        if (newVal !== oldVal) {
+                            console.log(`📞 Phone changed from "${oldVal}" to "${newVal}" - revalidation required`);
+                            return 'revalidate';
+                        }
+                        return 'allow';
+                    }
+                }
+            }
         };
 
         /**
@@ -5522,6 +6075,95 @@ window.ktlReady = function (appInfo = {}) {
             },
 
             /**
+             * Check if pre-submission webhook validation is actually needed for update forms
+             *
+             * Pre-submission validation is ONLY needed if a COM field has:
+             * 1. A non-empty value AND
+             * 2. That value is different from the original
+             *
+             * If COM fields are empty or reverted to original → skip pre-submission
+             * (Post-submission will still handle deletions and updates)
+             *
+             * @param {string} viewId - The view ID
+             * @returns {boolean} - True if pre-submission webhook should fire
+             */
+            needsPreSubmissionValidation: function (viewId) {
+                const config = viewConfigs[viewId];
+                if (!config) return false;
+
+                // Only applies to update forms
+                const formType = config.formType;
+                if (formType !== 'contact-update' && formType !== 'company-update') {
+                    // For create forms, always need pre-submission validation
+                    return true;
+                }
+
+                // Get original values
+                const originalValues = window._originalFormValues || {};
+
+                // COM field mappings for contact forms
+                const comFieldsContact = {
+                    field_4164: { original: 'email', normalize: 'email' },
+                    field_4165: { original: 'mobile', normalize: 'phone' },
+                    field_4056: { original: 'phone', normalize: 'phone' }
+                };
+
+                // COM field mappings for company forms
+                const comFieldsCompany = {
+                    field_4164: { original: 'email', normalize: 'email' },
+                    field_4056: { original: 'phone', normalize: 'phone' }
+                };
+
+                const comFields = formType === 'contact-update' ? comFieldsContact : comFieldsCompany;
+
+                console.log(`🔍 Checking if pre-submission validation needed for ${viewId} (${formType})`);
+
+                let needsValidation = false;
+
+                for (const [fieldId, mapping] of Object.entries(comFields)) {
+                    const fieldConfig = config.fields[fieldId];
+                    if (!fieldConfig) continue;
+
+                    // Get current value
+                    const $field = $(fieldConfig.selector);
+                    const currentValue = ($field.val() || '').trim();
+
+                    // Get original value
+                    const originalValue = (originalValues[mapping.original] || '').trim();
+
+                    // Normalize for comparison
+                    let normalizedCurrent = currentValue;
+                    let normalizedOriginal = originalValue;
+
+                    if (mapping.normalize === 'email' && typeof contactFormHandler !== 'undefined') {
+                        normalizedCurrent = contactFormHandler.normalizeEmail(currentValue);
+                        normalizedOriginal = contactFormHandler.normalizeEmail(originalValue);
+                    } else if (mapping.normalize === 'phone' && typeof contactFormHandler !== 'undefined') {
+                        normalizedCurrent = contactFormHandler.normalizePhone(currentValue);
+                        normalizedOriginal = contactFormHandler.normalizePhone(originalValue);
+                    }
+
+                    const isEmpty = normalizedCurrent === '';
+                    const isUnchanged = normalizedCurrent === normalizedOriginal;
+
+                    console.log(`   ${fieldId}: current="${normalizedCurrent}", original="${normalizedOriginal}", empty=${isEmpty}, unchanged=${isUnchanged}`);
+
+                    // If non-empty AND different from original → needs validation
+                    if (!isEmpty && !isUnchanged) {
+                        console.log(`   ✓ ${fieldId} has new non-empty value - pre-submission validation needed`);
+                        needsValidation = true;
+                        break; // One is enough to require validation
+                    }
+                }
+
+                if (!needsValidation) {
+                    console.log(`   → No new non-empty COM values - skipping pre-submission validation`);
+                }
+
+                return needsValidation;
+            },
+
+            /**
              * Clear validation state after successful submission
              * Should be called after form submits to Knack
              *
@@ -5707,13 +6349,14 @@ window.ktlReady = function (appInfo = {}) {
                 // Disable submit button
                 this.disableSubmit(viewId);
 
-                // Clear the flag after a short delay to allow any pending events to settle
+                // Clear the flag after a longer delay to allow any pending events to settle
+                // Extended from 100ms to 500ms to handle async webhook responses
                 setTimeout(() => {
                     if (window._showingError) {
                         delete window._showingError[fieldId];
                         console.log(`🔓 Cleared showingError flag for ${fieldId}`);
                     }
-                }, 100);
+                }, 500);
             },
 
             /**
@@ -5758,6 +6401,7 @@ window.ktlReady = function (appInfo = {}) {
                 // Clear error state
                 if (this.fieldErrors[viewId]) {
                     delete this.fieldErrors[viewId][fieldId];
+                    console.log(`🗑️ Deleted fieldErrors[${viewId}][${fieldId}]. Remaining:`, Object.keys(this.fieldErrors[viewId] || {}));
                 }
 
                 // Clear last error value
@@ -5765,9 +6409,19 @@ window.ktlReady = function (appInfo = {}) {
                     delete this.lastErrorValues[viewId][fieldId];
                 }
 
+                // Debug: Log current state before checking hasNoErrors
+                console.log(`📊 State after clearing ${fieldId}:`, {
+                    fieldErrors: this.fieldErrors[viewId] ? Object.keys(this.fieldErrors[viewId]) : [],
+                    pendingShareableConflicts: this.pendingShareableConflicts[viewId] ? Object.keys(this.pendingShareableConflicts[viewId]) : []
+                });
+
                 // Re-enable submit if no more errors
-                if (this.hasNoErrors(viewId)) {
+                const noErrors = this.hasNoErrors(viewId);
+                console.log(`🔍 hasNoErrors(${viewId}) = ${noErrors}`);
+                if (noErrors) {
                     this.enableSubmit(viewId);
+                } else {
+                    console.log(`⚠️ Submit button NOT enabled - errors still exist`);
                 }
             },
 
@@ -5986,7 +6640,19 @@ window.ktlReady = function (appInfo = {}) {
                             }
 
                             // ONLY clear error if value has actually changed from the last error value
-                            if (fieldValue.toLowerCase() !== (lastErrorValue || '').toLowerCase()) {
+                            // For phone fields, also normalize for comparison to handle formatting differences
+                            let valuesDifferent = false;
+                            if (fieldId === 'field_4056' || fieldId === 'field_4165') {
+                                // For phone/mobile fields, normalize both values before comparing
+                                const normalizedCurrent = fieldValue.replace(/[\s\-\(\)\.+]/g, '');
+                                const normalizedLast = (lastErrorValue || '').replace(/[\s\-\(\)\.+]/g, '');
+                                valuesDifferent = normalizedCurrent !== normalizedLast;
+                                console.log(`📞 Phone comparison: current="${normalizedCurrent}" vs last="${normalizedLast}" → different=${valuesDifferent}`);
+                            } else {
+                                valuesDifferent = fieldValue.toLowerCase() !== (lastErrorValue || '').toLowerCase();
+                            }
+
+                            if (valuesDifferent) {
                                 console.log(`✅ Value changed from "${lastErrorValue}" to "${fieldValue}" - clearing error`);
                                 self.clearFieldError(viewId, fieldId);
                             } else {
@@ -6030,6 +6696,16 @@ window.ktlReady = function (appInfo = {}) {
                                 if (isSameErrorValue) {
                                     // User re-entered the problematic value
                                     console.log(`⚠️ User re-entered problematic value "${fieldValue}" (normalized: "${currentNormalized}")`);
+
+                                    // Check if error notification already exists - don't re-show if it does
+                                    const $existingNotification = $(`#${viewId} #notification-error-${fieldId}, #${viewId} .field-notification-message`).filter(function() {
+                                        return $(this).closest('.kn-input').find(`[name="${fieldId}"], #${fieldId}`).length > 0;
+                                    });
+
+                                    if ($existingNotification.length > 0) {
+                                        console.log(`⏭️ Error notification already visible for ${fieldId}, skipping re-show`);
+                                        return;
+                                    }
 
                                     // Check if this was a shareable phone - show phone sharing UI instead of regular error
                                     if (problematicValue.is_shareable && problematicValue.conflict) {
@@ -6275,10 +6951,11 @@ window.ktlReady = function (appInfo = {}) {
                     const viewLink = result.messages.view_link;
                     this.showFieldError(viewId, 'field_4056', errorMessage, viewLink);
 
-                } else if (blockReason === 'shared_contacts_not_allowed') {
-                    // Handle shared contacts when not allowed
+                } else if (blockReason === 'shared_contacts_not_allowed' || blockReason === 'duplicate_found' || blockReason === 'phone_only_unverifiable') {
+                    // Handle shared contacts when not allowed OR duplicate communication found
+                    // OR phone-only form that can't verify identity
                     // Show field-level errors for each conflicting contact
-                    // BUT: shareable conflicts (phones) get special orange UI with share option
+                    // BUT: shareable conflicts (phones/emails) get special orange UI with share option
                     const conflicts = result.conflicts || [];
 
                     console.log(`🔍 Processing ${conflicts.length} conflict(s):`, conflicts);
@@ -7360,6 +8037,27 @@ window.ktlReady = function (appInfo = {}) {
                         // Check if revalidation is needed due to field changes
                         const needsRevalidation = changeTracker.needsRevalidation(viewId);
                         const hasBeenValidated = !!changeTracker.validatedValues[viewId];
+                        const needsPreSubmission = changeTracker.needsPreSubmissionValidation(viewId);
+
+                        console.log(`📊 Before-submit decision: hasBeenValidated=${hasBeenValidated}, needsRevalidation=${needsRevalidation}, needsPreSubmission=${needsPreSubmission}`);
+
+                        // For update forms: Skip pre-submission if no COM fields have new non-empty values
+                        // This handles: deletions, reverting to original, or no COM changes
+                        if (!needsPreSubmission) {
+                            console.log(`✅ No pre-submission validation needed - submitting directly`);
+
+                            // Capture form data before submission for post-submission webhook
+                            const formData = eventListeners.extractFormData(viewId);
+                            window._preSubmissionFormData = formData;
+                            console.log(`💾 Stored form data for direct submission:`, formData);
+
+                            // Clear validation state since we're submitting
+                            changeTracker.clearValidationState(viewId);
+
+                            // Allow normal Knack submission
+                            window.skipValidationForSubmit = true;
+                            return true;
+                        }
 
                         // If previously validated AND no revalidation needed → submit directly
                         if (hasBeenValidated && !needsRevalidation) {
@@ -7419,16 +8117,7 @@ window.ktlReady = function (appInfo = {}) {
                         const $submitBtn = $form.find('button[type="submit"]');
                         const originalText = $submitBtn.text();
 
-                        // NEW: Show informative message if revalidating
-                        let loadingMessage = 'Checking for duplicates...';
-                        if (needsRevalidation) {
-                            const summary = changeTracker.getChangesSummary(viewId);
-                            const primaryReason = summary.reasons[0] || 'Field changed';
-                            loadingMessage = `${primaryReason} - rechecking...`;
-                            console.log(`📢 User message: ${loadingMessage}`);
-                        }
-
-                        $submitBtn.prop('disabled', true).text(loadingMessage);
+                        $submitBtn.prop('disabled', true).text('Validating...');
 
                         // Fire the existing webhook which now includes duplicate detection
                         webhookManager.fireWebhookWithDuplicateCheck(viewId, formData, $form, $submitBtn, originalText)
@@ -7481,8 +8170,27 @@ window.ktlReady = function (appInfo = {}) {
                         // Check if revalidation is needed due to field changes
                         const needsRevalidation = changeTracker.needsRevalidation(viewId);
                         const hasBeenValidated = !!changeTracker.validatedValues[viewId];
+                        const needsPreSubmission = changeTracker.needsPreSubmissionValidation(viewId);
 
-                        console.log(`📊 Decision tree check: hasBeenValidated=${hasBeenValidated}, needsRevalidation=${needsRevalidation}`);
+                        console.log(`📊 Decision tree check: hasBeenValidated=${hasBeenValidated}, needsRevalidation=${needsRevalidation}, needsPreSubmission=${needsPreSubmission}`);
+
+                        // For update forms: Skip pre-submission if no COM fields have new non-empty values
+                        // This handles: deletions, reverting to original, or no COM changes
+                        if (!needsPreSubmission) {
+                            console.log(`✅ No pre-submission validation needed - allowing direct Knack submission`);
+
+                            // Capture form data before submission for post-submission webhook
+                            const formData = eventListeners.extractFormData(viewId);
+                            window._preSubmissionFormData = formData;
+                            console.log(`💾 Stored form data for direct submission:`, formData);
+
+                            // Clear validation state since we're submitting
+                            changeTracker.clearValidationState(viewId);
+
+                            // Allow normal Knack submission - don't prevent default
+                            window.skipValidationForSubmit = true;
+                            return true;
+                        }
 
                         // If previously validated AND no revalidation needed → submit directly to Knack
                         if (hasBeenValidated && !needsRevalidation) {
@@ -7515,15 +8223,7 @@ window.ktlReady = function (appInfo = {}) {
                         const $submitBtn = $(e.currentTarget);
                         const originalText = $submitBtn.text();
 
-                        // Show informative message if revalidating
-                        let loadingMessage = 'Checking for duplicates...';
-                        if (needsRevalidation) {
-                            const summary = changeTracker.getChangesSummary(viewId);
-                            if (summary.reasons.length > 0) {
-                                loadingMessage = summary.reasons[0];
-                            }
-                        }
-                        $submitBtn.prop('disabled', true).text(loadingMessage);
+                        $submitBtn.prop('disabled', true).text('Validating...');
 
                         // Fire the existing webhook which now includes duplicate detection
                         webhookManager.fireWebhookWithDuplicateCheck(viewId, formData, $form, $submitBtn, originalText)
@@ -7791,10 +8491,10 @@ window.ktlReady = function (appInfo = {}) {
 
                                     // Handle special cases for certain rule types
                                     if (fieldConfig.rule === 'landline-number' || fieldConfig.rule === 'company-phone') {
-                                        utils.removeConfirmationMessage(fieldId);
+                                        utils.removeConfirmationMessage(fieldId, null, viewId);
                                         if (result.hasAreaCodeCorrection) {
-                                            utils.addConfirmationMessage(fieldId, 'Please confirm area code');
-                                            console.log(`🟢 Area code confirmation shown for ${fieldId}`);
+                                            utils.addConfirmationMessage(fieldId, 'Please confirm area code', null, viewId);
+                                            console.log(`🟢 Area code confirmation shown for ${fieldId} in ${viewId}`);
                                         }
                                     }
 
@@ -8207,6 +8907,195 @@ window.ktlReady = function (appInfo = {}) {
                     contactFormHandler.firePostSubmissionWebhook('view_5612', response);
                 });
 
+                // ===== CREATE CONTACT WITH COMPANY FORM (view_5631) =====
+                $(document).on('knack-view-render.view_5631', function (event, view, data) {
+                    setTimeout(function () {
+                        const viewId = 'view_5631';
+                        // Try multiple selectors - form may be in modal or inline
+                        let $submitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
+                        if (!$submitBtn.length) {
+                            // Try within modal context
+                            $submitBtn = $('.kn-modal button[type="submit"], .kn-modal input[type="submit"]');
+                        }
+                        if (!$submitBtn.length) {
+                            // Try generic form submit button
+                            $submitBtn = $(`#${viewId}`).find('.kn-button.is-primary, button.is-primary');
+                        }
+
+                        if ($submitBtn.length) {
+                            // Set submit button text to "Validate" for duplicate checking
+                            $submitBtn.text('Validate');
+                            console.log('✏️ Changed submit button text to "Validate" for view_5631 (Create Contact with Company)');
+                        } else {
+                            console.warn('⚠️ Could not find submit button for view_5631');
+                        }
+
+                        // Focus on first name field
+                        const $firstNameField = $(`#${viewId} input[name="first"]`);
+                        if ($firstNameField.length) {
+                            $firstNameField.focus();
+                            console.log('⌨️ Focused first name field');
+                        }
+
+                        // Trim email field on blur
+                        $(`#${viewId} #field_4164`).off('blur.trim').on('blur.trim', function () {
+                            const trimmed = $(this).val().trim();
+                            if (trimmed !== $(this).val()) {
+                                $(this).val(trimmed);
+                            }
+                        });
+
+                        // Capture parent record ID (company_id) from hidden view
+                        const config = viewConfigs[viewId];
+                        if (config && config.hiddenView && config.hiddenView.recordIds) {
+                            const parentIdSelector = config.hiddenView.recordIds.parent_record_id;
+                            const $parentIdField = $(parentIdSelector);
+                            if ($parentIdField.length) {
+                                const parentId = $parentIdField.text().trim();
+                                window._parentRecordId = parentId;
+                                console.log(`📋 Captured parent_record_id (company_id) for view_5631: ${parentId}`);
+                            } else {
+                                console.warn('⚠️ Could not find parent_record_id field in hidden view');
+                            }
+                        }
+
+                        // Set up field error listeners for conflict handling
+                        duplicateHandler.setupFieldErrorListeners(viewId);
+
+                        console.log('✅ Create Contact with Company form (view_5631) initialized');
+                    }, 100);
+                });
+
+                // Create Contact with Company Form submit handler (view_5631)
+                $(document).on('knack-form-submit.view_5631', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_5631 (contact-creation with company)`);
+                    console.log(`📦 Submission response:`, response);
+
+                    // Fire post-submission webhook if enabled
+                    contactFormHandler.firePostSubmissionWebhook('view_5631', response);
+                });
+
+                // ===== CONTACT UPDATE FORM (view_5626) =====
+                $(document).on('knack-view-render.view_5626', function (event, view, data) {
+                    setTimeout(function () {
+                        const viewId = 'view_5626';
+                        const $submitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
+
+                        if ($submitBtn.length) {
+                            // Set initial button text to "Save" (update forms don't need validation unless fields change)
+                            $submitBtn.text('Save');
+                            console.log('✏️ Set submit button text to "Save" for view_5626 (Update Contact)');
+                        }
+
+                        // Capture original values from hidden view (view_5629) for change detection
+                        const originalValues = contactFormHandler.getOriginalValues(viewId);
+                        const recordIds = contactFormHandler.getExistingRecordIds(viewId);
+
+                        // Store as baseline for change detection
+                        changeTracker.validatedValues[viewId] = {
+                            field_3860: {
+                                first: originalValues.first_name || '',
+                                last: originalValues.last_name || ''
+                            },
+                            field_3861: originalValues.preferred_name || '',
+                            field_4164: originalValues.email || '',
+                            field_4165: originalValues.mobile || '',
+                            field_4056: originalValues.phone || ''
+                        };
+
+                        // Store record IDs globally for webhook payloads
+                        window._existingRecordIds = recordIds;
+
+                        // Store original values globally for post-submission webhook
+                        window._originalFormValues = originalValues;
+
+                        console.log('📋 Captured original values for view_5626:', changeTracker.validatedValues[viewId]);
+                        console.log('📋 Captured record IDs for view_5626:', recordIds);
+
+                        // Set up field error listeners for conflict handling
+                        duplicateHandler.setupFieldErrorListeners(viewId);
+
+                        // Trim email field on blur
+                        $('#field_4164').off('blur.trim').on('blur.trim', function () {
+                            const trimmed = $(this).val().trim();
+                            if (trimmed !== $(this).val()) {
+                                $(this).val(trimmed);
+                            }
+                        });
+
+                        console.log('✅ Contact update form (view_5626) initialized');
+                    }, 100);
+                });
+
+                // Contact Update Form submit handler (view_5626)
+                $(document).on('knack-form-submit.view_5626', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_5626 (contact-update)`);
+                    console.log(`📦 Submission response:`, response);
+
+                    // Calculate change detection based on FINAL submitted values (not pre-submission)
+                    // This is important because user may have resolved conflicts by deleting values
+                    const originalValues = window._originalFormValues || {};
+                    const storedFormData = window._preSubmissionFormData || {};
+
+                    // Get final submitted values
+                    const finalFirstName = storedFormData.field_3860 ? (storedFormData.field_3860.first || '').trim() : '';
+                    const finalLastName = storedFormData.field_3860 ? (storedFormData.field_3860.last || '').trim() : '';
+                    const finalEmail = contactFormHandler.normalizeEmail(
+                        storedFormData.contact_info ? storedFormData.contact_info.email : (storedFormData.field_4164 || '')
+                    );
+                    const finalMobile = contactFormHandler.normalizePhone(
+                        storedFormData.contact_info ? storedFormData.contact_info.mobile : (storedFormData.field_4165 || '')
+                    );
+                    const finalPhone = contactFormHandler.normalizePhone(
+                        storedFormData.contact_info ? storedFormData.contact_info.phone : (storedFormData.field_4056 || '')
+                    );
+
+                    // Get original values (normalized)
+                    const origFirstName = (originalValues.first_name || '').trim();
+                    const origLastName = (originalValues.last_name || '').trim();
+                    const origEmail = contactFormHandler.normalizeEmail(originalValues.email || '');
+                    const origMobile = contactFormHandler.normalizePhone(originalValues.mobile || '');
+                    const origPhone = contactFormHandler.normalizePhone(originalValues.phone || '');
+
+                    // Calculate non-superficial changes (name, email, mobile, phone - NOT preferred_name)
+                    const nameChanged = (finalFirstName !== origFirstName) || (finalLastName !== origLastName);
+                    const emailChanged = finalEmail !== origEmail;
+                    const mobileChanged = finalMobile !== origMobile;
+                    const phoneChanged = finalPhone !== origPhone;
+
+                    const hasNonSuperficialChanges = nameChanged || emailChanged || mobileChanged || phoneChanged;
+
+                    console.log(`📊 Final change detection (post-submission):`);
+                    console.log(`   Name changed: ${nameChanged} ("${origFirstName} ${origLastName}" → "${finalFirstName} ${finalLastName}")`);
+                    console.log(`   Email changed: ${emailChanged} ("${origEmail}" → "${finalEmail}")`);
+                    console.log(`   Mobile changed: ${mobileChanged} ("${origMobile}" → "${finalMobile}")`);
+                    console.log(`   Phone changed: ${phoneChanged} ("${origPhone}" → "${finalPhone}")`);
+                    console.log(`   Has non-superficial changes: ${hasNonSuperficialChanges}`);
+
+                    // Store change tracking for polling on contact view
+                    window._updateContactChanges = {
+                        nameChanged: nameChanged,
+                        emailChanged: emailChanged,
+                        mobileChanged: mobileChanged,
+                        phoneChanged: phoneChanged
+                    };
+                    console.log('📋 Stored change tracking for polling:', window._updateContactChanges);
+
+                    // Only fire post-submission webhook if there are non-superficial changes
+                    if (hasNonSuperficialChanges) {
+                        setTimeout(() => {
+                            console.log(`⏱️ Firing post-submission webhook for contact update form (non-superficial changes detected)`);
+                            contactFormHandler.firePostSubmissionWebhook('view_5626', response);
+                        }, 1000);
+                    } else {
+                        console.log(`⏭️ Skipping post-submission webhook - only superficial changes (preferred name)`);
+                        // Cleanup window variables since we're not firing webhook
+                        delete window._preSubmissionFormData;
+                        delete window._preSubmissionChangeDetection;
+                        delete window._originalFormValues;
+                    }
+                });
+
                 // Add test data prefill buttons to configured views
                 $(document).on('knack-view-render.any', function (event, view, data) {
                     const viewId = view.key;
@@ -8217,7 +9106,7 @@ window.ktlReady = function (appInfo = {}) {
                         }, 100);
 
                         // Validate prefilled fields for company and contact forms
-                        if (viewId === 'view_4059' || viewId === 'view_5605' || viewId === 'view_5612') {
+                        if (viewId === 'view_4059' || viewId === 'view_5605' || viewId === 'view_5612' || viewId === 'view_5626' || viewId === 'view_5631') {
                             console.log(`📋 Form (${viewId}) rendered - checking for prefilled fields`);
                             setTimeout(() => {
                                 eventListeners.validatePrefilledFields(viewId);
@@ -9607,15 +10496,9 @@ window.ktlReady = function (appInfo = {}) {
             if (view4829IsActive && !view4829RefreshPaused && Knack.router.current_scene_key === 'scene_1973') {
                 console.log('⏰ 10 seconds elapsed - refreshing view_4829...');
 
-                // Call KTL's refresh function
-                if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
-                    window.ktl.views.refreshView('view_4829');
-                    console.log('✅ Called ktl.views.refreshView for view_4829');
-                } else {
-                    // Fallback to Knack's native refresh
-                    console.warn('⚠️ KTL refresh not available, using Knack native refresh');
-                    Knack.views['view_4829'].model.fetch();
-                }
+                // Use Knack's native fetch - smoother than KTL's refreshView which triggers full render
+                Knack.views['view_4829'].model.fetch();
+                console.log('✅ Called Knack native model.fetch() for view_4829');
             }
         }, 10000); // 10 seconds
 
@@ -9955,10 +10838,23 @@ window.ktlReady = function (appInfo = {}) {
     }
 
     /**
+     * Show view_5601 and view_5602 after view_5600 data is available
+     * Note: Views are hidden by CSS by default (visibility: hidden)
+     */
+    function showContactDetailViews() {
+        $('#view_5601').css('visibility', 'visible');
+        $('#view_5602').css('visibility', 'visible');
+        console.log('👁️ Showing view_5601 and view_5602');
+    }
+
+    /**
      * Start polling when scene_2397 renders
      */
     $(document).on('knack-scene-render.scene_2397', function (event, scene) {
         console.log('📍 Entered scene_2397 - starting processing status polling');
+
+        // Note: "Back to Contacts" button hidden globally via CSS (href="#contacts6")
+        // Note: view_5601 and view_5602 are hidden by CSS until ECN type is known
 
         // Clear any existing timer
         if (processingPollTimer) {
@@ -10010,47 +10906,107 @@ window.ktlReady = function (appInfo = {}) {
         }
     });
 
+    /**
+     * Stop polling when Update Company or Update Contact button is clicked
+     * The modal forms don't need the parent scene polling - KTL will refresh views on form close
+     */
+    function stopPollingForUpdateModal() {
+        if (processingPollTimer) {
+            console.log('🛑 Update button clicked - stopping processing status polling');
+            clearInterval(processingPollTimer);
+            processingPollTimer = null;
+            processingPollAttempts = 0;
+        }
+    }
+
+    /**
+     * Attach click handlers to Update buttons in view_5601 to stop polling
+     */
+    $(document).on('knack-view-render.view_5601', function (event, view, data) {
+        // Use namespaced event to prevent duplicate handlers
+        $('#view_5601 a[href*="update-company"]').off('click.stopPolling').on('click.stopPolling', function () {
+            console.log('🔘 Update Company button clicked');
+            stopPollingForUpdateModal();
+        });
+
+        $('#view_5601 a[href*="update-contact"]').off('click.stopPolling').on('click.stopPolling', function () {
+            console.log('🔘 Update Contact button clicked');
+            stopPollingForUpdateModal();
+        });
+    });
+
     // ========================================================================
     // END CONTACT VIEW PROCESSING STATUS POLLING
     // ========================================================================
 
-    // ========================================================================
-    // HIDE HR DIVS IN view_5601
-    // ========================================================================
+    /**
+     * Show/hide Update Company and Update Contact buttons based on ECN type
+     * If field_4219 = 'Individual' -> show Update Contact, hide Update Company
+     * Otherwise (including null) -> show Update Company, hide Update Contact
+     */
+    function updateButtonVisibilityByEcnType() {
+        // Get ECN type from view_5600 field_4219
+        const $ecnTypeField = $('#view_5600 .field_4219 .kn-detail-body');
+        const ecnType = $ecnTypeField.length > 0 ? $ecnTypeField.text().trim() : '';
+
+        // Skip if ECN type field is empty (view_5600 hasn't loaded yet)
+        if (!ecnType) {
+            console.log('🔍 ECN Type (field_4219): "" - skipping (view_5600 not loaded yet)');
+            return;
+        }
+
+        console.log(`🔍 ECN Type (field_4219): "${ecnType}"`);
+
+        // Find the Update buttons in view_5601 (target the <a> element directly to override CSS)
+        const $updateCompanyLink = $('#view_5601 a[href*="update-company"]');
+        const $updateContactLink = $('#view_5601 a[href*="update-contact"]');
+
+        if (ecnType === 'Individual') {
+            // Show Update Contact, hide Update Company
+            $updateCompanyLink.css('display', 'none');
+            $updateContactLink.css('display', 'inline-block');
+            console.log('👤 Individual ECN - showing Update Contact button');
+        } else {
+            // Show Update Company, hide Update Contact (default for Company, null, or other values)
+            $updateCompanyLink.css('display', 'inline-block');
+            $updateContactLink.css('display', 'none');
+            console.log('🏢 Company/Other ECN - showing Update Company button');
+        }
+
+        // Now show the detail views (they were hidden until ECN type was known)
+        showContactDetailViews();
+    }
 
     /**
-     * Hide first div if it only contains <hr>
+     * Run on view_5600 render - this is where we know ECN type is available
      */
-    function hideHrDivInView5601() {
-        const $view = $('#view_5601');
+    $(document).on('knack-view-render.view_5600', function (event, view, data) {
+        console.log('👀 view_5600 rendered - ECN type data available');
 
-        if ($view.length > 0) {
-            // Look for divs that only contain <hr> inside the kn-table
-            $view.find('.kn-table > div').each(function () {
-                const $div = $(this);
-                const content = $div.html().trim();
-
-                // Check if content is just <hr> with possible whitespace/newlines
-                const isHrOnly = content.replace(/\s+/g, '') === '<hr>' ||
-                    content.replace(/\s+/g, '') === '<hr/>';
-
-                if (isHrOnly) {
-                    console.log('🙈 Hiding div with <hr> in view_5601');
-                    $div.hide();
-                }
-            });
-        }
-    }
+        // Small delay to ensure DOM is fully populated
+        setTimeout(function() {
+            updateButtonVisibilityByEcnType();
+        }, 100);
+    });
 
     /**
      * Run on view_5601 render
      */
     $(document).on('knack-view-render.view_5601', function (event, view, data) {
-        console.log('👀 view_5601 rendered - checking for hr div');
-        hideHrDivInView5601();
+        console.log('👀 view_5601 rendered');
+
+        // Immediately hide both Update buttons with inline styles (before CSS potentially loads)
+        // This ensures no flash - view_5600 handler will show the correct one
+        $('#view_5601 a[href*="update-company"]').css('display', 'none');
+        $('#view_5601 a[href*="update-contact"]').css('display', 'none');
+        console.log('🔒 Both Update buttons hidden on view_5601 render');
 
         // Check processing status and hide email/phone fields if Processing
         checkAndUpdateFieldVisibility();
+
+        // If view_5600 has already rendered, show the correct button now
+        // (handles case where view_5600 rendered before view_5601)
+        updateButtonVisibilityByEcnType();
     });
 
     // ========================================================================
