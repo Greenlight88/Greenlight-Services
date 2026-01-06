@@ -10538,6 +10538,85 @@ window.ktlReady = function (appInfo = {}) {
         }
     }
 
+    // ========================================================================
+    // STACKED ACTION BUTTONS - Consolidate multiple action link columns into one
+    // ========================================================================
+    /**
+     * Stacks multiple action button columns into a single column
+     * @param {string} viewId - The view ID (e.g., 'view_4829')
+     * @param {Array} buttonClasses - Array of button classes in order, first becomes the container
+     *                                e.g., ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']
+     */
+    function stackTableActionButtons(viewId, buttonClasses) {
+        const $view = $(`#${viewId}`);
+        if (!$view.length || buttonClasses.length < 2) return;
+
+        const $table = $view.find('table.kn-table');
+        if (!$table.length) return;
+
+        console.log(`📚 Stacking ${buttonClasses.length} action buttons in ${viewId}`);
+
+        // Find column indices by button class in header row (th) or first data row
+        const columnIndices = [];
+        const $firstRow = $table.find('tbody tr').first();
+
+        buttonClasses.forEach((btnClass, idx) => {
+            const $cell = $firstRow.find(`td:has(.${btnClass})`);
+            if ($cell.length) {
+                columnIndices.push($cell.index());
+            }
+        });
+
+        if (columnIndices.length !== buttonClasses.length) {
+            console.warn('⚠️ Could not find all button columns');
+            return;
+        }
+
+        const primaryColIndex = columnIndices[0];
+        const colsToHide = columnIndices.slice(1);
+
+        // Process each row
+        $table.find('tbody tr').each(function () {
+            const $row = $(this);
+            const $cells = $row.find('td');
+            const $primaryCell = $cells.eq(primaryColIndex);
+
+            // Skip if already processed
+            if ($primaryCell.find('.stacked-action-buttons').length) return;
+
+            // Create container for stacked buttons
+            const $container = $('<div>').addClass('stacked-action-buttons');
+
+            // Move primary button's link into container
+            const $primaryLink = $primaryCell.find('a').first();
+            if ($primaryLink.length) {
+                $container.append($primaryLink.clone());
+            }
+
+            // Move secondary buttons into container
+            colsToHide.forEach(colIndex => {
+                const $secondaryCell = $cells.eq(colIndex);
+                const $secondaryLink = $secondaryCell.find('a').first();
+                if ($secondaryLink.length) {
+                    $container.append($secondaryLink.clone());
+                }
+                // Mark cell for hiding
+                $secondaryCell.addClass('action-column-hidden');
+            });
+
+            // Replace primary cell content with container
+            $primaryCell.find('span').first().html($container);
+        });
+
+        // Hide the header cells for consolidated columns
+        const $headerRow = $table.find('thead tr');
+        colsToHide.forEach(colIndex => {
+            $headerRow.find('th').eq(colIndex).addClass('action-column-hidden');
+        });
+
+        console.log(`✅ Stacked buttons in ${viewId}: kept column ${primaryColIndex}, hid columns ${colsToHide.join(', ')}`);
+    }
+
     // Remove button when ANY view renders (if it's not view_4829)
     $(document).on('knack-view-render', function (event, view, data) {
         if (view.key !== 'view_4829') {
@@ -10557,6 +10636,9 @@ window.ktlReady = function (appInfo = {}) {
 
         // Pulse the timestamp when view renders (indicates refresh)
         setTimeout(pulseTimestamp, 100);
+
+        // Stack action buttons (Edit, Note, Notes) into single column
+        stackTableActionButtons('view_4829', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
 
         // Only start refresh if we're on the correct scene
         if (Knack.router.current_scene_key === 'scene_1973') {
@@ -10596,7 +10678,8 @@ window.ktlReady = function (appInfo = {}) {
                     .css({
                         'position': 'fixed',
                         'top': '80px',
-                        'right': '20px',
+                        'left': '50%',
+                        'transform': 'translateX(-50%)',
                         'z-index': '9999',
                         'padding': '10px 20px',
                         'background-color': '#ff9800',
@@ -10620,10 +10703,10 @@ window.ktlReady = function (appInfo = {}) {
                         }
                     })
                     .on('mouseenter', function () {
-                        $(this).css('transform', 'scale(1.05)');
+                        $(this).css('transform', 'translateX(-50%) scale(1.05)');
                     })
                     .on('mouseleave', function () {
-                        $(this).css('transform', 'scale(1)');
+                        $(this).css('transform', 'translateX(-50%) scale(1)');
                     });
 
                 $('body').append($button);
@@ -11011,6 +11094,50 @@ window.ktlReady = function (appInfo = {}) {
 
     // ========================================================================
     // END HIDE HR DIVS
+    // ========================================================================
+
+    // ========================================================================
+    // VIEW_5634 - MAKE NAME COLUMN CLICKABLE
+    // ========================================================================
+
+    /**
+     * Convert the View Link column (field_4231) in view_5634 (contacts grid) to clickable buttons
+     * Replaces plain URL text with styled button using tableBlueButton class and fa-eye icon
+     */
+    $(document).on('knack-view-render.view_5634', function (event, view, data) {
+        console.log('👀 view_5634 (Contacts Grid) rendered');
+
+        // Process each row - convert field_4231 (View Link) URL to a styled button
+        $('#view_5634 table tbody tr').each(function () {
+            const $row = $(this);
+            const $viewCell = $row.find('td.field_4231');
+            const viewUrl = $viewCell.text().trim();
+
+            if ($viewCell.length === 0) {
+                console.warn('⚠️ field_4231 cell not found in row');
+                return;
+            }
+
+            if (viewUrl) {
+                console.log('🔗 Creating View button -> ' + viewUrl);
+
+                // Replace URL text with styled table button
+                $viewCell.html(
+                    $('<a>')
+                        .attr('href', viewUrl)
+                        .addClass('tableBlueButton')
+                        .html('<i class="fa fa-eye"></i> View')
+                );
+            } else {
+                console.warn('⚠️ No View URL found for row');
+            }
+        });
+
+        console.log('✅ View buttons applied to view_5634');
+    });
+
+    // ========================================================================
+    // END VIEW_5634 CLICKABLE NAME COLUMN
     // ========================================================================
 
     // ========================================================================

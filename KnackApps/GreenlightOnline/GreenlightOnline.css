@@ -273,6 +273,160 @@
 }
 
 /* ===================================
+   TABLE BUTTON STYLES
+   Compact, rectangular buttons for use in table cells
+   =================================== */
+
+/* Base table button styles */
+.tableGreenButton,
+.tableBlueButton,
+.tableRedButton,
+.tableGreyButton,
+.tablePinkButton,
+.tableWhiteButton {
+  font-weight: 500 !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+  font-family: var(--font-primary) !important;
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+
+  width: 85px !important;
+  padding: 6px 14px !important;
+  line-height: 1.2 !important;
+  font-size: 0.8rem !important;
+  text-decoration: none !important;
+  user-select: none !important;
+  color: var(--lt-color-white) !important;
+
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Table button hover states */
+.tableGreenButton:hover,
+.tableBlueButton:hover,
+.tableRedButton:hover,
+.tableGreyButton:hover,
+.tablePinkButton:hover,
+.tableWhiteButton:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Table button active states */
+.tableGreenButton:active,
+.tableBlueButton:active,
+.tableRedButton:active,
+.tableGreyButton:active,
+.tablePinkButton:active,
+.tableWhiteButton:active {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(0) !important;
+}
+
+/* Table Green Button */
+.tableGreenButton {
+  background-color: var(--brand-green) !important;
+  border-color: var(--brand-green) !important;
+}
+.tableGreenButton:hover {
+  background-color: var(--brand-green-hover) !important;
+  border-color: var(--brand-green-hover) !important;
+}
+
+/* Table Blue Button */
+.tableBlueButton {
+  background-color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
+}
+.tableBlueButton:hover {
+  background-color: var(--brand-blue-hover) !important;
+  border-color: var(--brand-blue-hover) !important;
+}
+
+/* Table Red Button */
+.tableRedButton {
+  background-color: var(--brand-red) !important;
+  border-color: var(--brand-red) !important;
+}
+.tableRedButton:hover {
+  background-color: var(--brand-red-hover) !important;
+  border-color: var(--brand-red-hover) !important;
+}
+
+/* Table Grey Button */
+.tableGreyButton {
+  background-color: var(--brand-gray) !important;
+  border-color: var(--brand-gray) !important;
+}
+.tableGreyButton:hover {
+  background-color: var(--brand-gray-hover) !important;
+  border-color: var(--brand-gray-hover) !important;
+}
+
+/* Table Pink Button */
+.tablePinkButton {
+  background-color: var(--brand-pink) !important;
+  border-color: var(--brand-pink) !important;
+  color: var(--lt-color-black) !important;
+}
+.tablePinkButton:hover {
+  background-color: var(--brand-pink-hover) !important;
+  border-color: var(--brand-pink-hover) !important;
+}
+
+/* Table White Button */
+.tableWhiteButton {
+  background-color: var(--brand-white) !important;
+  color: var(--brand-black) !important;
+  border: 1px solid var(--brand-white-border) !important;
+}
+.tableWhiteButton:hover {
+  background-color: var(--brand-white-hover-bg) !important;
+}
+
+/* Centre table buttons in their cells */
+td:has(.tableGreenButton),
+td:has(.tableBlueButton),
+td:has(.tableRedButton),
+td:has(.tableGreyButton),
+td:has(.tablePinkButton),
+td:has(.tableWhiteButton) {
+  text-align: center !important;
+}
+
+/* Stacked action buttons in table cells */
+.stacked-action-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.stacked-action-buttons a {
+  display: block !important;
+  width: 100% !important;
+}
+
+.stacked-action-buttons button {
+  width: 100% !important;
+}
+
+/* Hide columns that have been consolidated */
+th.action-column-hidden,
+td.action-column-hidden {
+  display: none !important;
+}
+
+/* ===================================
    BULMA KNACK BUTTON OVERRIDES
    =================================== */
 /* Fix for Bulma column system overrides */
