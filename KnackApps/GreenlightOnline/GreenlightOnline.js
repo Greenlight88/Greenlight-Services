@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.9'; // Complete Update Company form with processing status polling
+window.APP_VERSION = '1.0.10'; // Stacked action buttons for table views
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
