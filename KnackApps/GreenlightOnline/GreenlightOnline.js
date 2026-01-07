@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.10'; // Stacked action buttons for table views
+window.APP_VERSION = '1.0.11'; // Stacked action buttons for table views
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
