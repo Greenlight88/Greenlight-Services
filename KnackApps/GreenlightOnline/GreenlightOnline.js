@@ -10800,6 +10800,10 @@ window.ktlReady = function (appInfo = {}) {
         stackTableActionButtons('view_4887', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
     });
 
+    $(document).on('knack-view-render.view_5667', function (event, view, data) {
+        stackTableActionButtons('view_5667', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
     // Remove button when ANY view renders (if it's not view_4829)
     $(document).on('knack-view-render', function (event, view, data) {
         if (view.key !== 'view_4829') {
