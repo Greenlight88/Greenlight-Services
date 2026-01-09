@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.11'; // Stacked action buttons for table views
+window.APP_VERSION = '1.0.12'; // Add stacked buttons for 7 more table views
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -353,7 +353,8 @@ window.ktlReady = function (appInfo = {}) {
     const initializeFilterClicks = () => {
         // Array of view IDs that have filter buttons
         const filterViews = ['view_3503', 'view_4791', 'view_4793', 'view_4795', 'view_4798',
-            'view_4800', 'view_4803', 'view_4804', 'view_4829', 'view_4860', 'view_4870', 'view_5427', 'view_5433'];
+            'view_4800', 'view_4803', 'view_4804', 'view_4829', 'view_4860', 'view_4870', 'view_4887',
+            'view_5427', 'view_5433', 'view_5649', 'view_5652', 'view_5655', 'view_5664', 'view_5667'];
 
         // Create selector string for all views
         const viewSelectors = filterViews.map(viewId =>
@@ -10617,6 +10618,188 @@ window.ktlReady = function (appInfo = {}) {
         console.log(`✅ Stacked buttons in ${viewId}: kept column ${primaryColIndex}, hid columns ${colsToHide.join(', ')}`);
     }
 
+    /**
+     * Flexible version - stacks action buttons where some columns may not exist
+     * @param {string} viewId - The view ID (e.g., 'view_5638')
+     * @param {string} primaryButtonClass - The button class that's always present (becomes container)
+     * @param {Array} optionalButtonClasses - Array of button classes that may or may not exist
+     * @param {string} stackOrder - 'before' or 'after' - where to place optional buttons relative to primary
+     */
+    function stackTableActionButtonsFlexible(viewId, primaryButtonClass, optionalButtonClasses = [], stackOrder = 'before') {
+        const $view = $(`#${viewId}`);
+        if (!$view.length) return;
+
+        const $table = $view.find('table.kn-table');
+        if (!$table.length) return;
+
+        const $allRows = $table.find('tbody tr');
+        if (!$allRows.length) return;
+
+        // Find primary column by scanning all rows (must exist in at least one row)
+        let primaryColIndex = -1;
+        $allRows.each(function() {
+            const $cell = $(this).find(`td:has(.${primaryButtonClass})`);
+            if ($cell.length) {
+                primaryColIndex = $cell.index();
+                return false; // break
+            }
+        });
+
+        if (primaryColIndex === -1) {
+            console.warn(`⚠️ Primary button column (.${primaryButtonClass}) not found in ${viewId}`);
+            return;
+        }
+
+        // Find which optional columns exist by scanning all rows
+        const optionalColumns = [];
+        optionalButtonClasses.forEach(btnClass => {
+            let colIndex = -1;
+            $allRows.each(function() {
+                const $cell = $(this).find(`td:has(.${btnClass})`);
+                if ($cell.length) {
+                    colIndex = $cell.index();
+                    return false; // break
+                }
+            });
+            if (colIndex !== -1) {
+                optionalColumns.push({
+                    btnClass: btnClass,
+                    colIndex: colIndex
+                });
+            }
+        });
+
+        if (optionalColumns.length === 0) {
+            console.log(`📚 No optional columns found to stack in ${viewId}, skipping`);
+            return;
+        }
+
+        console.log(`📚 Stacking ${optionalColumns.length + 1} action buttons in ${viewId} (flexible mode)`);
+
+        // Process each row
+        $table.find('tbody tr').each(function () {
+            const $row = $(this);
+            const $cells = $row.find('td');
+            const $primaryCellInRow = $cells.eq(primaryColIndex);
+
+            // Skip if already processed
+            if ($primaryCellInRow.find('.stacked-action-buttons').length) return;
+
+            // Create container for stacked buttons
+            const $container = $('<div>').addClass('stacked-action-buttons');
+
+            // Collect buttons to stack before primary
+            const buttonsBefore = [];
+            const buttonsAfter = [];
+
+            optionalColumns.forEach(col => {
+                const $secondaryCell = $cells.eq(col.colIndex);
+                const $secondaryLink = $secondaryCell.find('a').first();
+                if ($secondaryLink.length) {
+                    // Clone the link
+                    const $clonedLink = $secondaryLink.clone();
+
+                    // Determine order based on column position relative to primary
+                    if (col.colIndex < primaryColIndex) {
+                        buttonsBefore.push($clonedLink);
+                    } else {
+                        buttonsAfter.push($clonedLink);
+                    }
+                }
+                // Mark cell for hiding
+                $secondaryCell.addClass('action-column-hidden');
+            });
+
+            // Get primary button
+            const $primaryLink = $primaryCellInRow.find('a').first();
+
+            // Build stack: buttons before + primary + buttons after
+            buttonsBefore.forEach($btn => $container.append($btn));
+            if ($primaryLink.length) {
+                $container.append($primaryLink.clone());
+            }
+            buttonsAfter.forEach($btn => $container.append($btn));
+
+            // Replace primary cell content with container
+            const $targetSpan = $primaryCellInRow.find('span').first();
+            if ($targetSpan.length) {
+                $targetSpan.html($container);
+            } else {
+                $primaryCellInRow.html($container);
+            }
+        });
+
+        // Hide the header cells for optional columns
+        const $headerRow = $table.find('thead tr');
+        optionalColumns.forEach(col => {
+            $headerRow.find('th').eq(col.colIndex).addClass('action-column-hidden');
+        });
+
+        const hiddenCols = optionalColumns.map(c => c.colIndex).join(', ');
+        console.log(`✅ Stacked buttons in ${viewId}: kept column ${primaryColIndex} (Actions), hid columns ${hiddenCols}`);
+    }
+
+    // Handler for view_5638 (Notes table) - stack Call Recording, Move, Delete buttons
+    $(document).on('knack-view-render.view_5638', function (event, view, data) {
+        // Primary: tableGreyButton (Move/Actions - always present)
+        // Optional: tableGreenButton (Call Recording), tableRedButton (Delete - Dev only)
+        stackTableActionButtonsFlexible('view_5638', 'tableGreyButton', ['tableGreenButton', 'tableRedButton']);
+
+    });
+
+    // Handler for view_5642 (Add Note button) - move it into view_5638 pagination row
+    $(document).on('knack-view-render.view_5642', function (event, view, data) {
+        const $addNoteButton = $('#view_5642 .kn-details-link a').first();
+        const $paginationRow = $('#view_5638 .kn-records-nav .level .level-right');
+
+        if ($addNoteButton.length && $paginationRow.length) {
+            // Check if already moved
+            if ($paginationRow.find('.add-note-button-moved').length) return;
+
+            // Clone the button and add to pagination row
+            const $clonedButton = $addNoteButton.clone().addClass('add-note-button-moved');
+
+            // Append button to the right side of pagination row
+            $paginationRow.append($clonedButton);
+
+            // Hide original view_5642 and its parent column
+            $('#view_5642').closest('.view-column').hide();
+
+            console.log('✅ Moved Add Note button to view_5638 pagination row');
+        }
+    });
+
+
+    // Handlers for tables with Edit/Note/Notes button stacking
+    // Primary: tableGreenButton (Edit), Secondary: tablePinkButton (Note), tableBlueButton (Notes)
+    $(document).on('knack-view-render.view_5652', function (event, view, data) {
+        stackTableActionButtons('view_5652', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
+    $(document).on('knack-view-render.view_5649', function (event, view, data) {
+        stackTableActionButtons('view_5649', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
+    $(document).on('knack-view-render.view_5664', function (event, view, data) {
+        stackTableActionButtons('view_5664', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
+    $(document).on('knack-view-render.view_5655', function (event, view, data) {
+        stackTableActionButtons('view_5655', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
+    $(document).on('knack-view-render.view_4795', function (event, view, data) {
+        stackTableActionButtons('view_4795', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
+    $(document).on('knack-view-render.view_4793', function (event, view, data) {
+        stackTableActionButtons('view_4793', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
+    $(document).on('knack-view-render.view_4887', function (event, view, data) {
+        stackTableActionButtons('view_4887', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+    });
+
     // Remove button when ANY view renders (if it's not view_4829)
     $(document).on('knack-view-render', function (event, view, data) {
         if (view.key !== 'view_4829') {
@@ -10638,7 +10821,105 @@ window.ktlReady = function (appInfo = {}) {
         setTimeout(pulseTimestamp, 100);
 
         // Stack action buttons (Edit, Note, Notes) into single column
-        stackTableActionButtons('view_4829', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
+        // Notes button (blue) only shown if Notes Count (field_3544) > 0
+        (function() {
+            const $view = $('#view_4829');
+            const $table = $view.find('table.kn-table');
+            if (!$table.length) return;
+
+            const $allRows = $table.find('tbody tr');
+            if (!$allRows.length) return;
+
+            // Find column indices by scanning all rows
+            let greenColIndex = -1, pinkColIndex = -1, blueColIndex = -1, notesCountColIndex = -1;
+
+            $allRows.each(function() {
+                const $row = $(this);
+                if (greenColIndex === -1) {
+                    const $cell = $row.find('td:has(.tableGreenButton)');
+                    if ($cell.length) greenColIndex = $cell.index();
+                }
+                if (pinkColIndex === -1) {
+                    const $cell = $row.find('td:has(.tablePinkButton)');
+                    if ($cell.length) pinkColIndex = $cell.index();
+                }
+                if (blueColIndex === -1) {
+                    const $cell = $row.find('td:has(.tableBlueButton)');
+                    if ($cell.length) blueColIndex = $cell.index();
+                }
+                if (notesCountColIndex === -1) {
+                    const $cell = $row.find('td.field_3544');
+                    if ($cell.length) notesCountColIndex = $cell.index();
+                }
+            });
+
+            if (greenColIndex === -1) {
+                console.warn('⚠️ Could not find Edit button column in view_4829');
+                return;
+            }
+
+            console.log(`📚 Stacking action buttons in view_4829 (conditional Notes button)`);
+
+            // Process each row
+            $allRows.each(function() {
+                const $row = $(this);
+                const $cells = $row.find('td');
+                const $primaryCell = $cells.eq(greenColIndex);
+
+                // Skip if already processed
+                if ($primaryCell.find('.stacked-action-buttons').length) return;
+
+                // Check Notes Count value
+                let notesCount = 0;
+                if (notesCountColIndex !== -1) {
+                    const notesCountText = $cells.eq(notesCountColIndex).text().trim();
+                    notesCount = parseInt(notesCountText, 10) || 0;
+                }
+
+                // Create container for stacked buttons
+                const $container = $('<div>').addClass('stacked-action-buttons');
+
+                // Add Edit button (green) - always
+                const $greenLink = $primaryCell.find('a').first();
+                if ($greenLink.length) {
+                    $container.append($greenLink.clone());
+                }
+
+                // Add Note button (pink) - always
+                if (pinkColIndex !== -1) {
+                    const $pinkCell = $cells.eq(pinkColIndex);
+                    const $pinkLink = $pinkCell.find('a').first();
+                    if ($pinkLink.length) {
+                        $container.append($pinkLink.clone());
+                    }
+                    $pinkCell.addClass('action-column-hidden');
+                }
+
+                // Add Notes button (blue) - only if notesCount > 0
+                if (blueColIndex !== -1 && notesCount > 0) {
+                    const $blueCell = $cells.eq(blueColIndex);
+                    const $blueLink = $blueCell.find('a').first();
+                    if ($blueLink.length) {
+                        $container.append($blueLink.clone());
+                    }
+                }
+
+                // Always hide blue column cell (even if button not added)
+                if (blueColIndex !== -1) {
+                    $cells.eq(blueColIndex).addClass('action-column-hidden');
+                }
+
+                // Replace primary cell content with container
+                $primaryCell.find('span').first().html($container);
+            });
+
+            // Hide the header cells for consolidated columns
+            const $headerRow = $table.find('thead tr');
+            if (pinkColIndex !== -1) $headerRow.find('th').eq(pinkColIndex).addClass('action-column-hidden');
+            if (blueColIndex !== -1) $headerRow.find('th').eq(blueColIndex).addClass('action-column-hidden');
+
+            console.log(`✅ Stacked buttons in view_4829 with conditional Notes button`);
+        })();
 
         // Only start refresh if we're on the correct scene
         if (Knack.router.current_scene_key === 'scene_1973') {

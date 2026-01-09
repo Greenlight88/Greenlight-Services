@@ -1889,7 +1889,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a {
   background-color: #4a7cb5 !important;
   background: #4a7cb5 !important;
   border-color: #4a7cb5 !important;
@@ -1922,7 +1928,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a span {
   color: #FFFFFF !important;
 }
 
@@ -1939,7 +1951,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li a {
   background-color: #4a7cb5 !important;
   background: #4a7cb5 !important;
   color: #FFFFFF !important;
@@ -1958,7 +1976,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a {
   background-color: #39b54a !important;
   background: #39b54a !important;
   border-color: #39b54a !important;
@@ -1979,7 +2003,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a span {
   color: #FFFFFF !important;
 }
 
@@ -1996,7 +2026,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:hover {
   background-color: #3d6699 !important;
   border-color: #3d6699 !important;
   transform: translateY(-1px);
@@ -2015,7 +2051,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush li.is-active a:hover {
   background-color: #2fa040 !important;
   border-color: #2fa040 !important;
   transform: translateY(-1px);
@@ -2035,7 +2077,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a.clicking {
   transform: translateY(2px) scale(0.98);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.1s ease;
@@ -2053,7 +2101,13 @@ textarea:focus,
 #view_4860 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
 #view_4870 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
 #view_5427 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
-#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active {
+#view_5433 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_4887 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5649 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5655 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5664 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5652 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active,
+#view_5667 div.kn-records-nav div.js-filter-menu.tabs.is-toggle.is-flush a:active {
   cursor: grabbing !important;
 }
 
@@ -2599,6 +2653,15 @@ a.ang-link[href="#contacts6"] {
 /* Hide the parent container of Back to Contacts link */
 .kn-view.kn-back-link:has(a[href="#contacts6"]) {
   display: none !important;
+}
+
+/* Fix horizontal scroll on view_5642 (Add Note button) */
+#view_5642 {
+  overflow-x: hidden !important;
+}
+
+#view_5642 .kn-details-link {
+  overflow: hidden !important;
 }
 
 /* ========================================================================
