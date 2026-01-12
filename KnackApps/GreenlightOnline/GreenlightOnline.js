@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.12'; // Add stacked buttons for 7 more table views
+window.APP_VERSION = '1.0.13'; // Fix stacked buttons - use detach() to preserve click handlers
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -9099,6 +9099,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Add test data prefill buttons to configured views
                 $(document).on('knack-view-render.any', function (event, view, data) {
+                    if (!view || !view.key) return; // Safety check
                     const viewId = view.key;
                     if (viewConfigs[viewId]) {
                         // Small delay to ensure form is fully rendered
@@ -10484,7 +10485,6 @@ window.ktlReady = function (appInfo = {}) {
 
     let view4829RefreshTimer = null;
     let view4829IsActive = false;
-    let view4829RefreshPaused = false;
 
     // Function to start the refresh timer
     function startView4829Refresh() {
@@ -10493,8 +10493,8 @@ window.ktlReady = function (appInfo = {}) {
         }
 
         view4829RefreshTimer = setInterval(function () {
-            // Only refresh if view is active, not paused, and on correct scene
-            if (view4829IsActive && !view4829RefreshPaused && Knack.router.current_scene_key === 'scene_1973') {
+            // Only refresh if view is active and on correct scene
+            if (view4829IsActive && Knack.router.current_scene_key === 'scene_1973') {
                 console.log('⏰ 10 seconds elapsed - refreshing view_4829...');
 
                 // Use Knack's native fetch - smoother than KTL's refreshView which triggers full render
@@ -10504,20 +10504,6 @@ window.ktlReady = function (appInfo = {}) {
         }, 10000); // 10 seconds
 
         console.log('✅ Started 10-second auto-refresh for view_4829');
-    }
-
-    // Function to update button text and icon
-    function updateRefreshButton() {
-        const $button = $('#view_4829_refresh_toggle');
-        if ($button.length) {
-            if (view4829RefreshPaused) {
-                $button.html('▶️ Resume Auto-Refresh');
-                $button.css('background-color', '#4CAF50');
-            } else {
-                $button.html('⏸️ Pause Auto-Refresh');
-                $button.css('background-color', '#ff9800');
-            }
-        }
     }
 
     // Function to pulse the timestamp
@@ -10588,10 +10574,10 @@ window.ktlReady = function (appInfo = {}) {
             // Create container for stacked buttons
             const $container = $('<div>').addClass('stacked-action-buttons');
 
-            // Move primary button's link into container
+            // Move primary button's link into container (detach preserves event handlers)
             const $primaryLink = $primaryCell.find('a').first();
             if ($primaryLink.length) {
-                $container.append($primaryLink.clone());
+                $container.append($primaryLink.detach());
             }
 
             // Move secondary buttons into container
@@ -10599,7 +10585,7 @@ window.ktlReady = function (appInfo = {}) {
                 const $secondaryCell = $cells.eq(colIndex);
                 const $secondaryLink = $secondaryCell.find('a').first();
                 if ($secondaryLink.length) {
-                    $container.append($secondaryLink.clone());
+                    $container.append($secondaryLink.detach());
                 }
                 // Mark cell for hiding
                 $secondaryCell.addClass('action-column-hidden');
@@ -10696,27 +10682,28 @@ window.ktlReady = function (appInfo = {}) {
                 const $secondaryCell = $cells.eq(col.colIndex);
                 const $secondaryLink = $secondaryCell.find('a').first();
                 if ($secondaryLink.length) {
-                    // Clone the link
-                    const $clonedLink = $secondaryLink.clone();
+                    // Detach the link (preserves event handlers)
+                    const $movedLink = $secondaryLink.detach();
 
                     // Determine order based on column position relative to primary
                     if (col.colIndex < primaryColIndex) {
-                        buttonsBefore.push($clonedLink);
+                        buttonsBefore.push($movedLink);
                     } else {
-                        buttonsAfter.push($clonedLink);
+                        buttonsAfter.push($movedLink);
                     }
                 }
                 // Mark cell for hiding
                 $secondaryCell.addClass('action-column-hidden');
             });
 
-            // Get primary button
+            // Get primary button and detach it (preserves event handlers)
             const $primaryLink = $primaryCellInRow.find('a').first();
+            const $movedPrimaryLink = $primaryLink.length ? $primaryLink.detach() : null;
 
             // Build stack: buttons before + primary + buttons after
             buttonsBefore.forEach($btn => $container.append($btn));
-            if ($primaryLink.length) {
-                $container.append($primaryLink.clone());
+            if ($movedPrimaryLink) {
+                $container.append($movedPrimaryLink);
             }
             buttonsAfter.forEach($btn => $container.append($btn));
 
@@ -10756,8 +10743,8 @@ window.ktlReady = function (appInfo = {}) {
             // Check if already moved
             if ($paginationRow.find('.add-note-button-moved').length) return;
 
-            // Clone the button and add to pagination row
-            const $clonedButton = $addNoteButton.clone().addClass('add-note-button-moved');
+            // Clone the button with event handlers and add to pagination row
+            const $clonedButton = $addNoteButton.clone(true, true).addClass('add-note-button-moved');
 
             // Append button to the right side of pagination row
             $paginationRow.append($clonedButton);
@@ -10804,18 +10791,8 @@ window.ktlReady = function (appInfo = {}) {
         stackTableActionButtons('view_5667', ['tableGreenButton', 'tablePinkButton', 'tableBlueButton']);
     });
 
-    // Remove button when ANY view renders (if it's not view_4829)
-    $(document).on('knack-view-render', function (event, view, data) {
-        if (view.key !== 'view_4829') {
-            const $button = $('#view_4829_refresh_toggle');
-            if ($button.length) {
-                $button.remove();
-                console.log(`🗑️ Removed pause button (navigated to ${view.key})`);
-            }
-        }
-    });
-
-    // Monitor when view_4829 is rendered - start custom refresh and add button
+    // Monitor when view_4829 is rendered - start custom refresh
+    // Note: Pause button removed in v1.0.13 - auto-refresh now always runs
     $(document).on('knack-view-render.view_4829', function (event, view, data) {
         console.log('🔍 view_4829 (Enquiries Table) rendered');
         console.log('📍 Current scene:', Knack.router.current_scene_key);
@@ -10883,28 +10860,28 @@ window.ktlReady = function (appInfo = {}) {
                 // Create container for stacked buttons
                 const $container = $('<div>').addClass('stacked-action-buttons');
 
-                // Add Edit button (green) - always
+                // Add Edit button (green) - always (detach preserves event handlers)
                 const $greenLink = $primaryCell.find('a').first();
                 if ($greenLink.length) {
-                    $container.append($greenLink.clone());
+                    $container.append($greenLink.detach());
                 }
 
-                // Add Note button (pink) - always
+                // Add Note button (pink) - always (detach preserves event handlers)
                 if (pinkColIndex !== -1) {
                     const $pinkCell = $cells.eq(pinkColIndex);
                     const $pinkLink = $pinkCell.find('a').first();
                     if ($pinkLink.length) {
-                        $container.append($pinkLink.clone());
+                        $container.append($pinkLink.detach());
                     }
                     $pinkCell.addClass('action-column-hidden');
                 }
 
-                // Add Notes button (blue) - only if notesCount > 0
+                // Add Notes button (blue) - only if notesCount > 0 (detach preserves event handlers)
                 if (blueColIndex !== -1 && notesCount > 0) {
                     const $blueCell = $cells.eq(blueColIndex);
                     const $blueLink = $blueCell.find('a').first();
                     if ($blueLink.length) {
-                        $container.append($blueLink.clone());
+                        $container.append($blueLink.detach());
                     }
                 }
 
@@ -10956,48 +10933,6 @@ window.ktlReady = function (appInfo = {}) {
                 console.log('✅ Added timestamp pulse animation CSS');
             }
 
-            // Add pause/resume button (only once)
-            if ($('#view_4829_refresh_toggle').length === 0) {
-                const $button = $('<button>')
-                    .attr('id', 'view_4829_refresh_toggle')
-                    .css({
-                        'position': 'fixed',
-                        'top': '80px',
-                        'left': '50%',
-                        'transform': 'translateX(-50%)',
-                        'z-index': '9999',
-                        'padding': '10px 20px',
-                        'background-color': '#ff9800',
-                        'color': 'white',
-                        'border': 'none',
-                        'border-radius': '5px',
-                        'cursor': 'pointer',
-                        'font-weight': 'bold',
-                        'box-shadow': '0 2px 5px rgba(0,0,0,0.2)',
-                        'transition': 'all 0.3s ease'
-                    })
-                    .html('⏸️ Pause Auto-Refresh')
-                    .on('click', function () {
-                        view4829RefreshPaused = !view4829RefreshPaused;
-                        updateRefreshButton();
-
-                        if (view4829RefreshPaused) {
-                            console.log('⏸️ Auto-refresh paused by user');
-                        } else {
-                            console.log('▶️ Auto-refresh resumed by user');
-                        }
-                    })
-                    .on('mouseenter', function () {
-                        $(this).css('transform', 'translateX(-50%) scale(1.05)');
-                    })
-                    .on('mouseleave', function () {
-                        $(this).css('transform', 'translateX(-50%) scale(1)');
-                    });
-
-                $('body').append($button);
-                console.log('✅ Added pause/resume button for auto-refresh');
-            }
-
             // Start the refresh timer
             startView4829Refresh();
         }
@@ -11013,7 +10948,6 @@ window.ktlReady = function (appInfo = {}) {
             clearInterval(view4829RefreshTimer);
             view4829RefreshTimer = null;
             view4829IsActive = false;
-            view4829RefreshPaused = false;
         }
     });
 
