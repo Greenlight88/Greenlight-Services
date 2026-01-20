@@ -1,4 +1,4 @@
-window.APP_VERSION = '1.0.13'; // Fix stacked buttons - use detach() to preserve click handlers
+window.APP_VERSION = '1.0.14'; // Add auto-refresh with timestamp pulse for view_3503
 
 window.ktlReady = function (appInfo = {}) {
     var ktl = new Ktl($, appInfo);
@@ -87,11 +87,18 @@ window.ktlReady = function (appInfo = {}) {
             pendingClass: '',
         },
 
-        // Auto-refresh configuration for enquiries table
+        // Auto-refresh configuration for tables
         autoRefresh: [
             {
                 viewId: 'view_4829',      // Enquiries table
                 sceneId: 'scene_1973',    // Scene where the view is rendered
+                interval: 60000,          // Refresh every 60 seconds (60000ms) - KTL minimum
+                onlyIfVisible: true,      // Only refresh when view is visible
+                preserveScrollPos: true,  // Maintain scroll position after refresh
+            },
+            {
+                viewId: 'view_3503',      // Table on scene_1415
+                sceneId: 'scene_1415',    // Scene where the view is rendered
                 interval: 60000,          // Refresh every 60 seconds (60000ms) - KTL minimum
                 onlyIfVisible: true,      // Only refresh when view is visible
                 preserveScrollPos: true,  // Maintain scroll position after refresh
@@ -107,7 +114,7 @@ window.ktlReady = function (appInfo = {}) {
         hscGlobal: false,
     });
 
-    console.log('🔄 Custom auto-refresh configured for view_4829');
+    console.log('🔄 Custom auto-refresh configured for view_4829 and view_3503');
 
     ktl.fields.setCfg({
         textAsNumeric: [''],
@@ -10486,6 +10493,9 @@ window.ktlReady = function (appInfo = {}) {
     let view4829RefreshTimer = null;
     let view4829IsActive = false;
 
+    let view3503RefreshTimer = null;
+    let view3503IsActive = false;
+
     // Function to start the refresh timer
     function startView4829Refresh() {
         if (view4829RefreshTimer) {
@@ -10506,11 +10516,50 @@ window.ktlReady = function (appInfo = {}) {
         console.log('✅ Started 10-second auto-refresh for view_4829');
     }
 
-    // Function to pulse the timestamp
+    // Function to pulse the timestamp for view_4829
     function pulseTimestamp() {
         const $timestamp = $('#view_4829-timestamp-id');
         if ($timestamp.length) {
-            console.log('⏱️ Pulsing timestamp after refresh');
+            console.log('⏱️ Pulsing timestamp after refresh (view_4829)');
+
+            // Add pulse animation
+            $timestamp.css({
+                'animation': 'ktl-timestamp-pulse 1s ease-out',
+                'animation-fill-mode': 'forwards'
+            });
+
+            // Remove animation after it completes
+            setTimeout(function () {
+                $timestamp.css('animation', '');
+            }, 1000);
+        }
+    }
+
+    // Function to start the refresh timer for view_3503
+    function startView3503Refresh() {
+        if (view3503RefreshTimer) {
+            clearInterval(view3503RefreshTimer);
+        }
+
+        view3503RefreshTimer = setInterval(function () {
+            // Only refresh if view is active and on correct scene
+            if (view3503IsActive && Knack.router.current_scene_key === 'scene_1415') {
+                console.log('⏰ 10 seconds elapsed - refreshing view_3503...');
+
+                // Use Knack's native fetch - smoother than KTL's refreshView which triggers full render
+                Knack.views['view_3503'].model.fetch();
+                console.log('✅ Called Knack native model.fetch() for view_3503');
+            }
+        }, 10000); // 10 seconds
+
+        console.log('✅ Started 10-second auto-refresh for view_3503');
+    }
+
+    // Function to pulse the timestamp for view_3503
+    function pulseTimestamp3503() {
+        const $timestamp = $('#view_3503-timestamp-id');
+        if ($timestamp.length) {
+            console.log('⏱️ Pulsing timestamp after refresh (view_3503)');
 
             // Add pulse animation
             $timestamp.css({
@@ -10938,16 +10987,69 @@ window.ktlReady = function (appInfo = {}) {
         }
     });
 
-    // Stop refresh timer when leaving scene_1973
+    // Monitor when view_3503 is rendered - start custom refresh
+    $(document).on('knack-view-render.view_3503', function (event, view, data) {
+        console.log('🔍 view_3503 rendered');
+        console.log('📍 Current scene:', Knack.router.current_scene_key);
+        console.log('📊 Number of records:', data && data.length ? data.length : 'unknown');
+
+        // Pulse the timestamp when view renders (indicates refresh)
+        setTimeout(pulseTimestamp3503, 100);
+
+        // Only start refresh if we're on the correct scene
+        if (Knack.router.current_scene_key === 'scene_1415') {
+            view3503IsActive = true;
+
+            // Add pulse animation CSS if not already added
+            if ($('#ktl-timestamp-pulse-style').length === 0) {
+                $('<style>')
+                    .attr('id', 'ktl-timestamp-pulse-style')
+                    .html(`
+                        @keyframes ktl-timestamp-pulse {
+                            0% {
+                                transform: scale(1);
+                                color: inherit;
+                                font-weight: normal;
+                            }
+                            50% {
+                                transform: scale(1.15);
+                                color: #4CAF50;
+                                font-weight: bold;
+                            }
+                            100% {
+                                transform: scale(1);
+                                color: inherit;
+                                font-weight: normal;
+                            }
+                        }
+                    `)
+                    .appendTo('head');
+                console.log('✅ Added timestamp pulse animation CSS');
+            }
+
+            // Start the refresh timer
+            startView3503Refresh();
+        }
+    });
+
+    // Stop refresh timers when leaving their respective scenes
     $(document).on('knack-scene-render', function (event, scene) {
         const currentScene = Knack.router.current_scene_key;
 
-        // If we're not on scene_1973, stop the refresh timer
+        // If we're not on scene_1973, stop the view_4829 refresh timer
         if (currentScene !== 'scene_1973' && view4829RefreshTimer) {
             console.log('🛑 Left scene_1973, stopping view_4829 auto-refresh');
             clearInterval(view4829RefreshTimer);
             view4829RefreshTimer = null;
             view4829IsActive = false;
+        }
+
+        // If we're not on scene_1415, stop the view_3503 refresh timer
+        if (currentScene !== 'scene_1415' && view3503RefreshTimer) {
+            console.log('🛑 Left scene_1415, stopping view_3503 auto-refresh');
+            clearInterval(view3503RefreshTimer);
+            view3503RefreshTimer = null;
+            view3503IsActive = false;
         }
     });
 
