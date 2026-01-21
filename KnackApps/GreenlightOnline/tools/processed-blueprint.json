@@ -1,0 +1,324 @@
+{
+  "name": "1653 - 1. New Entity (Company) - Pre-Form Submission",
+  "modules": [
+    {
+      "id": 6,
+      "name": "gateway:CustomWebHook",
+      "type": "gateway:CustomWebHook",
+      "parameters": {
+        "hook": 2495237
+      }
+    },
+    {
+      "id": 62,
+      "name": "util:SetVariable2",
+      "type": "util:SetVariable2",
+      "parameters": null
+    },
+    {
+      "id": 65,
+      "name": "knack:SearchForRecords",
+      "type": "knack:SearchForRecords",
+      "config": {
+        "object_id": "object_54",
+        "filters": [
+          [
+            {
+              "a": "field_4059",
+              "b": "{{6.data.company_search}}",
+              "o": "text:is"
+            },
+            {
+              "a": "field_4134",
+              "b": "{{if(6.data.company_short_search = null; \"648a5861b632b20027d53b8b\"; 6.data.company_short_search)}}",
+              "o": "text:is"
+            },
+            {
+              "a": "field_4059",
+              "b": "{{if(6.data.company_short_search = null; \"648a5861b632b20027d53b8b\"; 6.data.company_short_search)}}",
+              "o": "text:is"
+            },
+            {
+              "a": "field_4134",
+              "b": "{{6.data.company_search}}",
+              "o": "text:is"
+            }
+          ]
+        ],
+        "match": "or",
+        "limit": "1",
+        "sort": {
+          "field": "field_3836",
+          "order": "desc"
+        },
+        "fields": {
+          "field_977": true,
+          "field_979": true,
+          "field_985": true,
+          "field_3845": true,
+          "field_4023": true
+        }
+      },
+      "parameters": null
+    },
+    {
+      "id": 532,
+      "name": "builtin:BasicRouter",
+      "type": "builtin:BasicRouter",
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 535,
+              "name": "knack:SearchForRecords",
+              "type": "knack:SearchForRecords",
+              "config": {
+                "object_id": "object_187",
+                "filters": [
+                  [
+                    {
+                      "a": "field_3852",
+                      "b": "Self - Company",
+                      "o": "text:is"
+                    },
+                    {
+                      "a": "field_3858",
+                      "b": "{{65.id}}",
+                      "o": "text:is"
+                    }
+                  ]
+                ],
+                "match": "and",
+                "limit": "1",
+                "sort": {
+                  "field": "field_3836",
+                  "order": "desc"
+                },
+                "fields": {
+                  "field_3824": true,
+                  "field_3852": true,
+                  "field_3958": true,
+                  "field_4028": true
+                }
+              },
+              "parameters": null
+            },
+            {
+              "id": 533,
+              "name": "gateway:WebhookRespond",
+              "type": "gateway:WebhookRespond",
+              "config": {
+                "body": {
+                  "type": "string",
+                  "length": 698,
+                  "fieldReferences": [
+                    "{{if(65.field_4059 = 6.company_search; if(65.field_4134 = 6.company_short_search; \"Both\"; \"Full Name\"); \"Short Name\")}}",
+                    "{{65.id}}",
+                    "{{65.field_992}}",
+                    "{{65.field_992}}",
+                    "{{535.id}}"
+                  ]
+                }
+              },
+              "parameters": null
+            }
+          ],
+          "filter": null
+        },
+        {
+          "flow": [
+            {
+              "id": 525,
+              "name": "builtin:BasicFeeder",
+              "type": "builtin:BasicFeeder",
+              "parameters": null
+            },
+            {
+              "id": 409,
+              "name": "knack:SearchForRecords",
+              "type": "knack:SearchForRecords",
+              "config": {
+                "object_id": "object_189",
+                "filters": [
+                  [
+                    {
+                      "a": "field_4064",
+                      "b": "{{if(6.email_normalised = null; \"XxtnxngG88!\"; 6.email_normalised)}}",
+                      "o": "text:is"
+                    },
+                    {
+                      "a": "field_4064",
+                      "b": "{{if(6.phone_normalised = null; \"XxtnxngG88!\"; 6.phone_normalised)}}",
+                      "o": "text:is"
+                    }
+                  ]
+                ],
+                "match": "or",
+                "limit": "10",
+                "sort": {
+                  "field": "field_3836",
+                  "order": "desc"
+                },
+                "fields": {
+                  "field_3901": true
+                }
+              },
+              "parameters": null
+            },
+            {
+              "id": 551,
+              "name": "knack:MakeAPICall",
+              "type": "knack:MakeAPICall",
+              "config": {
+                "url": "/greenlight-tracking/pages/scene_2355/views/view_5497/records/{{409.field_3914_raw[1].id}}",
+                "method": "GET"
+              },
+              "parameters": null
+            },
+            {
+              "id": 550,
+              "name": "knack:MakeAPICall",
+              "type": "knack:MakeAPICall",
+              "config": {
+                "url": "/greenlight-tracking/pages/scene_2353/views/view_5492/records/{{409.field_4121_raw[1].id}}",
+                "method": "GET"
+              },
+              "parameters": null
+            },
+            {
+              "id": 529,
+              "name": "builtin:BasicFeeder",
+              "type": "builtin:BasicFeeder",
+              "parameters": null
+            },
+            {
+              "id": 527,
+              "name": "builtin:BasicAggregator",
+              "type": "builtin:BasicAggregator",
+              "parameters": null
+            },
+            {
+              "id": 528,
+              "name": "builtin:BasicAggregator",
+              "type": "builtin:BasicAggregator",
+              "parameters": null
+            },
+            {
+              "id": 546,
+              "name": "builtin:BasicRouter",
+              "type": "builtin:BasicRouter",
+              "routes": [
+                {
+                  "flow": [
+                    {
+                      "id": 553,
+                      "name": "util:SetVariable2",
+                      "type": "util:SetVariable2",
+                      "parameters": null
+                    },
+                    {
+                      "id": 537,
+                      "name": "builtin:BasicFeeder",
+                      "type": "builtin:BasicFeeder",
+                      "parameters": null
+                    },
+                    {
+                      "id": 544,
+                      "name": "mailersend:MakeApiCall",
+                      "type": "mailersend:MakeApiCall",
+                      "config": {
+                        "body": [
+                          "{{6.email_normalised}}"
+                        ],
+                        "url": "/v1/email-verification/verify",
+                        "method": "POST"
+                      },
+                      "parameters": null
+                    },
+                    {
+                      "id": 542,
+                      "name": "builtin:BasicAggregator",
+                      "type": "builtin:BasicAggregator",
+                      "config": {
+                        "body": {
+                          "type": "string",
+                          "length": 12,
+                          "fieldReferences": [
+                            "{{544.body}}"
+                          ]
+                        }
+                      },
+                      "parameters": null
+                    },
+                    {
+                      "id": 286,
+                      "name": "code:ExecuteCode",
+                      "type": "code:ExecuteCode",
+                      "parameters": null
+                    },
+                    {
+                      "id": 383,
+                      "name": "json:AggregateToJSON",
+                      "type": "json:AggregateToJSON",
+                      "parameters": null
+                    },
+                    {
+                      "id": 345,
+                      "name": "json:ParseJSON",
+                      "type": "json:ParseJSON",
+                      "parameters": null
+                    },
+                    {
+                      "id": 336,
+                      "name": "gateway:WebhookRespond",
+                      "type": "gateway:WebhookRespond",
+                      "config": {
+                        "body": {
+                          "type": "string",
+                          "length": 29,
+                          "fieldReferences": [
+                            "{{345.webhook_response_json}}"
+                          ]
+                        }
+                      },
+                      "parameters": null
+                    }
+                  ],
+                  "filter": null
+                },
+                {
+                  "flow": [
+                    {
+                      "id": 552,
+                      "name": "code:ExecuteCode",
+                      "type": "code:ExecuteCode",
+                      "parameters": null
+                    },
+                    {
+                      "id": 548,
+                      "name": "gateway:WebhookRespond",
+                      "type": "gateway:WebhookRespond",
+                      "config": {
+                        "body": {
+                          "type": "string",
+                          "length": 14,
+                          "fieldReferences": [
+                            "{{552.result}}"
+                          ]
+                        }
+                      },
+                      "parameters": null
+                    }
+                  ],
+                  "filter": null
+                }
+              ]
+            }
+          ],
+          "filter": null
+        }
+      ]
+    }
+  ],
+  "flow": []
+}

@@ -2041,59 +2041,12 @@ window.ktlReady = function (appInfo = {}) {
         // Define which validation rules apply to which fields in each view
         // ========================================================================
         const viewConfigs = {
-            view_5518: {
-                webhook: {
-                    url: 'https://hook.us1.make.com/nwacilwm8c5sg3w5w2xd7qxwwp250fbu',
-                    enabled: true
-                },
-                fields: {
-                    field_3958: {
-                        rule: 'checkbox-required',
-                        selector: 'input[name="field_3958"]',
-                        required: true,
-                        message: 'Please select at least one role'
-                    },
-                    field_3967: {
-                        rule: 'name-fields',
-                        selectors: {
-                            first: 'input[name="first"]',
-                            last: 'input[name="last"]'
-                        },
-                        required: true
-                    },
-                    field_3960: {
-                        rule: 'mobile-number',
-                        selector: '#field_3960',
-                        required: false
-                    },
-                    field_3961: {
-                        rule: 'landline-number',
-                        selector: '#field_3961',
-                        required: false
-                    },
-                    field_3984: {
-                        rule: 'proper-case-text',
-                        selector: '#field_3984',
-                        required: false
-                    },
-                    contact_group: {
-                        rule: 'contact-group',
-                        selectors: {
-                            email: '#field_3959',
-                            mobile: '#field_3960',
-                            phone: '#field_3961'
-                        },
-                        required: true
-                    }
-                }
-            },
-
             // ===== COMPANY CREATION FORM =====
             view_4059: {
                 formType: 'company-creation',
                 allow_shared_contacts: false,  // Company creation does NOT allow shared contacts (hard fail)
                 webhook: {
-                    url: 'https://hook.us1.make.com/k5x6x9cgrnxeotdocoqmkvfspe495am4',
+                    url: 'https://greenlight-services-3.vercel.app/api/company/validate',
                     enabled: true
                 },
                 postSubmissionWebhook: {
@@ -2372,6 +2325,71 @@ window.ktlReady = function (appInfo = {}) {
                         parent_record_id: '#view_5633 .field_984 .kn-detail-body'  // Company ID
                     }
                 },
+                fields: {
+                    field_3860: {
+                        rule: 'name-fields',
+                        selectors: {
+                            first: 'input[name="first"]',
+                            last: 'input[name="last"]'
+                        },
+                        required: true
+                    },
+                    field_3861: {
+                        rule: 'proper-case-text',
+                        selector: '#field_3861',
+                        required: false
+                    },
+                    field_4164: {
+                        rule: 'company-email',
+                        selector: '#field_4164',
+                        required: false,
+                        conflictType: 'email'
+                    },
+                    field_4165: {
+                        rule: 'mobile-number',
+                        selector: '#field_4165',
+                        required: false,
+                        conflictType: 'mobile'
+                    },
+                    field_4056: {
+                        rule: 'landline-number',
+                        selector: '#field_4056',
+                        required: false,
+                        conflictType: 'phone'
+                    },
+                    contact_group: {
+                        rule: 'contact-group',
+                        selectors: {
+                            email: '#field_4164',
+                            mobile: '#field_4165',
+                            phone: '#field_4056'
+                        },
+                        required: true,
+                        conflictTypes: {
+                            email: 'email',
+                            mobile: 'mobile',
+                            phone: 'phone'
+                        }
+                    }
+                }
+            },
+
+            // ===== QUICK CREATE CONTACT (after company creation) =====
+            // Same as view_5631 but gets parent_record_id from field_4358 instead of hidden view
+            view_5685: {
+                formType: 'contact-creation',
+                allowSharedContacts: true,
+                isQuickCreate: true,  // Flag to indicate this is the quick-create flow
+                webhook: {
+                    url: 'https://hook.us1.make.com/hhfz1ywcik857a3j3drfxzr221m4tois',
+                    enabled: true
+                },
+                postSubmissionWebhook: {
+                    url: 'https://hook.us1.make.com/s4n6e3ajcvh9sm4i0yf3vtzjp46bglqp',
+                    enabled: true
+                },
+                // Parent record ID stored in hidden text field (populated by JS after company creation)
+                parentRecordIdField: '#field_4358',
                 fields: {
                     field_3860: {
                         rule: 'name-fields',
@@ -4122,10 +4140,13 @@ window.ktlReady = function (appInfo = {}) {
                             console.log(`✅ Extracted ECN ID from webhook response (ecn_record_id): ${ecnId}`);
                         }
 
-                        // Redirect to contact view if we have ECN ID
+                        // Redirect to Quick Create Contact form if we have ECN ID (company creation)
+                        // Go to scene_2435 which has view_5685 (Quick Create Contact form)
                         if (ecnId && viewId === 'view_4059') {
-                            const redirectUrl = `#contacts6/view-contact3/${ecnId}`;
-                            console.log(`🔀 Redirecting to contact view: ${redirectUrl}`);
+                            // Store ECN ID for later use (e.g., redirecting to contact view after contact creation)
+                            window._newCompanyEcnId = ecnId;
+                            const redirectUrl = `#contacts6/add-contact-to-company2/`;
+                            console.log(`🔀 Redirecting to Quick Create Contact form: ${redirectUrl}`);
                             window.location.hash = redirectUrl;
                         } else if (!ecnId) {
                             console.warn(`⚠️ No ECN ID in webhook response - cannot redirect`);
@@ -4304,26 +4325,38 @@ window.ktlReady = function (appInfo = {}) {
                     console.warn(`⚠️ Could not get tenant_id from hidden view:`, error);
                 }
 
-                // For Create Contact with Company (view_5631), get parent_record_id (company_id) from hidden view
+                // For Create Contact with Company (view_5631) or Quick Create (view_5685), get parent_record_id (company_id)
                 let companyId = '';
-                if (viewId === 'view_5631') {
+                if (viewId === 'view_5631' || viewId === 'view_5685') {
                     try {
-                        // Get company_id from view_5633 field_984
-                        const companyIdSelector = config.hiddenView?.recordIds?.parent_record_id;
-                        if (companyIdSelector) {
-                            const $companyIdField = $(companyIdSelector);
-                            if ($companyIdField.length > 0) {
-                                companyId = $companyIdField.text().trim();
-                                console.log(`🏢 Company ID from hidden view (view_5633): "${companyId}"`);
+                        // For view_5685, get from field_4358 (hidden text field)
+                        if (viewId === 'view_5685') {
+                            const $parentField = $('#field_4358');
+                            if ($parentField.length > 0) {
+                                companyId = $parentField.val().trim();
+                                console.log(`🏢 Company ID from field_4358: "${companyId}"`);
                             }
                         }
+
+                        // For view_5631, get from hidden view
+                        if (!companyId && viewId === 'view_5631') {
+                            const companyIdSelector = config.hiddenView?.recordIds?.parent_record_id;
+                            if (companyIdSelector) {
+                                const $companyIdField = $(companyIdSelector);
+                                if ($companyIdField.length > 0) {
+                                    companyId = $companyIdField.text().trim();
+                                    console.log(`🏢 Company ID from hidden view (view_5633): "${companyId}"`);
+                                }
+                            }
+                        }
+
                         // Fallback: try window._parentRecordId if set during render
                         if (!companyId && window._parentRecordId) {
                             companyId = window._parentRecordId;
                             console.log(`🏢 Company ID from window._parentRecordId: "${companyId}"`);
                         }
                     } catch (error) {
-                        console.warn(`⚠️ Could not get company_id from hidden view:`, error);
+                        console.warn(`⚠️ Could not get company_id:`, error);
                     }
                 }
 
@@ -4509,8 +4542,8 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`🔗 Added update form IDs - ECN: "${payload.ecn_record_id}", ENT: "${payload.ent_record_id}", Connection Type: "${connectionType}"`);
                 }
 
-                // Add company_id for Create Contact with Company form (view_5631)
-                if (viewId === 'view_5631' && companyId) {
+                // Add company_id for Create Contact with Company form (view_5631 or view_5685)
+                if ((viewId === 'view_5631' || viewId === 'view_5685') && companyId) {
                     payload.company_id = companyId;
                     payload.parent_record_id = companyId;  // Also include as parent_record_id for clarity
                     payload.data.company_id = companyId;
@@ -4883,12 +4916,23 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`🆔 Added record IDs to post-submission payload:`, recordIds);
                 }
 
-                // Add company_id for Create Contact with Company form (view_5631)
-                if (viewId === 'view_5631') {
+                // Add company_id for Create Contact with Company form (view_5631 or view_5685)
+                if (viewId === 'view_5631' || viewId === 'view_5685') {
                     // Get company_id from window._parentRecordId (set during render)
-                    // or from hidden view config
+                    // or from hidden view config (view_5631) or form field (view_5685)
                     let companyId = window._parentRecordId || '';
-                    if (!companyId && config.hiddenView && config.hiddenView.recordIds) {
+
+                    // For view_5685, try to get from field_4358
+                    if (!companyId && viewId === 'view_5685') {
+                        const $parentField = $('#field_4358');
+                        if ($parentField.length > 0) {
+                            companyId = $parentField.val().trim();
+                            console.log(`🏢 Got company_id from field_4358: "${companyId}"`);
+                        }
+                    }
+
+                    // For view_5631, fallback to hidden view
+                    if (!companyId && viewId === 'view_5631' && config.hiddenView && config.hiddenView.recordIds) {
                         const companyIdSelector = config.hiddenView.recordIds.parent_record_id;
                         if (companyIdSelector) {
                             const $companyIdField = $(companyIdSelector);
@@ -4970,18 +5014,23 @@ window.ktlReady = function (appInfo = {}) {
 
             /**
              * Fire post-submission webhook for contact forms
+             * @param {string} viewId - The view ID
+             * @param {object} submissionResponse - The Knack submission response
+             * @param {object} callbacks - Optional callbacks: { onSuccess: fn(result), onError: fn(error) }
              */
-            firePostSubmissionWebhook: function (viewId, submissionResponse) {
+            firePostSubmissionWebhook: function (viewId, submissionResponse, callbacks = {}) {
                 const config = viewConfigs[viewId];
 
                 if (!config || !config.postSubmissionWebhook || !config.postSubmissionWebhook.enabled) {
                     console.log(`🔗 Post-submission webhook not configured for ${viewId}`);
+                    if (callbacks.onError) callbacks.onError(new Error('Webhook not configured'));
                     return;
                 }
 
                 const webhookUrl = config.postSubmissionWebhook.url;
                 if (!webhookUrl || webhookUrl.includes('YOUR_CONTACT_POST_WEBHOOK_URL_HERE')) {
                     console.log(`⚠️ Post-submission webhook URL not configured for ${viewId}`);
+                    if (callbacks.onError) callbacks.onError(new Error('Webhook URL not configured'));
                     return;
                 }
 
@@ -5009,15 +5058,23 @@ window.ktlReady = function (appInfo = {}) {
                             ecnId = result.ecn_record_id;
                         }
 
-                        // Redirect to contact view if we have ECN ID
+                        // Redirect to contact view if we have ECN ID (only for standalone contact creation)
                         if (ecnId && viewId === 'view_5612') {
                             const redirectUrl = `#contacts6/view-contact3/${ecnId}`;
                             console.log(`🔀 Redirecting to contact view: ${redirectUrl}`);
                             window.location.hash = redirectUrl;
                         }
+
+                        // Call success callback if provided
+                        if (callbacks.onSuccess) {
+                            callbacks.onSuccess(result);
+                        }
                     })
                     .catch(error => {
                         console.error(`❌ Post-submission webhook error for ${viewId}:`, error);
+                        if (callbacks.onError) {
+                            callbacks.onError(error);
+                        }
                     })
                     .finally(() => {
                         // Cleanup window variables
@@ -5163,9 +5220,18 @@ window.ktlReady = function (appInfo = {}) {
                     };
                 }
 
-                console.log(`🔗 Firing webhook with duplicate check for ${viewId} to ${config.webhook.url}`, payload);
+                // Check for local API mode - use localhost instead of Make.com
+                let webhookUrl = config.webhook.url;
+                const useLocalApi = localStorage.getItem('Greenl_56ea_dev') !== null;
 
-                return fetch(config.webhook.url, {
+                if (useLocalApi && config.formType === 'company-creation') {
+                    webhookUrl = 'http://localhost:3001/api/company/validate';
+                    console.log(`🧪 LOCAL DEV MODE: Using ${webhookUrl} instead of Vercel`);
+                }
+
+                console.log(`🔗 Firing webhook with duplicate check for ${viewId} to ${webhookUrl}`, payload);
+
+                return fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -7026,15 +7092,17 @@ window.ktlReady = function (appInfo = {}) {
                     let warningMsg;
 
                     // Map conflict type to field ID
+                    // Use existing_entity (from our backend) or existing_contact (from Make.com) for compatibility
+                    const entityName = conflict.existing_entity || conflict.existing_contact || 'another entity';
                     if (conflict.type === 'email') {
                         fieldId = 'field_4164';
-                        warningMsg = `This email is already associated with <strong>${conflict.existing_contact}</strong>`;
+                        warningMsg = `This email is already associated with <strong>${entityName}</strong>`;
                     } else if (conflict.type === 'phone') {
                         fieldId = 'field_4056';
-                        warningMsg = `This phone number is already associated with <strong>${conflict.existing_contact}</strong>`;
+                        warningMsg = `This phone number is already associated with <strong>${entityName}</strong>`;
                     } else if (conflict.type === 'mobile') {
                         fieldId = 'field_3960';
-                        warningMsg = `This mobile number is already associated with <strong>${conflict.existing_contact}</strong>`;
+                        warningMsg = `This mobile number is already associated with <strong>${entityName}</strong>`;
                     }
 
                     if (fieldId) {
@@ -7057,7 +7125,8 @@ window.ktlReady = function (appInfo = {}) {
                     conflicts.forEach(conflict => {
                         const contactMethod = conflict.type === 'mobile' ? 'Mobile' :
                             conflict.type === 'phone' ? 'Phone' : 'Email';
-                        confirmMessage += `<li>${contactMethod}: <strong>${conflict.contact_value}</strong> is already associated with <strong>${conflict.existing_contact}</strong></li>`;
+                        const entityName = conflict.existing_entity || conflict.existing_contact || 'another entity';
+                        confirmMessage += `<li>${contactMethod}: <strong>${conflict.contact_value}</strong> is already associated with <strong>${entityName}</strong></li>`;
                     });
 
                     confirmMessage += '</ul>';
@@ -8816,9 +8885,15 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_4059 (company-creation)`);
                     console.log(`📦 Submission response:`, response);
 
+                    // Capture company record ID for quick-create contact flow
+                    if (response && response.record && response.record.id) {
+                        window._newCompanyRecordId = response.record.id;
+                        console.log(`🏢 Captured company record ID: ${window._newCompanyRecordId}`);
+                    }
+
                     // Fire post-submission webhook immediately
-                    // The webhook will create the ECN and return the ecn_id for redirect
-                    console.log(`🚀 Firing post-submission webhook (will redirect after response)`);
+                    // The webhook will create the ECN and redirect to Quick Create Contact form
+                    console.log(`🚀 Firing post-submission webhook (will redirect to Quick Create Contact after response)`);
                     companyFormHandler.firePostSubmissionWebhook('view_4059', response);
                 });
 
@@ -8979,8 +9054,213 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_5631 (contact-creation with company)`);
                     console.log(`📦 Submission response:`, response);
 
-                    // Fire post-submission webhook if enabled
-                    contactFormHandler.firePostSubmissionWebhook('view_5631', response);
+                    // Set flag to show pending message when view_5634 renders
+                    window._newContactPending = true;
+                    console.log('🚩 Set _newContactPending flag for view_5634');
+
+                    // Fire post-submission webhook with callbacks
+                    contactFormHandler.firePostSubmissionWebhook('view_5631', response, {
+                        onSuccess: function (result) {
+                            console.log('✅ COMs created successfully, refreshing staff list');
+
+                            // Clear the pending flag
+                            window._newContactPending = false;
+
+                            // Remove the pending message
+                            $('#new-contact-pending').fadeOut(300, function () {
+                                $(this).remove();
+                            });
+
+                            // Refresh view_5634 (Staff Details) using KTL
+                            setTimeout(function () {
+                                if (window.ktl && window.ktl.views && typeof window.ktl.views.refreshView === 'function') {
+                                    window.ktl.views.refreshView('view_5634');
+                                    console.log('🔄 Refreshed view_5634 (Staff Details) using KTL');
+                                } else if (typeof Knack !== 'undefined' && Knack.views && Knack.views.view_5634) {
+                                    Knack.views.view_5634.model.fetch();
+                                    console.log('🔄 Refreshed view_5634 using Knack native');
+                                }
+                            }, 300);
+                        },
+                        onError: function (error) {
+                            console.error('❌ Error creating COMs:', error);
+
+                            // Clear the pending flag
+                            window._newContactPending = false;
+
+                            // Update the pending message to show error
+                            const $pendingMessage = $('#new-contact-pending');
+                            if ($pendingMessage.length) {
+                                $pendingMessage.css({
+                                    'background': '#f8d7da',
+                                    'border-color': '#f5c6cb'
+                                }).html(`
+                                    <i class="fa fa-exclamation-circle" style="color: #721c24;"></i>
+                                    <span style="color: #721c24; font-weight: 500;">Error setting up contact details. Please check the contact manually.</span>
+                                `);
+
+                                // Auto-hide after 10 seconds
+                                setTimeout(function () {
+                                    $pendingMessage.fadeOut(300, function () {
+                                        $(this).remove();
+                                    });
+                                }, 10000);
+                            }
+                        }
+                    });
+                });
+
+                // ===== QUICK CREATE CONTACT FORM (view_5685) =====
+                // This form is shown after company creation for streamlined workflow
+                $(document).on('knack-view-render.view_5685', function (event, view, data) {
+                    setTimeout(function () {
+                        const viewId = 'view_5685';
+                        console.log('👀 Quick Create Contact form (view_5685) rendered');
+
+                        // Prefill parent_record_id from stored company record ID
+                        if (window._newCompanyRecordId) {
+                            const $parentField = $('#field_4358');
+                            if ($parentField.length) {
+                                $parentField.val(window._newCompanyRecordId);
+                                console.log(`🏢 Prefilled field_4358 with company record ID: ${window._newCompanyRecordId}`);
+                            } else {
+                                console.warn('⚠️ Could not find field_4358 to prefill parent_record_id');
+                            }
+                            // Store for webhook payload
+                            window._parentRecordId = window._newCompanyRecordId;
+                        } else {
+                            console.warn('⚠️ No company record ID found in window._newCompanyRecordId');
+                        }
+
+                        // Find and hide the default submit button
+                        let $defaultSubmitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
+                        if ($defaultSubmitBtn.length) {
+                            $defaultSubmitBtn.hide();
+                            console.log('🔒 Hidden default submit button');
+                        }
+
+                        // Create custom dual submit buttons
+                        const $buttonContainer = $(`
+                            <div id="quick-create-buttons" style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                                <button type="button" id="btn-create-proposal" class="kn-button" style="
+                                    background: #6c757d;
+                                    color: white;
+                                    border: none;
+                                    padding: 10px 20px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-weight: 500;
+                                ">
+                                    <i class="fa fa-file-text-o" style="margin-right: 8px;"></i>Create Proposal
+                                </button>
+                                <button type="button" id="btn-create-project" class="kn-button" style="
+                                    background: #39b54a;
+                                    color: white;
+                                    border: none;
+                                    padding: 10px 20px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-weight: 500;
+                                ">
+                                    <i class="fa fa-folder-open" style="margin-right: 8px;"></i>Create Project
+                                </button>
+                            </div>
+                        `);
+
+                        // Insert buttons after the form
+                        const $form = $(`#${viewId} form, #${viewId}.kn-form`);
+                        if ($form.length) {
+                            $form.append($buttonContainer);
+                            console.log('✅ Added dual submit buttons (Create Project / Create Proposal)');
+                        }
+
+                        // Handle Create Project button click
+                        $('#btn-create-project').off('click.quickCreate').on('click.quickCreate', function () {
+                            console.log('🚀 Create Project button clicked');
+                            window._quickCreateNextAction = 'project';
+                            // Trigger form validation and submission
+                            if ($defaultSubmitBtn.length) {
+                                $defaultSubmitBtn.trigger('click');
+                            }
+                        });
+
+                        // Handle Create Proposal button click
+                        $('#btn-create-proposal').off('click.quickCreate').on('click.quickCreate', function () {
+                            console.log('🚀 Create Proposal button clicked');
+                            window._quickCreateNextAction = 'proposal';
+                            // Trigger form validation and submission
+                            if ($defaultSubmitBtn.length) {
+                                $defaultSubmitBtn.trigger('click');
+                            }
+                        });
+
+                        // Focus on first name field
+                        const $firstNameField = $(`#${viewId} input[name="first"]`);
+                        if ($firstNameField.length) {
+                            $firstNameField.focus();
+                            console.log('⌨️ Focused first name field');
+                        }
+
+                        // Trim email field on blur
+                        $(`#${viewId} #field_4164`).off('blur.trim').on('blur.trim', function () {
+                            const trimmed = $(this).val().trim();
+                            if (trimmed !== $(this).val()) {
+                                $(this).val(trimmed);
+                            }
+                        });
+
+                        // Set up field error listeners for conflict handling
+                        duplicateHandler.setupFieldErrorListeners(viewId);
+
+                        console.log('✅ Quick Create Contact form (view_5685) initialized');
+                    }, 100);
+                });
+
+                // Quick Create Contact Form submit handler (view_5685)
+                $(document).on('knack-form-submit.view_5685', function (event, view, response) {
+                    console.log(`📝 Form submission completed for view_5685 (quick-create contact)`);
+                    console.log(`📦 Submission response:`, response);
+
+                    const nextAction = window._quickCreateNextAction || 'view';
+                    console.log(`📋 Next action after contact creation: ${nextAction}`);
+
+                    // Fire post-submission webhook with callbacks
+                    contactFormHandler.firePostSubmissionWebhook('view_5685', response, {
+                        onSuccess: function (result) {
+                            console.log('✅ COMs created successfully');
+
+                            // Get ECN ID for redirect
+                            let ecnId = null;
+                            if (result && result.ecn_id) {
+                                ecnId = result.ecn_id;
+                            } else if (result && result.ecn_record_id) {
+                                ecnId = result.ecn_record_id;
+                            } else if (window._newCompanyEcnId) {
+                                ecnId = window._newCompanyEcnId;
+                            }
+
+                            // Redirect based on next action
+                            // For prototype, all options redirect to View Contact
+                            if (ecnId) {
+                                const redirectUrl = `#contacts6/view-contact3/${ecnId}`;
+                                console.log(`🔀 Redirecting to contact view: ${redirectUrl}`);
+                                console.log(`📋 (Prototype: Next action "${nextAction}" would go to different form)`);
+                                window.location.hash = redirectUrl;
+                            } else {
+                                console.warn('⚠️ No ECN ID available for redirect');
+                            }
+
+                            // Cleanup
+                            delete window._quickCreateNextAction;
+                            delete window._newCompanyRecordId;
+                            delete window._newCompanyEcnId;
+                        },
+                        onError: function (error) {
+                            console.error('❌ Error creating COMs:', error);
+                            // Cleanup
+                            delete window._quickCreateNextAction;
+                        }
+                    });
                 });
 
                 // ===== CONTACT UPDATE FORM (view_5626) =====
@@ -11344,9 +11624,9 @@ window.ktlReady = function (appInfo = {}) {
     // ========================================================================
 
     /**
-     * Show/hide Update Company and Update Contact buttons based on ECN type
-     * If field_4219 = 'Individual' -> show Update Contact, hide Update Company
-     * Otherwise (including null) -> show Update Company, hide Update Contact
+     * Show/hide elements based on ECN type (field_4219)
+     * Individual: Show Update Contact only, hide Staff details (view_5634)
+     * Organisation (Company/Charity/Trust/Gov/Other): Show Update Company + Add Contact + Staff details
      */
     function updateButtonVisibilityByEcnType() {
         // Get ECN type from view_5600 field_4219
@@ -11361,20 +11641,28 @@ window.ktlReady = function (appInfo = {}) {
 
         console.log(`🔍 ECN Type (field_4219): "${ecnType}"`);
 
-        // Find the Update buttons in view_5601 (target the <a> element directly to override CSS)
+        // Find the buttons in view_5601 (target the <a> element directly to override CSS)
         const $updateCompanyLink = $('#view_5601 a[href*="update-company"]');
         const $updateContactLink = $('#view_5601 a[href*="update-contact"]');
+        const $addContactLink = $('#view_5601 a[href*="add-contact-to-company"]');
+
+        // Staff details view (only for organisations)
+        const $staffDetailsView = $('#view_5634');
 
         if (ecnType === 'Individual') {
-            // Show Update Contact, hide Update Company
+            // Individual: Show Update Contact only, hide Staff details
             $updateCompanyLink.css('display', 'none');
             $updateContactLink.css('display', 'inline-block');
-            console.log('👤 Individual ECN - showing Update Contact button');
+            $addContactLink.css('display', 'none');
+            $staffDetailsView.css('display', 'none');
+            console.log('👤 Individual ECN - showing Update Contact button only, hiding Staff details');
         } else {
-            // Show Update Company, hide Update Contact (default for Company, null, or other values)
+            // Organisation: Show Update Company + Add Contact + Staff details
             $updateCompanyLink.css('display', 'inline-block');
             $updateContactLink.css('display', 'none');
-            console.log('🏢 Company/Other ECN - showing Update Company button');
+            $addContactLink.css('display', 'inline-block');
+            $staffDetailsView.css('display', 'block');
+            console.log('🏢 Organisation ECN - showing Update Company + Add Contact + Staff details');
         }
 
         // Now show the detail views (they were hidden until ECN type was known)
@@ -11399,11 +11687,12 @@ window.ktlReady = function (appInfo = {}) {
     $(document).on('knack-view-render.view_5601', function (event, view, data) {
         console.log('👀 view_5601 rendered');
 
-        // Immediately hide both Update buttons with inline styles (before CSS potentially loads)
-        // This ensures no flash - view_5600 handler will show the correct one
+        // Immediately hide all action buttons with inline styles (before CSS potentially loads)
+        // This ensures no flash - view_5600 handler will show the correct ones based on ECN type
         $('#view_5601 a[href*="update-company"]').css('display', 'none');
         $('#view_5601 a[href*="update-contact"]').css('display', 'none');
-        console.log('🔒 Both Update buttons hidden on view_5601 render');
+        $('#view_5601 a[href*="add-contact-to-company"]').css('display', 'none');
+        console.log('🔒 All action buttons hidden on view_5601 render');
 
         // Check processing status and hide email/phone fields if Processing
         checkAndUpdateFieldVisibility();
@@ -11426,7 +11715,39 @@ window.ktlReady = function (appInfo = {}) {
      * Replaces plain URL text with styled button using tableBlueButton class and fa-eye icon
      */
     $(document).on('knack-view-render.view_5634', function (event, view, data) {
-        console.log('👀 view_5634 (Contacts Grid) rendered');
+        console.log('👀 view_5634 (Staff Details) rendered');
+
+        // Initially hide to prevent flash - visibility set by updateButtonVisibilityByEcnType()
+        $('#view_5634').css('display', 'none');
+        console.log('🔒 view_5634 hidden on render (waiting for ECN type check)');
+
+        // If view_5600 has already rendered, check ECN type now
+        updateButtonVisibilityByEcnType();
+
+        // Show "New Contact pending..." message if flag is set (from view_5631 form submission)
+        if (window._newContactPending) {
+            // Remove any existing pending message first
+            $('#new-contact-pending').remove();
+
+            const $pendingMessage = $(`
+                <div id="new-contact-pending" style="
+                    background: #fff3cd;
+                    border: 1px solid #ffc107;
+                    border-radius: 4px;
+                    padding: 12px 16px;
+                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                ">
+                    <i class="fa fa-spinner fa-spin" style="color: #856404;"></i>
+                    <span style="color: #856404; font-weight: 500;">New Contact pending... Setting up communication channels.</span>
+                </div>
+            `);
+
+            $('#view_5634').before($pendingMessage);
+            console.log('⏳ Showing "New Contact pending..." message above view_5634');
+        }
 
         // Process each row - convert field_4231 (View Link) URL to a styled button
         $('#view_5634 table tbody tr').each(function () {

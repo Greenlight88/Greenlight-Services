@@ -45,7 +45,8 @@ function analyzeCCNConflicts(ccnResults, emailNormalised, phoneNormalised) {
         const ownershipType = ccnRecord.field_4011 || '';
         const comId = ccnRecord.field_4010_raw?.[0]?.id || null;
         const ecnId = ccnRecord.field_4121_raw?.[0]?.id || null;
-        const ecnIdentifier = ccnRecord.field_4121_raw?.[0]?.identifier || 'Unknown Entity';
+        // Use enriched entity name from secondary lookups, fallback to raw identifier
+        const ecnIdentifier = ccnRecord._enriched_entity_name || ccnRecord.field_4121_raw?.[0]?.identifier || 'Unknown Entity';
 
         const normalizedContactValue = normalizeForComparison(contactValue);
 

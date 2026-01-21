@@ -17,12 +17,14 @@ if (process.env.NODE_ENV !== 'production') {
 const knack = require('../../lib/knack-api');
 const { validateEmail } = require('../../lib/mailersend');
 const { analyzeCCNConflicts, buildResponse } = require('../../lib/duplicate-detection');
+const { logRequest } = require('../../db/client');
 
 // Knack object IDs
 const OBJECTS = {
-    ECN: 'object_54',  // Entity Connections (for company name search)
-    CCN: 'object_77',  // Communication Connections (for contact conflicts)
-    COM: 'object_76'   // Communication Channels
+    ENT: 'object_54',   // Entities
+    ECN: 'object_187',  // Entity Connections (for company name search)
+    CCN: 'object_189',  // Communication Connections (for contact conflicts)
+    COM: 'object_188'   // Communication Channels
 };
 
 // Field IDs for searches
@@ -34,16 +36,19 @@ const FIELDS = {
 };
 
 /**
- * Search for duplicate company by name
+ * Search for duplicate company by name in ENT table
+ * Matches Make.com logic: OR filter on field_4059 and field_4134
  */
 async function searchCompanyDuplicate(companySearch, companyShortSearch) {
     if (!companySearch) {
         return null;
     }
 
-    console.log(`🔍 Searching for company: "${companySearch}"`);
+    console.log(`🔍 Searching ENT for company: "${companySearch}"${companyShortSearch ? `, short: "${companyShortSearch}"` : ''}`);
 
-    // Build OR filter: match company_search OR company_short_search
+    // Build OR filter matching Make.com logic:
+    // field_4059 = company_search OR field_4134 = company_short_search
+    // OR field_4059 = company_short_search OR field_4134 = company_search
     const filters = {
         match: 'or',
         rules: [
@@ -51,17 +56,18 @@ async function searchCompanyDuplicate(companySearch, companyShortSearch) {
         ]
     };
 
-    // Add short name filter if provided
+    // Add short name filters if provided (cross-match both fields)
     if (companyShortSearch && companyShortSearch !== companySearch) {
         filters.rules.push(
-            { field: FIELDS.COMPANY_SHORT_SEARCH, operator: 'is', value: companySearch },
+            { field: FIELDS.COMPANY_SHORT_SEARCH, operator: 'is', value: companyShortSearch },
             { field: FIELDS.COMPANY_SEARCH, operator: 'is', value: companyShortSearch },
-            { field: FIELDS.COMPANY_SHORT_SEARCH, operator: 'is', value: companyShortSearch }
+            { field: FIELDS.COMPANY_SHORT_SEARCH, operator: 'is', value: companySearch }
         );
     }
 
     try {
-        const result = await knack.search(OBJECTS.ECN, [filters], { limit: 1 });
+        // Search ENT table (object_54) for duplicate company names
+        const result = await knack.search(OBJECTS.ENT, [filters], { limit: 1 });
 
         if (result.records && result.records.length > 0) {
             const duplicate = result.records[0];
@@ -83,10 +89,9 @@ async function searchCompanyDuplicate(companySearch, companyShortSearch) {
 
 /**
  * Search for existing contacts (email/phone) in CCN table
+ * Then enrich with ENT details (entity names) via secondary lookups
  */
 async function searchContactConflicts(emailNormalised, phoneNormalised) {
-    const conflicts = [];
-
     // Build filters for email and phone
     const filterRules = [];
 
@@ -121,13 +126,17 @@ async function searchContactConflicts(emailNormalised, phoneNormalised) {
     try {
         const result = await knack.search(OBJECTS.CCN, [filters], { limit: 100 });
 
-        if (result.records && result.records.length > 0) {
-            console.log(`📋 Found ${result.records.length} potential CCN conflict(s)`);
-            return result.records;
+        if (!result.records || result.records.length === 0) {
+            console.log('✓ No contact conflicts found');
+            return [];
         }
 
-        console.log('✓ No contact conflicts found');
-        return [];
+        console.log(`📋 Found ${result.records.length} potential CCN conflict(s)`);
+
+        // Enrich CCN records with entity names (like Make.com modules 550/551)
+        const enrichedRecords = await enrichCCNWithEntityNames(result.records);
+        return enrichedRecords;
+
     } catch (error) {
         console.error('Error searching for contact conflicts:', error);
         throw error;
@@ -135,9 +144,70 @@ async function searchContactConflicts(emailNormalised, phoneNormalised) {
 }
 
 /**
+ * Enrich CCN records with entity names from ENT table
+ * Mirrors Make.com's secondary API calls to fetch full entity details
+ */
+async function enrichCCNWithEntityNames(ccnRecords) {
+    const enriched = [];
+
+    for (const ccn of ccnRecords) {
+        console.log(`   📎 CCN ${ccn.id}:`);
+        console.log(`      field_4121 (ECN connection): ${ccn.field_4121 || 'empty'}`);
+        console.log(`      field_4121_raw: ${JSON.stringify(ccn.field_4121_raw || 'undefined')}`);
+
+        // Get the ECN ID from the CCN's entity connection
+        // CCN connects to ECN (field_4121), and ECN connects to ENT (field_3858)
+        const ecnId = ccn.field_4121_raw?.[0]?.id;
+
+        let entityName = 'Unknown Entity';
+        let entId = null;
+
+        if (ecnId) {
+            try {
+                // Fetch the ECN record to get the ENT connection
+                console.log(`      → Fetching ECN ${ecnId}...`);
+                const ecnRecord = await knack.get(OBJECTS.ECN, ecnId);
+                console.log(`      ECN field_3858 (ENT connection): ${ecnRecord.field_3858 || 'empty'}`);
+                console.log(`      ECN field_3858_raw: ${JSON.stringify(ecnRecord.field_3858_raw || 'undefined')}`);
+
+                // ECN.field_3858 contains the ENT connection
+                entId = ecnRecord.field_3858_raw?.[0]?.id;
+
+                if (entId) {
+                    // Fetch the ENT record to get the entity name
+                    console.log(`      → Fetching ENT ${entId}...`);
+                    const entRecord = await knack.get(OBJECTS.ENT, entId);
+                    console.log(`      ENT field_977: ${entRecord.field_977 || 'empty'}`);
+                    // field_977 is typically the entity name
+                    entityName = entRecord.field_977 || entRecord.identifier || 'Unknown Entity';
+                } else {
+                    console.log(`      ⚠️ No ENT ID found in ECN.field_3858_raw`);
+                }
+
+                console.log(`   → RESULT: ECN ${ecnId} → ENT ${entId}: "${entityName}"`);
+            } catch (err) {
+                console.warn(`   ⚠️ Could not fetch entity name for ECN ${ecnId}:`, err.message);
+            }
+        } else {
+            console.log(`      ⚠️ No ECN ID found in CCN.field_4121_raw`);
+        }
+
+        enriched.push({
+            ...ccn,
+            _enriched_entity_name: entityName,
+            _enriched_ent_id: entId
+        });
+    }
+
+    return enriched;
+}
+
+/**
  * Main handler for the validate endpoint
  */
 async function handler(req, res) {
+    const startTime = Date.now();
+
     // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -157,6 +227,30 @@ async function handler(req, res) {
     console.log('\n========================================');
     console.log('📥 Company Validation Request');
     console.log('========================================');
+
+    // Helper to send response and log it
+    const sendResponse = async (response, outcome, errorMessage = null) => {
+        const durationMs = Date.now() - startTime;
+
+        // Log to database (non-blocking)
+        logRequest({
+            endpoint: '/api/company/validate',
+            method: 'POST',
+            requestPayload: req.body,
+            responsePayload: response,
+            outcome,
+            durationMs,
+            errorMessage,
+            viewId: req.body?.view,
+            userId: req.body?.current_user?.id,
+            tenantId: req.body?.tenant_id,
+            ipAddress: req.headers['x-forwarded-for'] || req.socket?.remoteAddress,
+            userAgent: req.headers['user-agent']
+        }).catch(err => console.error('Logging failed:', err.message));
+
+        console.log(`⏱️ Request completed in ${durationMs}ms`);
+        return res.json(response);
+    };
 
     try {
         const body = req.body;
@@ -189,8 +283,8 @@ async function handler(req, res) {
         console.log('Request data:', {
             view,
             companySearch,
-            emailNormalised: emailNormalised ? '***' : '(none)',
-            phoneNormalised: phoneNormalised ? '***' : '(none)',
+            emailNormalised: emailNormalised || '(none)',
+            phoneNormalised: phoneNormalised || '(none)',
             allowEmails,
             isTest
         });
@@ -208,7 +302,7 @@ async function handler(req, res) {
                 isTest
             });
             console.log('📤 Response: BLOCK (duplicate company)');
-            return res.json(response);
+            return sendResponse(response, 'block');
         }
 
         // Step 2: Validate email with MailerSend (if provided and not bypassed)
@@ -224,7 +318,7 @@ async function handler(req, res) {
                 isTest
             });
             console.log('📤 Response: BLOCK (invalid email)');
-            return res.json(response);
+            return sendResponse(response, 'block');
         }
 
         // Step 3: Search for contact conflicts
@@ -241,15 +335,16 @@ async function handler(req, res) {
         });
 
         console.log(`📤 Response: ${response.action_required.toUpperCase()}`);
-        return res.json(response);
+        return sendResponse(response, response.action_required);
 
     } catch (error) {
         console.error('❌ Validation error:', error);
-        return res.status(500).json({
+        const errorResponse = {
             error: 'Internal server error',
             message: error.message,
             action_required: 'error'
-        });
+        };
+        return sendResponse(errorResponse, 'error', error.message);
     }
 }
 
