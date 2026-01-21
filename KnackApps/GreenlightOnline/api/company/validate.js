@@ -193,20 +193,12 @@ async function enrichCCNWithEntityNames(ccnRecords) {
                     trace.steps.push({
                         step: 'ENT fetch',
                         ent_id: entId,
-                        field_977: entRecord.field_977 || null,
-                        field_3860: entRecord.field_3860 || null,
-                        field_4014: entRecord.field_4014 || null,
+                        field_4080: entRecord.field_4080 || null,
                         entity_type: entRecord.field_3845 || null
                     });
-                    // Entity name varies by type:
-                    // - Companies: field_977 (company name)
-                    // - Individuals: field_3860 (person name) or field_3860_raw.full
-                    // - Universal: field_4014 (display name field)
-                    entityName = entRecord.field_4014 ||
-                                 entRecord.field_977 ||
-                                 entRecord.field_3860_raw?.full ||
-                                 entRecord.field_3860 ||
-                                 'Unknown Entity';
+                    // field_4080 is a calculated field that provides the entity name
+                    // regardless of whether it's a Company or Individual
+                    entityName = entRecord.field_4080 || 'Unknown Entity';
                 } else {
                     trace.steps.push({
                         step: 'ENT fetch skipped',
