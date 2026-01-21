@@ -41,7 +41,7 @@ window.ktlReady = function (appInfo = {}) {
             devInfoPopup: true,
             devPauseAutoRefresh: false,
             virtualKeyboard: false,
-            iFrameWnd: true,
+            iFrameWnd: false,
 
             bulkOps: {
                 bulkEdit: true,
