@@ -41,7 +41,7 @@ window.ktlReady = function (appInfo = {}) {
             devInfoPopup: true,
             devPauseAutoRefresh: false,
             virtualKeyboard: false,
-            iFrameWnd: false, // Disabled - testing if this improves performance
+            iFrameWnd: true,
 
             bulkOps: {
                 bulkEdit: true,
