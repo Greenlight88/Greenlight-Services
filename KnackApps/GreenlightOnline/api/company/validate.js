@@ -90,6 +90,7 @@ async function searchCompanyDuplicate(companySearch, companyShortSearch) {
 /**
  * Search for existing contacts (email/phone) in CCN table
  * Then enrich with ENT details (entity names) via secondary lookups
+ * Returns { records: [], debugTrace: [] }
  */
 async function searchContactConflicts(emailNormalised, phoneNormalised) {
     // Build filters for email and phone
@@ -113,7 +114,7 @@ async function searchContactConflicts(emailNormalised, phoneNormalised) {
 
     if (filterRules.length === 0) {
         console.log('ℹ️ No email or phone to check for conflicts');
-        return [];
+        return { records: [], debugTrace: [] };
     }
 
     const filters = {
@@ -128,14 +129,14 @@ async function searchContactConflicts(emailNormalised, phoneNormalised) {
 
         if (!result.records || result.records.length === 0) {
             console.log('✓ No contact conflicts found');
-            return [];
+            return { records: [], debugTrace: [] };
         }
 
         console.log(`📋 Found ${result.records.length} potential CCN conflict(s)`);
 
         // Enrich CCN records with entity names (like Make.com modules 550/551)
-        const enrichedRecords = await enrichCCNWithEntityNames(result.records);
-        return enrichedRecords;
+        const { records: enrichedRecords, debugTrace } = await enrichCCNWithEntityNames(result.records);
+        return { records: enrichedRecords, debugTrace };
 
     } catch (error) {
         console.error('Error searching for contact conflicts:', error);
@@ -146,14 +147,24 @@ async function searchContactConflicts(emailNormalised, phoneNormalised) {
 /**
  * Enrich CCN records with entity names from ENT table
  * Mirrors Make.com's secondary API calls to fetch full entity details
+ * Returns { records: enrichedRecords, debugTrace: [] }
  */
 async function enrichCCNWithEntityNames(ccnRecords) {
     const enriched = [];
+    const debugTrace = [];
 
     for (const ccn of ccnRecords) {
-        console.log(`   📎 CCN ${ccn.id}:`);
-        console.log(`      field_4121 (ECN connection): ${ccn.field_4121 || 'empty'}`);
-        console.log(`      field_4121_raw: ${JSON.stringify(ccn.field_4121_raw || 'undefined')}`);
+        const trace = {
+            ccn_id: ccn.id,
+            steps: [],
+            result: null
+        };
+
+        trace.steps.push({
+            step: 'CCN record',
+            field_4121: ccn.field_4121 || null,
+            field_4121_raw: ccn.field_4121_raw || null
+        });
 
         // Get the ECN ID from the CCN's entity connection
         // CCN connects to ECN (field_4121), and ECN connects to ENT (field_3858)
@@ -165,32 +176,49 @@ async function enrichCCNWithEntityNames(ccnRecords) {
         if (ecnId) {
             try {
                 // Fetch the ECN record to get the ENT connection
-                console.log(`      → Fetching ECN ${ecnId}...`);
                 const ecnRecord = await knack.get(OBJECTS.ECN, ecnId);
-                console.log(`      ECN field_3858 (ENT connection): ${ecnRecord.field_3858 || 'empty'}`);
-                console.log(`      ECN field_3858_raw: ${JSON.stringify(ecnRecord.field_3858_raw || 'undefined')}`);
+                trace.steps.push({
+                    step: 'ECN fetch',
+                    ecn_id: ecnId,
+                    field_3858: ecnRecord.field_3858 || null,
+                    field_3858_raw: ecnRecord.field_3858_raw || null
+                });
 
                 // ECN.field_3858 contains the ENT connection
                 entId = ecnRecord.field_3858_raw?.[0]?.id;
 
                 if (entId) {
                     // Fetch the ENT record to get the entity name
-                    console.log(`      → Fetching ENT ${entId}...`);
                     const entRecord = await knack.get(OBJECTS.ENT, entId);
-                    console.log(`      ENT field_977: ${entRecord.field_977 || 'empty'}`);
+                    trace.steps.push({
+                        step: 'ENT fetch',
+                        ent_id: entId,
+                        field_977: entRecord.field_977 || null,
+                        identifier: entRecord.identifier || null
+                    });
                     // field_977 is typically the entity name
                     entityName = entRecord.field_977 || entRecord.identifier || 'Unknown Entity';
                 } else {
-                    console.log(`      ⚠️ No ENT ID found in ECN.field_3858_raw`);
+                    trace.steps.push({
+                        step: 'ENT fetch skipped',
+                        reason: 'No ENT ID in ECN.field_3858_raw'
+                    });
                 }
-
-                console.log(`   → RESULT: ECN ${ecnId} → ENT ${entId}: "${entityName}"`);
             } catch (err) {
-                console.warn(`   ⚠️ Could not fetch entity name for ECN ${ecnId}:`, err.message);
+                trace.steps.push({
+                    step: 'Error',
+                    error: err.message
+                });
             }
         } else {
-            console.log(`      ⚠️ No ECN ID found in CCN.field_4121_raw`);
+            trace.steps.push({
+                step: 'ECN fetch skipped',
+                reason: 'No ECN ID in CCN.field_4121_raw'
+            });
         }
+
+        trace.result = { entityName, entId };
+        debugTrace.push(trace);
 
         enriched.push({
             ...ccn,
@@ -199,7 +227,7 @@ async function enrichCCNWithEntityNames(ccnRecords) {
         });
     }
 
-    return enriched;
+    return { records: enriched, debugTrace };
 }
 
 /**
@@ -322,8 +350,11 @@ async function handler(req, res) {
         }
 
         // Step 3: Search for contact conflicts
-        const ccnResults = await searchContactConflicts(emailNormalised, phoneNormalised);
-        const contactAnalysis = analyzeCCNConflicts(ccnResults, emailNormalised, phoneNormalised);
+        const { records: ccnRecords, debugTrace: ccnDebugTrace } = await searchContactConflicts(emailNormalised, phoneNormalised);
+        const contactAnalysis = analyzeCCNConflicts(ccnRecords, emailNormalised, phoneNormalised);
+
+        // Attach debug trace to contact analysis for logging
+        contactAnalysis.debugTrace = ccnDebugTrace;
 
         // Step 4: Build and return response
         const response = buildResponse({
@@ -333,6 +364,11 @@ async function handler(req, res) {
             companyNameNormalised,
             isTest
         });
+
+        // Add debug trace to response for database logging
+        if (ccnDebugTrace && ccnDebugTrace.length > 0) {
+            response._debug = { ccnEnrichmentTrace: ccnDebugTrace };
+        }
 
         console.log(`📤 Response: ${response.action_required.toUpperCase()}`);
         return sendResponse(response, response.action_required);
