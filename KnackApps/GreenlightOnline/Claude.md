@@ -1,7 +1,7 @@
 # Greenlight Online - Project Guide
 
-**Last Updated:** 2025-12-09
-**Current Version:** 1.0.9
+**Last Updated:** 2026-01-22
+**Current Version:** 1.0.14
 **Developer:** Michael Tierney (michael@greenlightservices.com.au)
 
 ---
@@ -66,7 +66,7 @@ This is a **Knack application codebase** for Greenlight Services - an enquiries 
 - **Frontend**: JavaScript (ES6+), CSS
 - **Library**: KTL (Knack Toolkit Library) v0.29.14 - open-source utilities
 - **Deployment**: jsDelivr CDN (auto-updates from GitHub)
-- **Backend Integration**: Make.com webhooks for validation/processing
+- **Backend Integration**: Vercel serverless functions (replacing Make.com webhooks)
 - **Version Control**: Git/GitHub
 
 ### Repository
@@ -82,26 +82,56 @@ C:\Code\KnackApps\GreenlightOnline\
 ├── GreenlightOnline.js          (6500+ lines - main application code)
 ├── GreenlightOnline.css         (application styling)
 ├── KNACK_LOADER.js              (CDN loader script - deployed to Knack settings)
-├── VERSION_MAP.json             (version routing configuration)
-├── VERSION_HISTORY.md           (changelog)
-├── CDN_SETUP_GUIDE.md          (deployment instructions)
-├── make_scenarios\              (Make.com webhook JS modules)
+├── DevServer.bat                (starts both local servers with one command)
+├── api\                         (Vercel serverless functions)
+│   ├── company\
+│   │   └── validate.js          (pre-submission duplicate detection)
+│   ├── db\
+│   │   ├── init.js              (database initialization endpoint)
+│   │   └── logs.js              (view request logs endpoint)
+│   └── cron\
+│       └── cleanup.js           (daily cleanup - 90 day retention)
+├── db\                          (database layer)
+│   ├── client.js                (Postgres client & logging functions)
+│   └── schema.sql               (request_log table definition)
+├── lib\                         (shared backend code)
+│   ├── knack-api.js             (Knack REST API helper)
+│   ├── mailersend.js            (email validation)
+│   └── duplicate-detection.js   (conflict analysis logic)
+├── tools\                       (development utilities)
+│   ├── blueprint-processor.js   (Make.com blueprint compressor - 98% reduction)
+│   └── db-query.js              (direct database query tool)
+├── make_scenarios\              (Make.com webhook JS modules - being replaced)
 │   ├── company_duplicate_detection_lightweight.js
 │   ├── shared_contacts_processor.js
-│   ├── company_search_outcome_processor.js
-│   ├── ccn_conflicts_to_block_payload.js
-│   ├── full_processing_post_webhook.js
-│   ├── duplicate_detection_lightweight.js
-│   ├── initial_duplicate_detection_lightweight.js
-│   └── address-iframe-analysis.js
+│   └── ... (other modules)
 └── docs\                        (key reference docs only)
     ├── Claude.md                (this file - single source of truth)
-    ├── SHARED_CONTACTS_BLOCKING_GUIDE.md
-    └── CCN_BLOCK_PROCESSOR_INTEGRATION_GUIDE.md
+    └── ... (guides)
 ```
 
 ### Archive Location
 Historical documentation (71 files) archived at: `C:\Code\make_scenarios\Data Validation Project\`
+
+### Make.com Blueprint Processor
+When replicating Make.com scenarios in the Vercel backend, use the blueprint processor to extract only essential data (98% size reduction):
+
+```bash
+node C:\Code\KnackApps\GreenlightOnline\tools\blueprint-processor.js "blueprint.json"
+```
+
+**Extracts:**
+- Object IDs and field IDs
+- Filter logic (operators, and/or)
+- Module flow and routing
+- API endpoints
+
+**Removes:**
+- Full field output definitions
+- UI positioning data
+- Metadata bloat
+
+This makes Make.com blueprints readable and processable for replication.
 
 ---
 
@@ -359,17 +389,81 @@ If urgent update needed:
 ### Local Development Mode
 Enable in browser console:
 ```javascript
-localStorage.setItem('Greenl_56ea_dev', 'true')
+localStorage.setItem('Greenl_56ea_dev', '')
 ```
-App will load from `http://localhost:3000` instead of CDN.
+This single flag controls both JS and API sources:
+- JS loads from `http://localhost:3000` instead of CDN
+- API calls go to `http://localhost:3001` instead of Vercel
 
-### Local File Server
-Start the local development server:
+To disable and return to production:
+```javascript
+localStorage.removeItem('Greenl_56ea_dev')
+```
+
+### Local Servers (Two Required)
+
+**Easiest: One command starts both**
+```bash
+C:\Code\KnackApps\GreenlightOnline\DevServer.bat
+```
+Opens two windows automatically - FileServer (port 3000) and API Server (port 3001).
+
+**Or manually in separate terminals:**
+
+Terminal 1: JS/CSS FileServer
 ```bash
 cd C:\Code\Lib\KTL
 FileServer.bat
 ```
 Serves files from `C:\Code` on `http://localhost:3000`
+
+Terminal 2: Backend API Server
+```bash
+cd C:\Code\KnackApps\GreenlightOnline
+npm run dev
+```
+Serves API on `http://localhost:3001` (uses nodemon - auto-restarts on file changes)
+
+### Backend API (Vercel)
+Production URL: `https://greenlight-services-3.vercel.app/`
+
+**Endpoints:**
+- `POST /api/company/validate` - Pre-submission duplicate detection
+- `GET /api/health` - Health check
+- `POST /api/db/init` - Initialize database (requires ADMIN_SECRET)
+- `GET /api/db/logs` - View request logs (requires ADMIN_SECRET)
+
+**Environment variables (set in Vercel dashboard):**
+- `KNACK_APP_ID` - Knack application ID
+- `KNACK_API_KEY` - Knack REST API key
+- `MAILERSEND_API_KEY` - MailerSend API token
+- `POSTGRES_URL` - Neon Postgres connection string (auto-added by Vercel)
+- `ADMIN_SECRET` - Secret for protected endpoints
+
+### Database (Neon Postgres)
+
+**Connection:** Neon serverless Postgres via Vercel integration (Sydney region)
+
+**Tables:**
+- `request_log` - Logs all API requests with payloads and outcomes
+
+**Query Tool:** Direct database access via Node.js script
+```bash
+# Query recent logs
+node tools/db-query.js "SELECT id, endpoint, outcome, created_at FROM request_log ORDER BY created_at DESC LIMIT 5"
+
+# Check debug trace from latest request
+node tools/db-query.js "SELECT response_payload->'_debug' FROM request_log ORDER BY created_at DESC LIMIT 1"
+
+# Filter by outcome
+node tools/db-query.js "SELECT * FROM request_log WHERE outcome = 'block' LIMIT 10"
+```
+
+**Neon CLI:** Installed and authenticated for direct access
+```bash
+neonctl projects list --org-id org-long-brook-10372571
+neonctl connection-string --project-id soft-boat-82201104
+```
 
 **HTTPS Setup (Future)**
 HTTPS files prepared but not in use (KTL CDN still uses HTTP):
@@ -473,6 +567,19 @@ cd C:\Code\KnackApps\GreenlightOnline
 
 ### Session History
 This section updated at end of each significant session.
+
+**2026-01-22: Backend Infrastructure & Database Setup**
+- Replaced first Make.com webhook with custom Vercel backend (`api/company/validate.js`)
+- Set up Neon Postgres database via Vercel integration (Sydney region)
+- Created request logging system - all API calls logged with payloads and outcomes
+- Built debug trace system for CCN → ECN → ENT entity name lookup chain
+- Fixed entity name lookup - now uses `field_4080` (calculated field for both Companies and Individuals)
+- Created `tools/db-query.js` for direct database queries from command line
+- Installed and authenticated Neon CLI for database access
+- Added `nul` to .gitignore to prevent recurring Windows redirect file issue
+- Created database admin endpoints: `/api/db/init`, `/api/db/logs`
+- Created cleanup cron job for 90-day log retention
+- **Key insight:** Company entities use `field_977` for name, Individuals use `field_3860`, but `field_4080` is a calculated field that works for both
 
 **2025-12-09: Phone Sharing & Event Handler Fixes (v1.0.9)**
 - Implemented phone number sharing logic with 3 scenarios (block/block/confirm based on name match and ownership)
