@@ -35,6 +35,24 @@ async function validateEmail(email, allowAll = false) {
         };
     }
 
+    // Mock mode for testing (basic syntax check without API call)
+    if (process.env.MOCK_MAILERSEND === 'true') {
+        console.log('📧 MailerSend mock mode - checking syntax only');
+        const isValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!isValidFormat) {
+            return {
+                status: 'syntax_error',
+                action: 'block',
+                message: 'The email address has invalid formatting.'
+            };
+        }
+        return {
+            status: 'valid',
+            action: 'allow',
+            message: ''
+        };
+    }
+
     // Check if MailerSend API key is configured
     if (!process.env.MAILERSEND_API_KEY) {
         console.log('📧 MailerSend API key not configured - skipping validation');
