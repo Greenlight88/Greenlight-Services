@@ -2044,7 +2044,7 @@ window.ktlReady = function (appInfo = {}) {
             // ===== COMPANY CREATION FORM =====
             view_4059: {
                 formType: 'company-creation',
-                allow_shared_contacts: false,  // Company creation does NOT allow shared contacts (hard fail)
+                allowSharedContacts: false,  // Company creation does NOT allow shared contacts (hard fail)
                 webhook: {
                     url: 'https://greenlight-services-3.vercel.app/api/company/validate',
                     enabled: true
@@ -6319,7 +6319,25 @@ window.ktlReady = function (appInfo = {}) {
                         // Capture validated values before showing confirmation dialog
                         // User may cancel and edit fields, we need baseline for change detection
                         changeTracker.captureValidatedValues(viewId, formData);
-                        this.showConfirmationDialog(result, formData, viewId, $form, $submitBtn, originalText);
+
+                        // Check if shared contacts are allowed for this form
+                        // If not, treat confirm as a block - user must clear/change conflicting values
+                        const formConfig = viewConfigs[viewId];
+                        if (formConfig && formConfig.allowSharedContacts === false) {
+                            console.log('🚫 Shared contacts not allowed for this form - treating as block');
+                            // Convert to block response with appropriate message
+                            const blockResult = {
+                                ...result,
+                                action_required: 'block',
+                                messages: {
+                                    block_message: 'Contact details are already in use by another company. Please clear or change the conflicting values.',
+                                    title: 'Contact Conflict'
+                                }
+                            };
+                            this.blockSubmission(blockResult, viewId, $form, $submitBtn, originalText);
+                        } else {
+                            this.showConfirmationDialog(result, formData, viewId, $form, $submitBtn, originalText);
+                        }
                         break;
 
                     case 'proceed':
@@ -7126,7 +7144,8 @@ window.ktlReady = function (appInfo = {}) {
                         const contactMethod = conflict.type === 'mobile' ? 'Mobile' :
                             conflict.type === 'phone' ? 'Phone' : 'Email';
                         const entityName = conflict.existing_entity || conflict.existing_contact || 'another entity';
-                        confirmMessage += `<li>${contactMethod}: <strong>${conflict.contact_value}</strong> is already associated with <strong>${entityName}</strong></li>`;
+                        const contactValue = conflict.submitted_value || conflict.contact_value || 'this value';
+                        confirmMessage += `<li>${contactMethod}: <strong>${contactValue}</strong> is already associated with <strong>${entityName}</strong></li>`;
                     });
 
                     confirmMessage += '</ul>';
