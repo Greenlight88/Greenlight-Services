@@ -18,8 +18,13 @@
 // VERSION CONTROL - Change this to roll back or use specific version
 const APP_VERSION = 'latest'; // Use 'latest' or a version like '1.0.4'
 
-// Development mode check
-const isDevMode = localStorage.getItem('Greenl_56ea_dev') === 'true';
+// Check for ?dev=1 URL parameter and set sessionStorage (session only, no persistence)
+if (new URLSearchParams(window.location.search).get('dev') === '1') {
+    sessionStorage.setItem('Greenl_56ea_dev', 'true');
+}
+
+// Development mode check (sessionStorage for URL param, localStorage for manual override)
+const isDevMode = sessionStorage.getItem('Greenl_56ea_dev') === 'true' || localStorage.getItem('Greenl_56ea_dev') === 'true';
 
 console.log(`🚀 Greenlight Services Loader`);
 console.log(`📍 Mode: ${isDevMode ? 'DEVELOPMENT (localhost)' : 'PRODUCTION (CDN)'}`);

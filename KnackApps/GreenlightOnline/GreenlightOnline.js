@@ -5274,7 +5274,7 @@ window.ktlReady = function (appInfo = {}) {
 
                 // Check for local API mode - use localhost instead of Make.com
                 let webhookUrl = config.webhook.url;
-                const useLocalApi = localStorage.getItem('Greenl_56ea_dev') !== null;
+                const useLocalApi = sessionStorage.getItem('Greenl_56ea_dev') === 'true' || localStorage.getItem('Greenl_56ea_dev') !== null;
 
                 if (useLocalApi && config.formType === 'company-creation') {
                     webhookUrl = 'http://localhost:3001/api/company/validate';
