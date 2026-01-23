@@ -45,24 +45,48 @@ const OBJECTS = {
     SCN: 'object_199'    // Site Connections
 };
 
-// Field IDs
+// Field IDs - Based on Make.com payload mappings
 const ECN_FIELDS = {
-    ENT: 'field_3858',           // ENT connection
-    TYPE: 'field_3856',          // Connection type (Self)
-    STATUS: 'field_3857',        // Active/Inactive
-    SELF_REF: 'field_3878',      // Self-reference
-    IS_TEST: 'field_3998',       // Test record flag
-    TENANT: 'field_3860',        // Tenant connection
-    CREATED_BY: 'field_3863',    // Created by user
-    CREATED_AT: 'field_3864',    // Created timestamp
-    SCN: 'field_4111',           // SCN connection
-    READY: 'field_4113'          // Processing complete flag
+    // Core connections
+    ENT: 'field_3858',           // ENT connection (primary)
+    ENT_SECONDARY: 'field_3822', // ENT connection (secondary/redundant)
+    SELF_REF: 'field_3926',      // Self-reference (ECN ID)
+
+    // Type and status
+    TYPE: 'field_3852',          // Connection type ("Self - Company")
+    STATUS: 'field_3824',        // Active/Inactive
+    IS_ACTIVE: 'field_3854',     // "Yes"/"No" active flag
+
+    // Flags
+    IS_TEST: 'field_3962',       // Test record flag
+    IS_COMPANY: 'field_3980',    // Is company connection = "Yes"
+
+    // Tenant and user
+    TENANT: 'field_3833',        // Tenant connection
+    CREATED_BY: 'field_3834',    // Created by user
+    CREATED_AT: 'field_3829',    // Created timestamp
+    CREATED_DATE: 'field_4015',  // Created date only
+    START_DATE: 'field_4018',    // Connection start date
+
+    // Post-processing fields (updated later)
+    SCN: 'field_4128',           // SCN connection (added after SCN created)
+    READY: 'field_4028',         // Processing status ("Ready")
+    SATELLITE_IFRAME: 'field_4138', // Google Maps satellite iframe
+    STREETVIEW_URL: 'field_4139'    // Google Street View URL
 };
 
 const ENT_FIELDS = {
-    PRIMARY_ECN: 'field_4077',   // Primary ECN reference
-    MODIFIED_BY: 'field_3854',   // Modified by user
-    MODIFIED_AT: 'field_3855'    // Modified timestamp
+    // Updated after ECN created
+    PRIMARY_ECN: 'field_4247',   // Primary ECN reference
+    SELF_REF: 'field_984',       // Self-reference
+    STATUS: 'field_985',         // Status = "Active"
+    PAYMENT_TYPE: 'field_979',   // Payment type = "Prepay"
+    COMPANY_FLAG: 'field_3927',  // Is Company = "Yes"
+    COMPANY_SEARCH: 'field_4059',// Normalized search value
+    COMPANY_SHORT_SEARCH: 'field_4134', // Short search value
+    CREATED_BY: 'field_3782',    // Created by user
+    CREATED_AT: 'field_981',     // Created timestamp
+    CREATED_DATE: 'field_4093'   // Created date only
 };
 
 const SCN_FIELDS = {
@@ -73,15 +97,36 @@ const SCN_FIELDS = {
     SELF_REF: 'field_4076',      // Self-reference
     IS_TEST: 'field_4078',       // Test record flag
     TENANT: 'field_4079',        // Tenant connection
+    TENANT_CONNECTION: 'field_4084', // Tenant connection (alternative field)
     CREATED_BY: 'field_4080',    // Created by user
     CREATED_AT: 'field_4081'     // Created timestamp
 };
 
 /**
- * Format current date/time for Knack
+ * Format current date/time for Knack (DD/MM/YYYY hh:mm A)
  */
 function formatDateTime() {
-    return new Date().toISOString();
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 should be 12
+    return `${day}/${month}/${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+}
+
+/**
+ * Format current date only for Knack (DD/MM/YYYY)
+ */
+function formatDate() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
 /**
@@ -91,15 +136,30 @@ function formatDateTime() {
 async function createECN(data, log) {
     log.info('ecn_creating', { entId: data.ent_id });
 
+    const isTest = data.is_test === true || data.is_test === 'Yes' ? 'Yes' : 'No';
+    const dateTime = formatDateTime();
+    const dateOnly = formatDate();
+
     const ecnPayload = {
+        // Entity connections
         [ECN_FIELDS.ENT]: data.ent_id,
-        [ECN_FIELDS.TYPE]: 'Self',
+        [ECN_FIELDS.ENT_SECONDARY]: data.ent_id,
+
+        // Type and status
+        [ECN_FIELDS.TYPE]: 'Self - Company',
         [ECN_FIELDS.STATUS]: 'Active',
-        [ECN_FIELDS.IS_TEST]: data.is_test === true || data.is_test === 'Yes' ? 'Yes' : 'No',
+        [ECN_FIELDS.IS_ACTIVE]: 'Yes',
+
+        // Flags
+        [ECN_FIELDS.IS_TEST]: isTest,
+        [ECN_FIELDS.IS_COMPANY]: 'Yes',
+
+        // Tenant and user
         [ECN_FIELDS.TENANT]: data.tenant_id,
         [ECN_FIELDS.CREATED_BY]: data.current_user?.id,
-        [ECN_FIELDS.CREATED_AT]: formatDateTime(),
-        [ECN_FIELDS.READY]: 'No' // Will be set to Yes when processing completes
+        [ECN_FIELDS.CREATED_AT]: dateTime,
+        [ECN_FIELDS.CREATED_DATE]: dateOnly,
+        [ECN_FIELDS.START_DATE]: dateOnly
     };
 
     const ecn = await knack.create(OBJECTS.ECN, ecnPayload);
@@ -114,7 +174,7 @@ async function createECN(data, log) {
 }
 
 /**
- * Update ENT (Entity) record with ECN reference
+ * Update ENT (Entity) record with ECN reference and additional fields
  */
 async function updateENT(data, ecnId, log) {
     if (!data.ent_id) {
@@ -124,11 +184,29 @@ async function updateENT(data, ecnId, log) {
 
     log.info('ent_updating', { entId: data.ent_id, ecnId });
 
-    await knack.update(OBJECTS.ENT, data.ent_id, {
+    const updatePayload = {
+        // Link to ECN
         [ENT_FIELDS.PRIMARY_ECN]: ecnId,
-        [ENT_FIELDS.MODIFIED_BY]: data.current_user?.id,
-        [ENT_FIELDS.MODIFIED_AT]: formatDateTime()
-    });
+
+        // Self-reference
+        [ENT_FIELDS.SELF_REF]: data.ent_id,
+
+        // Status and type
+        [ENT_FIELDS.STATUS]: 'Active',
+        [ENT_FIELDS.PAYMENT_TYPE]: 'Prepay',
+        [ENT_FIELDS.COMPANY_FLAG]: 'Yes',
+
+        // Search fields (if provided)
+        ...(data.company_search && { [ENT_FIELDS.COMPANY_SEARCH]: data.company_search }),
+        ...(data.company_short_search && { [ENT_FIELDS.COMPANY_SHORT_SEARCH]: data.company_short_search }),
+
+        // Created by/at
+        [ENT_FIELDS.CREATED_BY]: data.current_user?.id,
+        [ENT_FIELDS.CREATED_AT]: formatDateTime(),
+        [ENT_FIELDS.CREATED_DATE]: formatDate()
+    };
+
+    await knack.update(OBJECTS.ENT, data.ent_id, updatePayload);
 
     log.info('ent_updated', { entId: data.ent_id });
     return data.ent_id;
@@ -140,13 +218,16 @@ async function updateENT(data, ecnId, log) {
 async function createSCN(data, ecn, site, log) {
     log.info('scn_creating', { ecnId: ecn.id, siteId: site.id });
 
+    const isTest = data.is_test === true || data.is_test === 'Yes' ? 'Yes' : 'No';
+
     const scnPayload = {
         [SCN_FIELDS.SITE]: site.id,
         [SCN_FIELDS.ECN]: ecn.id,
         [SCN_FIELDS.STATUS]: 'Active',
         [SCN_FIELDS.IS_PRIMARY]: 'Yes',
-        [SCN_FIELDS.IS_TEST]: data.is_test === true || data.is_test === 'Yes' ? 'Yes' : 'No',
+        [SCN_FIELDS.IS_TEST]: isTest,
         [SCN_FIELDS.TENANT]: data.tenant_id,
+        [SCN_FIELDS.TENANT_CONNECTION]: data.tenant_id, // Added - required field
         [SCN_FIELDS.CREATED_BY]: data.current_user?.id,
         [SCN_FIELDS.CREATED_AT]: formatDateTime()
     };
@@ -176,14 +257,29 @@ async function updateECNWithSCN(ecnId, scnId, log) {
 }
 
 /**
- * Mark ECN as ready (processing complete)
+ * Mark ECN as ready and optionally add Google Maps data
+ * @param {string} ecnId - ECN record ID
+ * @param {object} log - Logger instance
+ * @param {object} mapsData - Optional Google Maps data { satelliteIframe, streetviewUrl }
  */
-async function markECNReady(ecnId, log) {
-    log.info('ecn_marking_ready', { ecnId });
+async function markECNReady(ecnId, log, mapsData = null) {
+    log.info('ecn_marking_ready', { ecnId, hasMapsData: !!mapsData });
 
-    await knack.update(OBJECTS.ECN, ecnId, {
-        [ECN_FIELDS.READY]: 'Yes'
-    });
+    const updatePayload = {
+        [ECN_FIELDS.READY]: 'Ready'
+    };
+
+    // Add Google Maps data if available
+    if (mapsData) {
+        if (mapsData.satelliteIframe) {
+            updatePayload[ECN_FIELDS.SATELLITE_IFRAME] = mapsData.satelliteIframe;
+        }
+        if (mapsData.streetviewUrl) {
+            updatePayload[ECN_FIELDS.STREETVIEW_URL] = mapsData.streetviewUrl;
+        }
+    }
+
+    await knack.update(OBJECTS.ECN, ecnId, updatePayload);
 
     log.info('ecn_ready', { ecnId });
 }
@@ -203,10 +299,16 @@ async function processBackground(data, ecn, log) {
         await updateECNWithSCN(ecn.id, scn.id, log);
 
         // Step 4: Google Maps processing (if has real address)
+        let mapsData = null;
         if (site.type !== 'no_site') {
             const mapsResult = await processGoogleMaps(data, log);
             if (mapsResult) {
                 await updateSiteWithMaps(site.id, mapsResult, log);
+                // Store maps data to add to ECN later
+                mapsData = {
+                    satelliteIframe: mapsResult.satelliteIframe,
+                    streetviewUrl: mapsResult.streetviewUrl
+                };
             }
         }
 
@@ -223,8 +325,8 @@ async function processBackground(data, ecn, log) {
             await linkSharedCOMs(sharedIds, ecn, scn, data, log);
         }
 
-        // Step 6: Mark ECN as ready
-        await markECNReady(ecn.id, log);
+        // Step 6: Mark ECN as ready (with optional maps data)
+        await markECNReady(ecn.id, log, mapsData);
 
         log.info('proceed_complete', {
             ecnId: ecn.id,

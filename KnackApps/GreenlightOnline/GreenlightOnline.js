@@ -3564,8 +3564,10 @@ window.ktlReady = function (appInfo = {}) {
                     address_city: addressCity,
                     address_state: addressState,
                     address_zip: addressZip,
-                    email_normalised: emailNormalised,
-                    phone_normalised: phoneNormalised,
+                    email: emailRaw,                  // Original (preserves case for display)
+                    email_normalised: emailNormalised, // Lowercase for searching
+                    phone: phoneRaw,                  // Original (preserves formatting for display)
+                    phone_normalised: phoneNormalised, // Normalized for searching
                     data: {
                         form_type: formType,
                         allow_shared_contacts: config.allowSharedContacts !== false,
@@ -3579,8 +3581,10 @@ window.ktlReady = function (appInfo = {}) {
                         address_city: addressCity,
                         address_state: addressState,
                         address_zip: addressZip,
-                        email: emailNormalised,
-                        phone: phoneNormalised,
+                        email: emailRaw,              // Original (preserves case for display)
+                        email_normalised: emailNormalised,
+                        phone: phoneRaw,              // Original (preserves formatting for display)
+                        phone_normalised: phoneNormalised,
                         tenant_id: tenantId
                     }
                 };
@@ -4021,8 +4025,10 @@ window.ktlReady = function (appInfo = {}) {
                     address_city: cityRaw,
                     address_state: stateRaw,
                     address_zip: zipRaw,
-                    email_normalised: emailNormalised,
-                    phone_normalised: phoneNormalised,
+                    email: emailRaw,                  // Original (preserves case for display)
+                    email_normalised: emailNormalised, // Lowercase for searching
+                    phone: phoneRaw,                  // Original (preserves formatting for display)
+                    phone_normalised: phoneNormalised, // Normalized for searching
                     knack_api_payloads: knackApiPayloads.map(p => JSON.stringify(p)).join(':::'),
                     shared_com_ids: sharedComIds,
                     com_action_type: comActionType,
@@ -4040,7 +4046,9 @@ window.ktlReady = function (appInfo = {}) {
                         address_city: cityRaw,
                         address_state: stateRaw,
                         address_zip: zipRaw,
+                        email: emailRaw,              // Original (preserves case for display)
                         email_normalised: emailNormalised,
+                        phone: phoneRaw,              // Original (preserves formatting for display)
                         phone_normalised: phoneNormalised,
                         tenant_id: tenantId
                     }
@@ -4117,7 +4125,24 @@ window.ktlReady = function (appInfo = {}) {
                 // Build the payload
                 const payload = this.buildPostSubmissionPayload(viewId, submissionResponse);
 
-                // Send the webhook
+                // For company creation, redirect IMMEDIATELY for snappy UX
+                // The ECN will be created in background and available before contact form submits
+                if (viewId === 'view_4059') {
+                    const redirectUrl = `#contacts6/add-contact-to-company2/`;
+                    console.log(`🔀 Redirecting immediately to Quick Create Contact form: ${redirectUrl}`);
+
+                    // Create a Promise that resolves when ECN ID is available
+                    // Contact form will await this Promise before submitting
+                    window._ecnIdPromise = new Promise((resolve, reject) => {
+                        window._ecnIdResolve = resolve;
+                        window._ecnIdReject = reject;
+                    });
+
+                    // Redirect now (don't wait for webhook)
+                    window.location.hash = redirectUrl;
+                }
+
+                // Send the webhook (runs in background after redirect)
                 fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
@@ -4140,20 +4165,26 @@ window.ktlReady = function (appInfo = {}) {
                             console.log(`✅ Extracted ECN ID from webhook response (ecn_record_id): ${ecnId}`);
                         }
 
-                        // Redirect to Quick Create Contact form if we have ECN ID (company creation)
-                        // Go to scene_2435 which has view_5685 (Quick Create Contact form)
+                        // Store ECN ID for Quick Create Contact form
                         if (ecnId && viewId === 'view_4059') {
-                            // Store ECN ID for later use (e.g., redirecting to contact view after contact creation)
                             window._newCompanyEcnId = ecnId;
-                            const redirectUrl = `#contacts6/add-contact-to-company2/`;
-                            console.log(`🔀 Redirecting to Quick Create Contact form: ${redirectUrl}`);
-                            window.location.hash = redirectUrl;
-                        } else if (!ecnId) {
-                            console.warn(`⚠️ No ECN ID in webhook response - cannot redirect`);
+                            // Resolve the Promise so contact form can proceed
+                            if (window._ecnIdResolve) {
+                                window._ecnIdResolve(ecnId);
+                                console.log(`✅ ECN ID Promise resolved: ${ecnId}`);
+                            }
+                        } else if (!ecnId && viewId === 'view_4059') {
+                            console.warn(`⚠️ No ECN ID in webhook response`);
+                            if (window._ecnIdReject) {
+                                window._ecnIdReject(new Error('No ECN ID in webhook response'));
+                            }
                         }
                     })
                     .catch(error => {
                         console.error(`❌ Post-submission webhook error for ${viewId}:`, error);
+                        if (viewId === 'view_4059' && window._ecnIdReject) {
+                            window._ecnIdReject(error);
+                        }
                     })
                     .finally(() => {
                         // Cleanup window variables
@@ -4166,6 +4197,8 @@ window.ktlReady = function (appInfo = {}) {
                         delete window._ecnRecordId;
                         delete window._isTest;
                         delete window._knackApiPayloads;
+                        delete window._ecnIdResolve;
+                        delete window._ecnIdReject;
                         console.log(`🧹 Cleaned up post-submission variables`);
                     });
             }
@@ -4495,9 +4528,12 @@ window.ktlReady = function (appInfo = {}) {
                     last_name_search: lastNameSearch,
                     full_name_search: fullNameSearch,
                     preferred_name: preferredName.trim(),
-                    email_normalised: emailNormalised,
-                    mobile_normalised: mobileNormalised,
-                    phone_normalised: phoneNormalised,
+                    email: emailRaw,                  // Original (preserves case for display)
+                    email_normalised: emailNormalised, // Lowercase for searching
+                    mobile: mobileRaw,                // Original (preserves formatting for display)
+                    mobile_normalised: mobileNormalised, // Normalized for searching
+                    phone: phoneRaw,                  // Original (preserves formatting for display)
+                    phone_normalised: phoneNormalised, // Normalized for searching
                     data: {
                         form_type: formType,
                         allow_shared_contacts: config.allowSharedContacts !== false,
@@ -4508,9 +4544,12 @@ window.ktlReady = function (appInfo = {}) {
                         last_name_search: lastNameSearch,
                         full_name_search: fullNameSearch,
                         preferred_name: preferredName.trim(),
-                        email: emailNormalised,
-                        mobile: mobileNormalised,
-                        phone: phoneNormalised,
+                        email: emailRaw,              // Original (preserves case for display)
+                        email_normalised: emailNormalised,
+                        mobile: mobileRaw,            // Original (preserves formatting for display)
+                        mobile_normalised: mobileNormalised,
+                        phone: phoneRaw,              // Original (preserves formatting for display)
+                        phone_normalised: phoneNormalised,
                         tenant_id: tenantId
                     }
                 };
@@ -4866,9 +4905,12 @@ window.ktlReady = function (appInfo = {}) {
                     last_name_search: this.normalizeContactName(lastName),
                     full_name_search: this.normalizeContactName(fullName),
                     preferred_name: preferredName,
-                    email_normalised: emailNormalised,
-                    mobile_normalised: mobileNormalised,
-                    phone_normalised: phoneNormalised,
+                    email: emailRaw,                  // Original (preserves case for display)
+                    email_normalised: emailNormalised, // Lowercase for searching
+                    mobile: mobileRaw,                // Original (preserves formatting for display)
+                    mobile_normalised: mobileNormalised, // Normalized for searching
+                    phone: phoneRaw,                  // Original (preserves formatting for display)
+                    phone_normalised: phoneNormalised, // Normalized for searching
                     knack_api_payloads: knackApiPayloads.map(p => JSON.stringify(p)).join(':::'),
                     com_action_type: comActionType,
                     shared_com_ids: finalSharedComIds,  // Combined: pre-submission shared IDs + phone sharing COM IDs
@@ -4885,8 +4927,11 @@ window.ktlReady = function (appInfo = {}) {
                         last_name_search: this.normalizeContactName(lastName),
                         full_name_search: this.normalizeContactName(fullName),
                         preferred_name: preferredName,
+                        email: emailRaw,              // Original (preserves case for display)
                         email_normalised: emailNormalised,
+                        mobile: mobileRaw,            // Original (preserves formatting for display)
                         mobile_normalised: mobileNormalised,
+                        phone: phoneRaw,              // Original (preserves formatting for display)
                         phone_normalised: phoneNormalised
                     }
                 };
@@ -4947,6 +4992,13 @@ window.ktlReady = function (appInfo = {}) {
                         payload.data.company_id = companyId;
                         payload.data.parent_record_id = companyId;
                         console.log(`🏢 Added company_id to post-submission payload: "${companyId}"`);
+                    }
+
+                    // For view_5685 (Quick Create), add ECN ID from company creation
+                    if (viewId === 'view_5685' && window._newCompanyEcnId) {
+                        payload.ecn_id = window._newCompanyEcnId;
+                        payload.data.ecn_id = window._newCompanyEcnId;
+                        console.log(`🔗 Added ecn_id to post-submission payload: "${window._newCompanyEcnId}"`);
                     }
                 }
 
@@ -6326,9 +6378,11 @@ window.ktlReady = function (appInfo = {}) {
                         if (formConfig && formConfig.allowSharedContacts === false) {
                             console.log('🚫 Shared contacts not allowed for this form - treating as block');
                             // Convert to block response with appropriate message
+                            // MUST set block_reason so blockSubmission shows inline field errors
                             const blockResult = {
                                 ...result,
                                 action_required: 'block',
+                                block_reason: 'shared_contacts_not_allowed',
                                 messages: {
                                     block_message: 'Contact details are already in use by another company. Please clear or change the conflicting values.',
                                     title: 'Contact Conflict'
@@ -8904,10 +8958,15 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_4059 (company-creation)`);
                     console.log(`📦 Submission response:`, response);
 
-                    // Capture company record ID for quick-create contact flow
+                    // Capture company record ID and name for quick-create contact flow
                     if (response && response.record && response.record.id) {
                         window._newCompanyRecordId = response.record.id;
                         console.log(`🏢 Captured company record ID: ${window._newCompanyRecordId}`);
+
+                        // Capture company name (field_992 is Company Name)
+                        const companyName = response.record.field_992 || response.record.field_992_raw || '';
+                        window._newCompanyName = companyName;
+                        console.log(`🏢 Captured company name: ${window._newCompanyName}`);
                     }
 
                     // Fire post-submission webhook immediately
@@ -9136,6 +9195,32 @@ window.ktlReady = function (appInfo = {}) {
                         const viewId = 'view_5685';
                         console.log('👀 Quick Create Contact form (view_5685) rendered');
 
+                        // Display company name in form header
+                        if (window._newCompanyName) {
+                            const $viewHeader = $(`#${viewId} .view-header`);
+                            const $title = $viewHeader.find('.kn-title');
+
+                            // Remove any existing company subtitle
+                            $viewHeader.find('.company-subtitle').remove();
+
+                            // Add company name as subtitle below the title
+                            const $subtitle = $(`<div class="company-subtitle" style="
+                                font-size: 16px;
+                                color: #39b54a;
+                                font-weight: 600;
+                                margin-top: 4px;
+                                margin-bottom: 8px;
+                            ">for ${window._newCompanyName}</div>`);
+
+                            if ($title.length) {
+                                $title.after($subtitle);
+                                console.log(`🏢 Added company name subtitle: "${window._newCompanyName}"`);
+                            } else {
+                                // Fallback: prepend to view header
+                                $viewHeader.prepend($subtitle);
+                            }
+                        }
+
                         // Prefill parent_record_id from stored company record ID
                         if (window._newCompanyRecordId) {
                             const $parentField = $('#field_4358');
@@ -9236,12 +9321,24 @@ window.ktlReady = function (appInfo = {}) {
                 });
 
                 // Quick Create Contact Form submit handler (view_5685)
-                $(document).on('knack-form-submit.view_5685', function (event, view, response) {
+                $(document).on('knack-form-submit.view_5685', async function (event, view, response) {
                     console.log(`📝 Form submission completed for view_5685 (quick-create contact)`);
                     console.log(`📦 Submission response:`, response);
 
                     const nextAction = window._quickCreateNextAction || 'view';
                     console.log(`📋 Next action after contact creation: ${nextAction}`);
+
+                    // Ensure ECN ID is available before firing post-submission webhook
+                    // (ECN is created asynchronously after company creation)
+                    if (!window._newCompanyEcnId && window._ecnIdPromise) {
+                        console.log(`⏳ Waiting for ECN ID from company creation...`);
+                        try {
+                            const ecnId = await window._ecnIdPromise;
+                            console.log(`✅ ECN ID received: ${ecnId}`);
+                        } catch (error) {
+                            console.error(`❌ Failed to get ECN ID:`, error);
+                        }
+                    }
 
                     // Fire post-submission webhook with callbacks
                     contactFormHandler.firePostSubmissionWebhook('view_5685', response, {
@@ -9272,12 +9369,15 @@ window.ktlReady = function (appInfo = {}) {
                             // Cleanup
                             delete window._quickCreateNextAction;
                             delete window._newCompanyRecordId;
+                            delete window._newCompanyName;
                             delete window._newCompanyEcnId;
+                            delete window._ecnIdPromise;
                         },
                         onError: function (error) {
                             console.error('❌ Error creating COMs:', error);
                             // Cleanup
                             delete window._quickCreateNextAction;
+                            delete window._ecnIdPromise;
                         }
                     });
                 });

@@ -157,9 +157,13 @@ function buildResponse({
         console.log(`⚠️ SOFT FAIL: Found ${deduplicatedMatches.length} contact conflict(s)`);
 
         const conflicts = deduplicatedMatches.map(match => {
+            // Map conflict types to form field IDs (view_4059)
             let fieldId = '';
-            if (match.type === 'email') fieldId = 'field_4057';
-            if (match.type === 'phone') fieldId = 'field_4056';
+            if (match.type === 'email') fieldId = 'field_4164'; // Email field in company creation form
+            if (match.type === 'phone') fieldId = 'field_4056'; // Phone field in company creation form
+
+            // Build view link to the existing entity's ECN record
+            const viewLink = match.ecn_id ? `#contacts6/view-contact3/${match.ecn_id}` : null;
 
             return {
                 type: match.type,
@@ -171,6 +175,7 @@ function buildResponse({
                 existing_ecn_id: match.ecn_id,
                 ownership_type: match.ownership_type,
                 conflict_message: match.conflict_message,
+                view_link: viewLink,
                 suggestion: match.ownership_type === 'Company' || match.ownership_type === 'Shared'
                     ? "This contact may be legitimately shared between companies."
                     : "This contact is marked as Personal/Work and may not be appropriate to share."

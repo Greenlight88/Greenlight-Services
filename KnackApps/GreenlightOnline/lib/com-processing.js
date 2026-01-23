@@ -149,12 +149,18 @@ async function createCOMWithCCN(comPayload, ecn, scn, data, log) {
 
 /**
  * Build email COM payload from request data
+ * - VALUE: preserves user-entered case (e.g., "JohnSmith@company.com")
+ * - NORMALISED: lowercase for searching (e.g., "johnsmith@company.com")
  */
 function buildEmailPayload(data) {
+    // Use original email if available (preserves case), otherwise use normalised
+    const displayValue = data.email || data.email_normalised || '';
+    const normalisedValue = (data.email_normalised || data.email || '').toLowerCase();
+
     return {
         [COM_FIELDS.TYPE]: 'Email',
-        [COM_FIELDS.VALUE]: data.email || data.email_normalised,
-        [COM_FIELDS.NORMALISED]: (data.email_normalised || data.email || '').toLowerCase(),
+        [COM_FIELDS.VALUE]: displayValue,
+        [COM_FIELDS.NORMALISED]: normalisedValue,
         [COM_FIELDS.OWNERSHIP]: 'Company',
         [COM_FIELDS.STATUS]: 'Active',
         [COM_FIELDS.TENANT]: data.tenant_id,
@@ -164,13 +170,80 @@ function buildEmailPayload(data) {
 }
 
 /**
+ * Format Australian phone number for display
+ * Supports: landlines (07 0114 6953), 1300/1800 numbers, extensions
+ * Input: normalized E.164 format (e.g., "+61701146953")
+ * Output: formatted display (e.g., "07 0114 6953")
+ */
+function formatPhoneForDisplay(phone) {
+    if (!phone) return '';
+
+    // If already has spaces/formatting, preserve it
+    if (/[\s\-\(\)]/.test(phone)) {
+        return phone;
+    }
+
+    // Remove any non-digit characters except + for processing
+    let digits = phone.replace(/[^\d+]/g, '');
+
+    // Handle 1300/1800 numbers
+    if (/^1[38]00/.test(digits)) {
+        // Format as: 1300 888 001 or 1800 956 424
+        return digits.replace(/^(1[38]00)(\d{3})(\d{3})$/, '$1 $2 $3');
+    }
+
+    // Handle E.164 format (+61...)
+    if (digits.startsWith('+61')) {
+        digits = '0' + digits.slice(3); // Convert +61X to 0X
+    } else if (digits.startsWith('61') && digits.length > 10) {
+        digits = '0' + digits.slice(2); // Convert 61X to 0X
+    }
+
+    // Remove leading zeros beyond the first for mobiles
+    if (digits.startsWith('04') || digits.startsWith('05')) {
+        // Mobile: 0412 345 678
+        return digits.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1 $2 $3');
+    }
+
+    // Landline: 07 0114 6953 (state code + 8 digits)
+    if (digits.length === 10 && digits.startsWith('0')) {
+        return digits.replace(/^(\d{2})(\d{4})(\d{4})$/, '$1 $2 $3');
+    }
+
+    // If no pattern matches, return as-is
+    return phone;
+}
+
+/**
  * Build phone COM payload from request data
+ * - VALUE: formatted for display (e.g., "07 0114 6953")
+ * - NORMALISED: digits only for searching (e.g., "0701146953")
  */
 function buildPhonePayload(data) {
+    // Get the raw phone value (user-entered format preserved if available)
+    const rawPhone = data.phone || data.phone_formatted || '';
+    const normalisedPhone = data.phone_normalised || '';
+
+    // For display: use user-entered format if has formatting, otherwise format the normalized value
+    let displayValue;
+    if (rawPhone && /[\s\-\(\)]/.test(rawPhone)) {
+        // User entered with formatting - preserve it
+        displayValue = rawPhone;
+    } else if (rawPhone) {
+        // User entered without formatting - use as-is
+        displayValue = rawPhone;
+    } else {
+        // Fall back to formatting the normalized value
+        displayValue = formatPhoneForDisplay(normalisedPhone);
+    }
+
+    // For searching: strip to digits only
+    const normalisedValue = (normalisedPhone || rawPhone || '').replace(/\D/g, '');
+
     return {
         [COM_FIELDS.TYPE]: 'Phone',
-        [COM_FIELDS.VALUE]: data.phone || data.phone_normalised,
-        [COM_FIELDS.NORMALISED]: (data.phone_normalised || data.phone || '').replace(/\D/g, ''),
+        [COM_FIELDS.VALUE]: displayValue,
+        [COM_FIELDS.NORMALISED]: normalisedValue,
         [COM_FIELDS.OWNERSHIP]: 'Company',
         [COM_FIELDS.STATUS]: 'Active',
         [COM_FIELDS.TENANT]: data.tenant_id,
