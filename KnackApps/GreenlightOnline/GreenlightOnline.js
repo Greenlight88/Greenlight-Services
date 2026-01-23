@@ -8958,16 +8958,20 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_4059 (company-creation)`);
                     console.log(`📦 Submission response:`, response);
 
-                    // Capture company record ID and name for quick-create contact flow
+                    // Capture company record ID for quick-create contact flow
                     if (response && response.record && response.record.id) {
                         window._newCompanyRecordId = response.record.id;
                         console.log(`🏢 Captured company record ID: ${window._newCompanyRecordId}`);
-
-                        // Capture company name (field_992 is Company Name)
-                        const companyName = response.record.field_992 || response.record.field_992_raw || '';
-                        window._newCompanyName = companyName;
-                        console.log(`🏢 Captured company name: ${window._newCompanyName}`);
                     }
+
+                    // Capture company name from stored form data (more reliable than response)
+                    // The response may not include all fields, but we stored the form values during submission
+                    const storedFormData = window._preSubmissionFormData || {};
+                    const companyName = storedFormData.field_992 ||
+                                       (response && response.record && (response.record.field_992 || response.record.field_992_raw)) ||
+                                       '';
+                    window._newCompanyName = companyName;
+                    console.log(`🏢 Captured company name: ${window._newCompanyName}`);
 
                     // Fire post-submission webhook immediately
                     // The webhook will create the ECN and redirect to Quick Create Contact form
