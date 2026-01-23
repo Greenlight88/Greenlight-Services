@@ -299,10 +299,13 @@ async function handler(req, res) {
     try {
         const data = req.body;
 
+        // Normalize entity ID field (frontend sends entity_id or company_id)
+        data.ent_id = data.ent_id || data.entity_id || data.company_id;
+
         // Validate required fields
         if (!data.ent_id) {
             return sendResponse(400, {
-                error: 'Missing required field: ent_id',
+                error: 'Missing required field: ent_id (or entity_id/company_id)',
                 action_required: 'error'
             }, 'error', 'Missing ent_id');
         }

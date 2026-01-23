@@ -2050,7 +2050,7 @@ window.ktlReady = function (appInfo = {}) {
                     enabled: true
                 },
                 postSubmissionWebhook: {
-                    url: 'https://hook.us1.make.com/kncqr2skxuof3i5swdbnk2o9bbcoeqvw',
+                    url: 'https://greenlight-services-3.vercel.app/api/company/proceed',
                     enabled: true
                 },
                 fields: {
