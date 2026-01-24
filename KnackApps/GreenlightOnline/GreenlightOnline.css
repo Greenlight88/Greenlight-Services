@@ -2630,6 +2630,11 @@ tr.xero-exact-match:hover {
   padding-bottom: 0 !important;
 }
 
+/* Add spacing below view_5601 (action buttons) */
+#view_5601 {
+  margin-bottom: 30px !important;
+}
+
 /* Hide view_5601 and view_5602 by default on contact view page (scene_2397)
    JavaScript will show them after ECN type is determined from view_5600
    Using visibility:hidden keeps layout space, prevents content flash */
@@ -2770,18 +2775,28 @@ a.ang-link[href="#contacts6"] {
   50% { opacity: 0.8; }
 }
 
-/* Modal Overlay */
+/* ===================================
+   GREENLIGHT CUSTOM MODALS
+   Unified styling for all custom modals
+   =================================== */
+
+/* Modal Overlay - shared base */
+.gl-modal-overlay,
 .xero-entity-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
+}
+
+.xero-entity-modal-overlay {
+  background: rgba(0, 0, 0, 0);
   transition: background 0.3s ease;
 }
 
@@ -2789,14 +2804,39 @@ a.ang-link[href="#contacts6"] {
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* Modal Container */
+/* Modal Container - shared base with green accent */
+.gl-modal,
 .xero-entity-modal {
   background: white;
   border-radius: 12px;
   padding: 32px;
+  padding-top: 36px; /* Extra space for accent */
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Green accent bar for custom modals */
+.gl-modal::before,
+.xero-entity-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #39b54a;
+}
+
+.gl-modal {
+  max-width: 650px;
+  text-align: center;
+}
+
+.xero-entity-modal {
   transform: scale(0.9);
   opacity: 0;
   transition: all 0.3s ease;
@@ -2805,6 +2845,69 @@ a.ang-link[href="#contacts6"] {
 .xero-entity-modal-show .xero-entity-modal {
   transform: scale(1);
   opacity: 1;
+}
+
+/* GL Modal Title */
+.gl-modal-title {
+  margin: 0 0 24px 0;
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+
+.gl-modal-title i {
+  color: #39b54a;
+  margin-right: 10px;
+}
+
+/* GL Modal Buttons Container */
+.gl-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* GL Modal Button Base - mockup +30% */
+.gl-modal-btn {
+  padding: 16px 31px;
+  border: none;
+  border-radius: 5px;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  min-height: 58px;
+  min-width: 150px;
+  box-sizing: border-box;
+}
+
+.gl-modal-btn i {
+  font-size: 18px;
+}
+
+/* Secondary button (gray) */
+.gl-btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.gl-btn-secondary:hover {
+  background: #5a6268;
+}
+
+/* Primary button (green) */
+.gl-btn-primary {
+  background: #39b54a;
+  color: white;
+}
+
+.gl-btn-primary:hover {
+  background: #2d9a3e;
 }
 
 /* Modal Header */
@@ -2962,5 +3065,252 @@ a.ang-link[href="#contacts6"] {
 /* Info messages (green - for confirmations) */
 .field-info-message {
   animation: field-error-slide-in 0.3s ease-out;
+}
+
+/* ===================================
+   MODAL FORM STYLING (Option B)
+   Green top accent, rounded corners
+   =================================== */
+
+/* OUTER modal container - .kn-modal is the actual wrapper */
+.kn-modal,
+.kn-modal.default,
+div.kn-modal {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #e0e0e0 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+
+/* Green accent bar via pseudo-element (can't be overridden by JS) */
+.kn-modal::before,
+.kn-modal.default::before {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  background: #39b54a !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+}
+
+/* INNER modal body - clean, no extra styling */
+.modal-card-body.kn-page-modal,
+section.modal-card-body,
+[id^="kn-page-modal-"] {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+
+/* Make the header bar transparent - keeps X button functional */
+.modal-card-head,
+.modal .modal-card-head,
+.modal-card > .modal-card-head,
+header.modal-card-head {
+  background: transparent !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  position: absolute !important;
+  top: 12px !important;  /* More space from green accent */
+  right: 4px !important;
+  left: auto !important;
+  width: auto !important;
+  z-index: 100 !important;
+}
+
+/* Hide the redundant title in the header */
+.modal-card-title,
+.modal .modal-card-title,
+h1.modal-card-title {
+  display: none !important;
+}
+
+/* Ensure body has proper top padding */
+.modal-card-body,
+.modal .modal-card-body,
+.modal-card > .modal-card-body {
+  padding-top: 20px !important;
+  position: relative !important;
+  border-radius: 12px !important;
+}
+
+/* Style the close button */
+.modal-card-head .close-modal,
+.modal-card-head .delete.close-modal,
+.modal-card-head button.delete,
+.modal .modal-card-head button.delete,
+header.modal-card-head button.delete {
+  position: relative !important;
+  top: 0 !important;
+  right: 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  border-radius: 50% !important;
+  background: #f0f0f0 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
+}
+
+.modal-card-head .close-modal:hover,
+.modal-card-head .delete.close-modal:hover,
+.modal-card-head button.delete:hover,
+.modal .modal-card-head button.delete:hover {
+  background: #e0e0e0 !important;
+}
+
+/* Ensure the X icon is visible and styled */
+.modal-card-head .close-modal::before,
+.modal-card-head .close-modal::after,
+.modal-card-head .delete::before,
+.modal-card-head .delete::after,
+.modal .modal-card-head .delete::before,
+.modal .modal-card-head .delete::after {
+  background-color: #666 !important;
+}
+
+/* Modal backdrop - slightly darker for better focus */
+.modal-background,
+.modal .modal-background {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ===================================
+   FORM BUTTON STYLING
+   Always right-aligned, consistent style
+   =================================== */
+
+/* Custom button containers - right aligned */
+#quick-create-buttons,
+.custom-form-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* Button base style - mockup +30% */
+#quick-create-buttons .kn-button,
+.custom-form-buttons .kn-button,
+.gl-btn-primary,
+.gl-btn-secondary {
+  padding: 16px 31px;
+  border-radius: 5px;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  min-height: 58px;
+  min-width: 150px;
+  box-sizing: border-box;
+}
+
+#quick-create-buttons .kn-button i,
+.custom-form-buttons .kn-button i,
+.gl-btn-primary i,
+.gl-btn-secondary i {
+  font-size: 18px;
+}
+
+/* Gray secondary button */
+.gl-btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.gl-btn-secondary:hover {
+  background: #5a6268;
+}
+
+/* Green primary button */
+.gl-btn-primary {
+  background: #39b54a;
+  color: white;
+}
+
+.gl-btn-primary:hover {
+  background: #2d9a3e;
+}
+
+/* ===================================
+   KNACK DEFAULT SUBMIT BUTTON STYLING
+   Style the default .kn-button.is-primary in modals
+   =================================== */
+
+/* Style Knack's default submit button in modal forms */
+.kn-modal .kn-submit,
+.kn-page-modal .kn-submit {
+  margin-top: 16px !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+.kn-modal .kn-submit .kn-button,
+.kn-modal .kn-submit button[type="submit"],
+.kn-page-modal .kn-submit .kn-button,
+.kn-page-modal .kn-submit button[type="submit"],
+.kn-modal .kn-button.is-primary,
+.kn-page-modal .kn-button.is-primary,
+.kn-modal-bg .kn-button.is-primary,
+.kn-form .kn-submit .kn-button.is-primary,
+button.kn-button.is-primary[type="submit"] {
+  padding: 16px 31px !important;
+  border-radius: 5px !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  background: #39b54a !important;
+  color: white !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  min-height: 58px !important;
+  min-width: 150px !important;
+  box-sizing: border-box !important;
+}
+
+.kn-modal .kn-submit .kn-button:hover,
+.kn-modal .kn-submit button[type="submit"]:hover,
+.kn-page-modal .kn-submit .kn-button:hover,
+.kn-page-modal .kn-submit button[type="submit"]:hover,
+.kn-modal .kn-button.is-primary:hover,
+.kn-page-modal .kn-button.is-primary:hover,
+.kn-modal-bg .kn-button.is-primary:hover,
+.kn-form .kn-submit .kn-button.is-primary:hover,
+button.kn-button.is-primary[type="submit"]:hover {
+  background: #2d9a3e !important;
+}
+
+/* Icon spacing in Knack submit buttons */
+.kn-modal .kn-submit .kn-button i,
+.kn-page-modal .kn-submit .kn-button i,
+.kn-button.is-primary i,
+button.kn-button[type="submit"] i {
+  margin-right: 10px !important;
+  font-size: 18px !important;
+}
+
+/* Ensure hidden buttons stay hidden (don't override inline display:none) */
+#view_5685 .kn-submit,
+#view_5685 .kn-submit .kn-button,
+#view_5685 button.kn-button.is-primary[type="submit"] {
+  display: none !important;
 }
 

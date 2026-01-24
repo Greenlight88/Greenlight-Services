@@ -6907,7 +6907,7 @@ window.ktlReady = function (appInfo = {}) {
                                                 // Update button text to "Validate"
                                                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                                                 if ($submitBtn.text() !== 'Validate') {
-                                                    $submitBtn.text('Validate');
+                                                    $submitBtn.html('<i class="fa fa-search"></i> Validate');
                                                     console.log(`🔘 Button text changed to "Validate"`);
                                                 }
                                             } else {
@@ -6915,7 +6915,7 @@ window.ktlReady = function (appInfo = {}) {
                                                 // Update button text to "Save"
                                                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                                                 if ($submitBtn.text() === 'Validate') {
-                                                    $submitBtn.text('Save');
+                                                    $submitBtn.html('<i class="fa fa-check"></i> Save');
                                                     console.log(`🔘 Button text changed back to "Save"`);
                                                 }
                                             }
@@ -6934,7 +6934,7 @@ window.ktlReady = function (appInfo = {}) {
                                                 // Update button text to "Validate"
                                                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                                                 if ($submitBtn.text() !== 'Validate') {
-                                                    $submitBtn.text('Validate');
+                                                    $submitBtn.html('<i class="fa fa-search"></i> Validate');
                                                     console.log(`🔘 Button text changed to "Validate"`);
                                                 }
                                             } else {
@@ -6942,7 +6942,7 @@ window.ktlReady = function (appInfo = {}) {
                                                 // Update button text to "Save"
                                                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                                                 if ($submitBtn.text() === 'Validate') {
-                                                    $submitBtn.text('Save');
+                                                    $submitBtn.html('<i class="fa fa-check"></i> Save');
                                                     console.log(`🔘 Button text changed back to "Save" (${decision})`);
                                                 }
                                             }
@@ -6966,7 +6966,7 @@ window.ktlReady = function (appInfo = {}) {
                                             if (!stillNeedsRevalidation) {
                                                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                                                 if ($submitBtn.text() === 'Validate') {
-                                                    $submitBtn.text('Save');
+                                                    $submitBtn.html('<i class="fa fa-check"></i> Save');
                                                     console.log(`🔘 Button text changed back to "Save"`);
                                                 }
                                             }
@@ -7041,7 +7041,7 @@ window.ktlReady = function (appInfo = {}) {
                                 // Update button to "Validate"
                                 const $submitBtn = $(`#${viewId} button[type="submit"]`);
                                 if ($submitBtn.text() !== 'Validate') {
-                                    $submitBtn.text('Validate');
+                                    $submitBtn.html('<i class="fa fa-search"></i> Validate');
                                     console.log(`🔘 Button text changed to "Validate" (name changed)`);
                                 }
 
@@ -8877,8 +8877,8 @@ window.ktlReady = function (appInfo = {}) {
                     setTimeout(function () {
                         const $submitBtn = $('#view_4059 button[type="submit"], #view_4059 input[type="submit"]');
                         if ($submitBtn.length) {
-                            $submitBtn.text('Validate');
-                            console.log('✏️ Changed submit button text to "Validate" for view_4059');
+                            $submitBtn.html('<i class="fa fa-search"></i> Validate');
+                            console.log('✏️ Changed submit button to "Validate" with icon for view_4059');
                         }
 
                         // Focus on Company short name field
@@ -8906,7 +8906,7 @@ window.ktlReady = function (appInfo = {}) {
 
                         if ($submitBtn.length) {
                             // Set initial button text to "Save" (update forms don't need validation unless fields change)
-                            $submitBtn.text('Save');
+                            $submitBtn.html('<i class="fa fa-check"></i> Save');
                             console.log('✏️ Set submit button text to "Save" for view_5605 (Update Company)');
 
                             // Initialize Processing Status to "Ready" on form render
@@ -9035,7 +9035,7 @@ window.ktlReady = function (appInfo = {}) {
 
                         if ($submitBtn.length) {
                             // Set submit button text to "Validate" for duplicate checking
-                            $submitBtn.text('Validate');
+                            $submitBtn.html('<i class="fa fa-search"></i> Validate');
                             console.log('✏️ Changed submit button text to "Validate" for view_5612 (Create Contact)');
                         } else {
                             console.warn('⚠️ Could not find submit button for view_5612');
@@ -9089,7 +9089,7 @@ window.ktlReady = function (appInfo = {}) {
 
                         if ($submitBtn.length) {
                             // Set submit button text to "Validate" for duplicate checking
-                            $submitBtn.text('Validate');
+                            $submitBtn.html('<i class="fa fa-search"></i> Validate');
                             console.log('✏️ Changed submit button text to "Validate" for view_5631 (Create Contact with Company)');
                         } else {
                             console.warn('⚠️ Could not find submit button for view_5631');
@@ -9240,65 +9240,86 @@ window.ktlReady = function (appInfo = {}) {
                             console.warn('⚠️ No company record ID found in window._newCompanyRecordId');
                         }
 
-                        // Find and hide the default submit button
+                        // Guard: Check if already set up using data attribute
+                        const $view = $(`#${viewId}`);
+                        if ($view.data('buttons-setup')) {
+                            console.log('⚠️ Buttons already setup for this view instance');
+                            return;
+                        }
+                        $view.data('buttons-setup', true);
+
+                        // Remove ALL existing custom buttons
+                        $('#quick-create-buttons').remove();
+
+                        // Find and hide the default submit button and wrapper
                         let $defaultSubmitBtn = $(`#${viewId} button[type="submit"], #${viewId} input[type="submit"]`);
                         if ($defaultSubmitBtn.length) {
                             $defaultSubmitBtn.hide();
                             console.log('🔒 Hidden default submit button');
                         }
+                        // Hide all submit wrappers in this view
+                        $(`#${viewId} .kn-submit`).hide();
+                        $(`#${viewId} .view-group-form .submit`).hide();
 
-                        // Create custom dual submit buttons
+                        // Create new button container with View Company + Validate
                         const $buttonContainer = $(`
-                            <div id="quick-create-buttons" style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
-                                <button type="button" id="btn-create-proposal" class="kn-button" style="
-                                    background: #6c757d;
-                                    color: white;
-                                    border: none;
-                                    padding: 10px 20px;
-                                    border-radius: 4px;
-                                    cursor: pointer;
-                                    font-weight: 500;
-                                ">
-                                    <i class="fa fa-file-text-o" style="margin-right: 8px;"></i>Create Proposal
+                            <div id="quick-create-buttons">
+                                <button type="button" id="btn-view-company" class="kn-button gl-btn-secondary">
+                                    <i class="fa fa-building"></i>View Company
                                 </button>
-                                <button type="button" id="btn-create-project" class="kn-button" style="
-                                    background: #39b54a;
-                                    color: white;
-                                    border: none;
-                                    padding: 10px 20px;
-                                    border-radius: 4px;
-                                    cursor: pointer;
-                                    font-weight: 500;
-                                ">
-                                    <i class="fa fa-folder-open" style="margin-right: 8px;"></i>Create Project
+                                <button type="button" id="btn-save-contact" class="kn-button gl-btn-primary">
+                                    <i class="fa fa-search"></i>Validate
                                 </button>
                             </div>
                         `);
 
-                        // Insert buttons after the form
-                        const $form = $(`#${viewId} form, #${viewId}.kn-form`);
-                        if ($form.length) {
+                        // Insert buttons after the form (only once, to first form found)
+                        const $form = $(`#${viewId} form`).first();
+                        if ($form.length && $('#quick-create-buttons').length === 0) {
                             $form.append($buttonContainer);
-                            console.log('✅ Added dual submit buttons (Create Project / Create Proposal)');
+                            console.log('✅ Added View Company + Save buttons');
                         }
 
-                        // Handle Create Project button click
-                        $('#btn-create-project').off('click.quickCreate').on('click.quickCreate', function () {
-                            console.log('🚀 Create Project button clicked');
-                            window._quickCreateNextAction = 'project';
-                            // Trigger form validation and submission
-                            if ($defaultSubmitBtn.length) {
-                                $defaultSubmitBtn.trigger('click');
+                        // Helper: Check if form has data
+                        function formHasData() {
+                            const firstName = $(`#${viewId} input[name="first"]`).val()?.trim() || '';
+                            const lastName = $(`#${viewId} input[name="last"]`).val()?.trim() || '';
+                            const email = $(`#${viewId} #field_4164`).val()?.trim() || '';
+                            const mobile = $(`#${viewId} #field_4165`).val()?.trim() || '';
+                            const phone = $(`#${viewId} #field_4056`).val()?.trim() || '';
+                            return !!(firstName || lastName || email || mobile || phone);
+                        }
+
+                        // Helper: Redirect to company view
+                        function redirectToCompany() {
+                            const companyEcnId = window._newCompanyEcnId || '';
+                            if (companyEcnId) {
+                                window.location.hash = `#contacts6/view-company3/${companyEcnId}`;
+                            } else {
+                                window.history.back();
+                            }
+                        }
+
+                        // Handle View Company button click
+                        $('#btn-view-company').off('click.quickCreate').on('click.quickCreate', function () {
+                            console.log('🏢 View Company button clicked');
+                            console.log('🏢 Company ECN ID:', window._newCompanyEcnId);
+                            if (formHasData()) {
+                                if (confirm('Data will be cleared from the form. Continue to view company?')) {
+                                    redirectToCompany();
+                                }
+                            } else {
+                                redirectToCompany();
                             }
                         });
+                        console.log('✅ View Company button handler attached');
 
-                        // Handle Create Proposal button click
-                        $('#btn-create-proposal').off('click.quickCreate').on('click.quickCreate', function () {
-                            console.log('🚀 Create Proposal button clicked');
-                            window._quickCreateNextAction = 'proposal';
+                        // Handle Save button click
+                        $('#btn-save-contact').off('click.quickCreate').on('click.quickCreate', function () {
+                            console.log('💾 Save button clicked');
                             // Trigger form validation and submission
                             if ($defaultSubmitBtn.length) {
-                                $defaultSubmitBtn.trigger('click');
+                                $defaultSubmitBtn.first().trigger('click');
                             }
                         });
 
@@ -9329,9 +9350,6 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_5685 (quick-create contact)`);
                     console.log(`📦 Submission response:`, response);
 
-                    const nextAction = window._quickCreateNextAction || 'view';
-                    console.log(`📋 Next action after contact creation: ${nextAction}`);
-
                     // Ensure ECN ID is available before firing post-submission webhook
                     // (ECN is created asynchronously after company creation)
                     if (!window._newCompanyEcnId && window._ecnIdPromise) {
@@ -9349,42 +9367,131 @@ window.ktlReady = function (appInfo = {}) {
                         onSuccess: function (result) {
                             console.log('✅ COMs created successfully');
 
-                            // Get ECN ID for redirect
-                            let ecnId = null;
+                            // Get ECN ID for the new contact
+                            let contactEcnId = null;
                             if (result && result.ecn_id) {
-                                ecnId = result.ecn_id;
+                                contactEcnId = result.ecn_id;
                             } else if (result && result.ecn_record_id) {
-                                ecnId = result.ecn_record_id;
-                            } else if (window._newCompanyEcnId) {
-                                ecnId = window._newCompanyEcnId;
+                                contactEcnId = result.ecn_record_id;
                             }
 
-                            // Redirect based on next action
-                            // For prototype, all options redirect to View Contact
-                            if (ecnId) {
-                                const redirectUrl = `#contacts6/view-contact3/${ecnId}`;
-                                console.log(`🔀 Redirecting to contact view: ${redirectUrl}`);
-                                console.log(`📋 (Prototype: Next action "${nextAction}" would go to different form)`);
-                                window.location.hash = redirectUrl;
-                            } else {
-                                console.warn('⚠️ No ECN ID available for redirect');
-                            }
+                            // Store company ECN ID before cleanup (needed for "Add New Contact")
+                            const companyEcnId = window._newCompanyEcnId || '';
+                            const companyRecordId = window._newCompanyRecordId || '';
+                            const companyName = window._newCompanyName || '';
 
-                            // Cleanup
-                            delete window._quickCreateNextAction;
-                            delete window._newCompanyRecordId;
-                            delete window._newCompanyName;
-                            delete window._newCompanyEcnId;
-                            delete window._ecnIdPromise;
+                            // Show "Where to next?" modal
+                            showQuickCreateNextActionModal(contactEcnId, companyEcnId, companyRecordId, companyName);
                         },
                         onError: function (error) {
                             console.error('❌ Error creating COMs:', error);
                             // Cleanup
-                            delete window._quickCreateNextAction;
                             delete window._ecnIdPromise;
                         }
                     });
                 });
+
+                // "Where to next?" modal for Quick Create Contact form
+                function showQuickCreateNextActionModal(contactEcnId, companyEcnId, companyRecordId, companyName) {
+                    // Remove any existing modal
+                    $('#next-action-modal').remove();
+
+                    const $modal = $(`
+                        <div id="next-action-modal" class="gl-modal-overlay">
+                            <div class="gl-modal">
+                                <h3 class="gl-modal-title">
+                                    <i class="fa fa-check-circle"></i>
+                                    Contact saved! Where to next?
+                                </h3>
+                                <div class="gl-modal-buttons">
+                                    <button id="next-create-proposal" class="gl-modal-btn gl-btn-secondary">
+                                        <i class="fa fa-file-text-o"></i>Create Proposal
+                                    </button>
+                                    <button id="next-view-contact" class="gl-modal-btn gl-btn-secondary">
+                                        <i class="fa fa-user"></i>View Contact
+                                    </button>
+                                    <button id="next-add-new" class="gl-modal-btn gl-btn-secondary">
+                                        <i class="fa fa-plus"></i>Add New Contact
+                                    </button>
+                                    <button id="next-create-project" class="gl-modal-btn gl-btn-primary">
+                                        <i class="fa fa-folder-open"></i>Create Project
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+
+                    $('body').append($modal);
+                    console.log('📋 Showing "Where to next?" modal');
+
+                    // Create Proposal button
+                    $('#next-create-proposal').on('click', function () {
+                        console.log('📄 Create Proposal selected');
+                        $('#next-action-modal').remove();
+                        cleanupQuickCreateGlobals();
+                        // TODO: Redirect to create proposal with contact context
+                        // For now, redirect to contact view
+                        if (contactEcnId) {
+                            window.location.hash = `#contacts6/view-contact3/${contactEcnId}`;
+                        }
+                    });
+
+                    // View Contact button
+                    $('#next-view-contact').on('click', function () {
+                        console.log('👤 View Contact selected');
+                        $('#next-action-modal').remove();
+                        cleanupQuickCreateGlobals();
+                        if (contactEcnId) {
+                            window.location.hash = `#contacts6/view-contact3/${contactEcnId}`;
+                        }
+                    });
+
+                    // Add New Contact button
+                    $('#next-add-new').on('click', function () {
+                        console.log('➕ Add New Contact selected');
+                        $('#next-action-modal').remove();
+                        // Keep company globals for next contact
+                        window._newCompanyEcnId = companyEcnId;
+                        window._newCompanyRecordId = companyRecordId;
+                        window._newCompanyName = companyName;
+                        // Clear form for new contact
+                        clearQuickCreateForm('view_5685');
+                    });
+
+                    // Create Project button
+                    $('#next-create-project').on('click', function () {
+                        console.log('📁 Create Project selected');
+                        $('#next-action-modal').remove();
+                        cleanupQuickCreateGlobals();
+                        // TODO: Redirect to create project with contact context
+                        // For now, redirect to contact view
+                        if (contactEcnId) {
+                            window.location.hash = `#contacts6/view-contact3/${contactEcnId}`;
+                        }
+                    });
+                }
+
+                // Clear form fields for new contact entry
+                function clearQuickCreateForm(viewId) {
+                    // Clear all text inputs
+                    $(`#${viewId} input[type="text"]`).val('');
+                    // Clear email/phone fields specifically
+                    $(`#${viewId} #field_4164`).val('');
+                    $(`#${viewId} #field_4165`).val('');
+                    $(`#${viewId} #field_4056`).val('');
+                    // Focus first name field
+                    $(`#${viewId} input[name="first"]`).focus();
+                    console.log('🧹 Form cleared for new contact entry');
+                }
+
+                // Cleanup global variables after Quick Create flow
+                function cleanupQuickCreateGlobals() {
+                    delete window._newCompanyRecordId;
+                    delete window._newCompanyName;
+                    delete window._newCompanyEcnId;
+                    delete window._ecnIdPromise;
+                    delete window._parentRecordId;
+                }
 
                 // ===== CONTACT UPDATE FORM (view_5626) =====
                 $(document).on('knack-view-render.view_5626', function (event, view, data) {
@@ -9394,7 +9501,7 @@ window.ktlReady = function (appInfo = {}) {
 
                         if ($submitBtn.length) {
                             // Set initial button text to "Save" (update forms don't need validation unless fields change)
-                            $submitBtn.text('Save');
+                            $submitBtn.html('<i class="fa fa-check"></i> Save');
                             console.log('✏️ Set submit button text to "Save" for view_5626 (Update Contact)');
                         }
 
