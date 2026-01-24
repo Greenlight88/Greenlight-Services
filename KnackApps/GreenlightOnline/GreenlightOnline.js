@@ -9262,9 +9262,10 @@ window.ktlReady = function (appInfo = {}) {
                         $(`#${viewId} .view-group-form .submit`).hide();
 
                         // Create new button container with View Company + Validate
+                        // View Company starts DISABLED until ECN ID is available
                         const $buttonContainer = $(`
                             <div id="quick-create-buttons">
-                                <button type="button" id="btn-view-company" class="kn-button gl-btn-secondary">
+                                <button type="button" id="btn-view-company" class="kn-button gl-btn-secondary gl-btn-disabled" disabled>
                                     <i class="fa fa-building"></i>View Company
                                 </button>
                                 <button type="button" id="btn-save-contact" class="kn-button gl-btn-primary">
@@ -9280,6 +9281,40 @@ window.ktlReady = function (appInfo = {}) {
                             console.log('✅ Added View Company + Save buttons');
                         }
 
+                        // Helper: Enable View Company button and populate field_4135
+                        function enableViewCompanyButton(ecnId) {
+                            const $btn = $('#btn-view-company');
+                            $btn.prop('disabled', false).removeClass('gl-btn-disabled');
+                            console.log('✅ View Company button enabled with ECN:', ecnId);
+
+                            // Populate field_4135 (company_self_ecn) for webhook payloads
+                            const $field4135 = $(`#${viewId} #field_4135`);
+                            if ($field4135.length) {
+                                $field4135.val(ecnId);
+                                console.log('✅ Populated field_4135 with ECN:', ecnId);
+                            }
+                        }
+
+                        // Check if ECN ID is already available (e.g., from "Add New Contact" flow)
+                        if (window._newCompanyEcnId) {
+                            console.log('🏢 ECN ID already available:', window._newCompanyEcnId);
+                            enableViewCompanyButton(window._newCompanyEcnId);
+                        } else if (window._ecnIdPromise) {
+                            // Wait for ECN ID promise to resolve
+                            console.log('⏳ Waiting for ECN ID from company creation...');
+                            window._ecnIdPromise
+                                .then(ecnId => {
+                                    console.log('✅ ECN ID received from promise:', ecnId);
+                                    enableViewCompanyButton(ecnId);
+                                })
+                                .catch(error => {
+                                    console.error('❌ Failed to get ECN ID:', error);
+                                    // Keep button disabled, user can still use Save
+                                });
+                        } else {
+                            console.log('⚠️ No ECN ID or promise available - button will remain disabled');
+                        }
+
                         // Helper: Check if form has data
                         function formHasData() {
                             const firstName = $(`#${viewId} input[name="first"]`).val()?.trim() || '';
@@ -9292,16 +9327,36 @@ window.ktlReady = function (appInfo = {}) {
 
                         // Helper: Redirect to company view
                         function redirectToCompany() {
-                            const companyEcnId = window._newCompanyEcnId || '';
+                            // Try multiple sources for the company's self-ECN
+                            let companyEcnId = window._newCompanyEcnId || '';
+
+                            // Fallback: check field_4135 on the form (company_self_ecn)
+                            if (!companyEcnId) {
+                                const field4135 = $(`#${viewId} #field_4135`).val() || '';
+                                if (field4135) {
+                                    companyEcnId = field4135;
+                                    console.log('🏢 Using field_4135 for company ECN:', companyEcnId);
+                                }
+                            }
+
+                            console.log('🏢 Redirecting to company with ECN ID:', companyEcnId);
+
                             if (companyEcnId) {
                                 window.location.hash = `#contacts6/view-company3/${companyEcnId}`;
                             } else {
-                                window.history.back();
+                                console.warn('⚠️ No company ECN ID found, cannot redirect');
+                                alert('Unable to navigate to company - ECN ID not found');
                             }
                         }
 
                         // Handle View Company button click
                         $('#btn-view-company').off('click.quickCreate').on('click.quickCreate', function () {
+                            // Guard: Don't proceed if button is disabled
+                            if ($(this).prop('disabled') || $(this).hasClass('gl-btn-disabled')) {
+                                console.log('⚠️ View Company button is disabled, ignoring click');
+                                return;
+                            }
+
                             console.log('🏢 View Company button clicked');
                             console.log('🏢 Company ECN ID:', window._newCompanyEcnId);
                             if (formHasData()) {

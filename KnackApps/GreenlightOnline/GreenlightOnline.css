@@ -2910,6 +2910,14 @@ a.ang-link[href="#contacts6"] {
   background: #2d9a3e;
 }
 
+/* Disabled button state */
+.gl-btn-disabled,
+.gl-btn-disabled:hover {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
 /* Modal Header */
 .xero-entity-modal h3 {
   margin: 0 0 12px 0;
