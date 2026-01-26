@@ -82,6 +82,7 @@ const ENT_FIELDS = {
     STATUS: 'field_985',         // Status = "Active"
     PAYMENT_TYPE: 'field_979',   // Payment type = "Prepay"
     COMPANY_FLAG: 'field_3927',  // Is Company = "Yes"
+    TENANT: 'field_1502',        // Tenant connection
     COMPANY_SEARCH: 'field_4059',// Normalized search value
     COMPANY_SHORT_SEARCH: 'field_4134', // Short search value
     CREATED_BY: 'field_3782',    // Created by user
@@ -195,6 +196,9 @@ async function updateENT(data, ecnId, log) {
         [ENT_FIELDS.STATUS]: 'Active',
         [ENT_FIELDS.PAYMENT_TYPE]: 'Prepay',
         [ENT_FIELDS.COMPANY_FLAG]: 'Yes',
+
+        // Tenant connection
+        [ENT_FIELDS.TENANT]: data.tenant_id,
 
         // Search fields (if provided)
         ...(data.company_search && { [ENT_FIELDS.COMPANY_SEARCH]: data.company_search }),

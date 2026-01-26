@@ -65,6 +65,19 @@ docs/                    Reference documentation
 
 ## How to Work
 
+### Session Startup Checks
+**At the start of each session, verify both dev servers are running:**
+```bash
+netstat -ano | findstr ":3001 :3000"
+```
+- **Port 3000**: KTL/Frontend server (serves local JS/CSS)
+- **Port 3001**: API server (local endpoints)
+
+If port 3001 is not listening, start the API server:
+```bash
+node server.js  # Run from GreenlightOnline directory
+```
+
 ### Development Workflow
 1. Edit files locally
 2. **Test locally before pushing** (local dev mode available)
@@ -93,14 +106,74 @@ Load these docs when working on specific areas:
 
 | Topic | Document |
 |-------|----------|
+| **New endpoint setup** | `docs/new-endpoint-checklist.md` |
 | Form validation system | `docs/form-validation.md` |
 | Local development setup | `docs/local-development.md` |
+| Endpoint testing | `docs/endpoint-testing.md` |
 | Make.com migration | `docs/make-migration.md` |
 | Database & Knack schema | `docs/database.md` |
+| Knack dropdown prefill | `docs/knack-dropdown-prefill.md` |
+| Flow context & persistence | `docs/flow-context-persistence.md` |
 | Troubleshooting | `docs/troubleshooting.md` |
 | Session history | `docs/session-history.md` |
 | CCN block processing | `docs/CCN_BLOCK_PROCESSOR_INTEGRATION_GUIDE.md` |
 | Shared contacts blocking | `docs/SHARED_CONTACTS_BLOCKING_GUIDE.md` |
+
+---
+
+## Task Checklists
+
+### Make.com → Vercel Migration
+
+**STOP: Before writing any code, complete this checklist.**
+
+#### Phase 1: Understand the Make.com Scenario
+1. [ ] Get the blueprint JSON file from user
+2. [ ] Process blueprint: `node tools/blueprint-processor.js "blueprint.json"`
+3. [ ] Identify the ExecuteCode JS module in `make_scenarios/` folder
+4. [ ] Read the JS module to understand business logic
+
+#### Phase 2: Review Required Documentation
+Read these docs in order:
+1. [ ] `docs/make-migration.md` - Migration patterns, status
+2. [ ] `docs/form-validation.md` - Response types (block/confirm/proceed)
+3. [ ] `docs/database.md` - ENT/ECN/COM/CCN schema
+4. [ ] `docs/knack-constants.md` - Object IDs, field mappings
+5. [ ] `docs/proceed-endpoint-spec.md` - Example of completed migration (template)
+6. [ ] `docs/CCN_BLOCK_PROCESSOR_INTEGRATION_GUIDE.md` - CCN conflict patterns
+7. [ ] `docs/SHARED_CONTACTS_BLOCKING_GUIDE.md` - Shared contacts logic
+
+#### Phase 3: Review Existing Implementation
+1. [ ] Check existing endpoint in `api/` folder (e.g., `/api/company/validate`)
+2. [ ] Review shared libs in `lib/` (knack-api, duplicate-detection, etc.)
+3. [ ] Check frontend integration in `GreenlightOnline.js` (viewConfigs, webhookManager)
+
+#### Phase 4: Enter Plan Mode
+1. [ ] Create detailed implementation plan
+2. [ ] Document API contract (input/output)
+3. [ ] Map Make.com modules to Vercel functions
+4. [ ] Identify what goes in endpoint vs shared libs
+5. [ ] Plan frontend changes to switch webhook URLs
+6. [ ] Get user approval before coding
+
+#### Phase 5: Implement
+
+**CRITICAL: All 3 locations must be updated for each endpoint. See `docs/new-endpoint-checklist.md`**
+
+1. [ ] Create/update Vercel endpoint in `api/` folder
+2. [ ] Create/update shared libs in `lib/` folder
+3. [ ] **Register endpoint in `server.js`** (ALL REQUIRED):
+   - [ ] Import handler at top of file
+   - [ ] Add POST route
+   - [ ] Add OPTIONS route (for CORS)
+   - [ ] Update startup message
+4. [ ] Update frontend webhook URL in viewConfigs (if new form)
+5. [ ] **Add dev mode redirect in GreenlightOnline.js** (REQUIRED):
+   - [ ] For validate endpoints: in `fireWebhookWithDuplicateCheck()`
+   - [ ] For proceed endpoints: in `firePostSubmissionWebhook()`
+6. [ ] **Verify all 3 locations**: `grep -l "endpoint/name" server.js api/*/name.js GreenlightOnline.js`
+7. [ ] Test locally with dev mode enabled
+8. [ ] Update `docs/make-migration.md` status table
 
 ---
 
@@ -109,13 +182,17 @@ Load these docs when working on specific areas:
 **Active:** Backend migration - replacing Make.com webhooks with Vercel functions.
 
 **Status:**
-- Company duplicate detection endpoint complete (`/api/company/validate`)
+- Company validation endpoint complete (`/api/company/validate`)
+- Company proceed endpoint complete (`/api/company/proceed`)
+- Contact validation endpoint complete (`/api/contact/validate`)
+- Contact proceed endpoint complete (`/api/contact/proceed`)
 - Request logging with Postgres working
-- Post-submission processing planned next
 
 **Key forms in play:**
-- view_4059: Create Company (main validation)
-- view_5612: Create Contact (duplicate detection)
+- view_4059: Create Company (main validation) - migrated
+- view_5631: Create Contact with Company - migrated
+- view_5685: Quick Create Contact - migrated
+- view_5612: Create Contact (standalone) - uses same endpoint
 - view_4829: Enquiries table (auto-refresh)
 
 ---

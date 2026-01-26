@@ -2312,11 +2312,11 @@ window.ktlReady = function (appInfo = {}) {
                 formType: 'contact-creation',
                 allowSharedContacts: true,  // Contact creation allows shared contacts (confirm scenario)
                 webhook: {
-                    url: 'https://hook.us1.make.com/hhfz1ywcik857a3j3drfxzr221m4tois',
+                    url: 'https://greenlight-services-3.vercel.app/api/contact/validate',
                     enabled: true
                 },
                 postSubmissionWebhook: {
-                    url: 'https://hook.us1.make.com/s4n6e3ajcvh9sm4i0yf3vtzjp46bglqp',
+                    url: 'https://greenlight-services-3.vercel.app/api/contact/proceed',
                     enabled: true
                 },
                 // Hidden view containing the parent company ID
@@ -2381,11 +2381,11 @@ window.ktlReady = function (appInfo = {}) {
                 allowSharedContacts: true,
                 isQuickCreate: true,  // Flag to indicate this is the quick-create flow
                 webhook: {
-                    url: 'https://hook.us1.make.com/hhfz1ywcik857a3j3drfxzr221m4tois',
+                    url: 'https://greenlight-services-3.vercel.app/api/contact/validate',
                     enabled: true
                 },
                 postSubmissionWebhook: {
-                    url: 'https://hook.us1.make.com/s4n6e3ajcvh9sm4i0yf3vtzjp46bglqp',
+                    url: 'https://greenlight-services-3.vercel.app/api/contact/proceed',
                     enabled: true
                 },
                 // Parent record ID stored in hidden text field (populated by JS after company creation)
@@ -4114,10 +4114,17 @@ window.ktlReady = function (appInfo = {}) {
                     return;
                 }
 
-                const webhookUrl = config.postSubmissionWebhook.url;
+                let webhookUrl = config.postSubmissionWebhook.url;
                 if (!webhookUrl || webhookUrl.includes('YOUR_POST_WEBHOOK_URL_HERE')) {
                     console.log(`⚠️ Post-submission webhook URL not configured for ${viewId}`);
                     return;
+                }
+
+                // Dev mode: use local server if enabled
+                const useLocalApi = sessionStorage.getItem('Greenl_56ea_dev') === 'true' || localStorage.getItem('Greenl_56ea_dev') !== null;
+                if (useLocalApi && config.formType === 'company-creation') {
+                    webhookUrl = 'http://localhost:3001/api/company/proceed';
+                    console.log(`🧪 LOCAL DEV MODE: Using ${webhookUrl} instead of Vercel`);
                 }
 
                 console.log(`🚀 Firing post-submission webhook for ${viewId}`);
@@ -4168,6 +4175,9 @@ window.ktlReady = function (appInfo = {}) {
                         // Store ECN ID for Quick Create Contact form
                         if (ecnId && viewId === 'view_4059') {
                             window._newCompanyEcnId = ecnId;
+                            // Also store in sessionStorage for refresh persistence
+                            sessionStorage.setItem('NewCompany_QuickCreate_EcnId', ecnId);
+                            console.log(`💾 Stored company ECN ID in sessionStorage: ${ecnId}`);
                             // Resolve the Promise so contact form can proceed
                             if (window._ecnIdResolve) {
                                 window._ecnIdResolve(ecnId);
@@ -5079,11 +5089,18 @@ window.ktlReady = function (appInfo = {}) {
                     return;
                 }
 
-                const webhookUrl = config.postSubmissionWebhook.url;
+                let webhookUrl = config.postSubmissionWebhook.url;
                 if (!webhookUrl || webhookUrl.includes('YOUR_CONTACT_POST_WEBHOOK_URL_HERE')) {
                     console.log(`⚠️ Post-submission webhook URL not configured for ${viewId}`);
                     if (callbacks.onError) callbacks.onError(new Error('Webhook URL not configured'));
                     return;
+                }
+
+                // Dev mode: use local server if enabled
+                const useLocalApi = sessionStorage.getItem('Greenl_56ea_dev') === 'true' || localStorage.getItem('Greenl_56ea_dev') !== null;
+                if (useLocalApi && config.formType === 'contact-creation') {
+                    webhookUrl = 'http://localhost:3001/api/contact/proceed';
+                    console.log(`🧪 LOCAL DEV MODE: Using ${webhookUrl} instead of Vercel`);
                 }
 
                 console.log(`🚀 Firing post-submission webhook for ${viewId}`);
@@ -5278,6 +5295,9 @@ window.ktlReady = function (appInfo = {}) {
 
                 if (useLocalApi && config.formType === 'company-creation') {
                     webhookUrl = 'http://localhost:3001/api/company/validate';
+                    console.log(`🧪 LOCAL DEV MODE: Using ${webhookUrl} instead of Vercel`);
+                } else if (useLocalApi && config.formType === 'contact-creation') {
+                    webhookUrl = 'http://localhost:3001/api/contact/validate';
                     console.log(`🧪 LOCAL DEV MODE: Using ${webhookUrl} instead of Vercel`);
                 }
 
@@ -8958,10 +8978,32 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_4059 (company-creation)`);
                     console.log(`📦 Submission response:`, response);
 
+                    // Clear any existing Quick Create flow context (starting fresh)
+                    sessionStorage.removeItem('flowContext');
+                    sessionStorage.removeItem('NewCompany_QuickCreate_CompanyId');
+                    sessionStorage.removeItem('NewCompany_QuickCreate_CompanyName');
+                    sessionStorage.removeItem('NewCompany_QuickCreate_EcnId');
+                    // Also clear window globals
+                    delete window._newCompanyRecordId;
+                    delete window._newCompanyName;
+                    delete window._newCompanyEcnId;
+                    delete window._parentRecordId;
+                    console.log(`🧹 Cleared previous Quick Create context`);
+
                     // Capture company record ID for quick-create contact flow
+                    // Try multiple response structures as Knack may vary
+                    let companyRecordId = null;
                     if (response && response.record && response.record.id) {
-                        window._newCompanyRecordId = response.record.id;
+                        companyRecordId = response.record.id;
+                    } else if (response && response.id) {
+                        companyRecordId = response.id;
+                    }
+
+                    if (companyRecordId) {
+                        window._newCompanyRecordId = companyRecordId;
                         console.log(`🏢 Captured company record ID: ${window._newCompanyRecordId}`);
+                    } else {
+                        console.warn(`⚠️ Could not extract company record ID from response:`, response);
                     }
 
                     // Capture company name from stored form data (more reliable than response)
@@ -8972,6 +9014,12 @@ window.ktlReady = function (appInfo = {}) {
                                        '';
                     window._newCompanyName = companyName;
                     console.log(`🏢 Captured company name: ${window._newCompanyName}`);
+
+                    // Store flow context and company data in sessionStorage (persists through refresh)
+                    sessionStorage.setItem('flowContext', 'NewCompany->QuickCreateContact');
+                    sessionStorage.setItem('NewCompany_QuickCreate_CompanyId', window._newCompanyRecordId || '');
+                    sessionStorage.setItem('NewCompany_QuickCreate_CompanyName', window._newCompanyName || '');
+                    console.log(`💾 Stored company context in sessionStorage for Quick Create flow`);
 
                     // Fire post-submission webhook immediately
                     // The webhook will create the ECN and redirect to Quick Create Contact form
@@ -9199,6 +9247,17 @@ window.ktlReady = function (appInfo = {}) {
                         const viewId = 'view_5685';
                         console.log('👀 Quick Create Contact form (view_5685) rendered');
 
+                        // Restore company context from sessionStorage if window variables not set (refresh scenario)
+                        if (!window._newCompanyRecordId) {
+                            const flowContext = sessionStorage.getItem('flowContext');
+                            if (flowContext === 'NewCompany->QuickCreateContact') {
+                                window._newCompanyRecordId = sessionStorage.getItem('NewCompany_QuickCreate_CompanyId') || '';
+                                window._newCompanyName = sessionStorage.getItem('NewCompany_QuickCreate_CompanyName') || '';
+                                window._newCompanyEcnId = sessionStorage.getItem('NewCompany_QuickCreate_EcnId') || '';
+                                console.log(`💾 Restored company context from sessionStorage: ID=${window._newCompanyRecordId}, Name=${window._newCompanyName}, ECN=${window._newCompanyEcnId}`);
+                            }
+                        }
+
                         // Display company name in form header
                         if (window._newCompanyName) {
                             const $viewHeader = $(`#${viewId} .view-header`);
@@ -9342,7 +9401,7 @@ window.ktlReady = function (appInfo = {}) {
                             console.log('🏢 Redirecting to company with ECN ID:', companyEcnId);
 
                             if (companyEcnId) {
-                                window.location.hash = `#contacts6/view-company3/${companyEcnId}`;
+                                window.location.hash = `#contacts6/view-contact3/${companyEcnId}`;
                             } else {
                                 console.warn('⚠️ No company ECN ID found, cannot redirect');
                                 alert('Unable to navigate to company - ECN ID not found');
@@ -9405,71 +9464,83 @@ window.ktlReady = function (appInfo = {}) {
                     console.log(`📝 Form submission completed for view_5685 (quick-create contact)`);
                     console.log(`📦 Submission response:`, response);
 
-                    // Ensure ECN ID is available before firing post-submission webhook
-                    // (ECN is created asynchronously after company creation)
+                    // Get contact ECN ID from Knack submission response (this is the record just created)
+                    const contactEcnId = response.id || (response.record && response.record.id) || null;
+                    console.log(`👤 Contact ECN ID from submission: ${contactEcnId}`);
+
+                    // Get contact name from form fields before they might be cleared
+                    const contactFirstName = $('input[name="first"]').val() || '';
+                    const contactLastName = $('input[name="last"]').val() || '';
+                    const contactFullName = `${contactFirstName} ${contactLastName}`.trim();
+
+                    // Store company info (needed for modal and "Add New Contact")
+                    const companyEcnId = window._newCompanyEcnId || '';
+                    const companyRecordId = window._newCompanyRecordId || '';
+                    const companyName = window._newCompanyName || '';
+
+                    console.log(`🏢 Company context: ${companyName} (ECN: ${companyEcnId})`);
+
+                    // Show "Where to next?" modal immediately (don't wait for webhook)
+                    showQuickCreateNextActionModal(contactEcnId, contactFullName, companyEcnId, companyRecordId, companyName);
+
+                    // Ensure company ECN ID is available before firing post-submission webhook
                     if (!window._newCompanyEcnId && window._ecnIdPromise) {
-                        console.log(`⏳ Waiting for ECN ID from company creation...`);
+                        console.log(`⏳ Waiting for company ECN ID...`);
                         try {
                             const ecnId = await window._ecnIdPromise;
-                            console.log(`✅ ECN ID received: ${ecnId}`);
+                            console.log(`✅ Company ECN ID received: ${ecnId}`);
                         } catch (error) {
-                            console.error(`❌ Failed to get ECN ID:`, error);
+                            console.error(`❌ Failed to get company ECN ID:`, error);
                         }
                     }
 
-                    // Fire post-submission webhook with callbacks
+                    // Fire post-submission webhook in background (for COM creation)
                     contactFormHandler.firePostSubmissionWebhook('view_5685', response, {
                         onSuccess: function (result) {
-                            console.log('✅ COMs created successfully');
-
-                            // Get ECN ID for the new contact
-                            let contactEcnId = null;
-                            if (result && result.ecn_id) {
-                                contactEcnId = result.ecn_id;
-                            } else if (result && result.ecn_record_id) {
-                                contactEcnId = result.ecn_record_id;
-                            }
-
-                            // Store company ECN ID before cleanup (needed for "Add New Contact")
-                            const companyEcnId = window._newCompanyEcnId || '';
-                            const companyRecordId = window._newCompanyRecordId || '';
-                            const companyName = window._newCompanyName || '';
-
-                            // Show "Where to next?" modal
-                            showQuickCreateNextActionModal(contactEcnId, companyEcnId, companyRecordId, companyName);
+                            console.log('✅ COMs created successfully via post-submission webhook');
                         },
                         onError: function (error) {
-                            console.error('❌ Error creating COMs:', error);
-                            // Cleanup
-                            delete window._ecnIdPromise;
+                            console.error('❌ Error in post-submission webhook:', error);
+                            // Don't block the user - modal is already shown
                         }
                     });
                 });
 
                 // "Where to next?" modal for Quick Create Contact form
-                function showQuickCreateNextActionModal(contactEcnId, companyEcnId, companyRecordId, companyName) {
+                function showQuickCreateNextActionModal(contactEcnId, contactFullName, companyEcnId, companyRecordId, companyName) {
                     // Remove any existing modal
                     $('#next-action-modal').remove();
 
+                    // View Contact button is disabled until we have the contact ECN ID
+                    const viewContactDisabled = !contactEcnId;
+                    const viewContactClass = viewContactDisabled ? 'gl-btn-tertiary gl-btn-disabled' : 'gl-btn-tertiary';
+                    const viewContactTitle = viewContactDisabled ? 'Waiting for contact record...' : 'View the contact record';
+
+                    // Create Proposal and Create Project buttons are disabled until we have the company ECN ID
+                    const companyActionsDisabled = !companyEcnId;
+                    const proposalClass = companyActionsDisabled ? 'gl-btn-secondary gl-btn-disabled' : 'gl-btn-secondary';
+                    const projectClass = companyActionsDisabled ? 'gl-btn-primary gl-btn-disabled' : 'gl-btn-primary';
+                    const companyActionTitle = companyActionsDisabled ? 'Waiting for company record...' : '';
+
                     const $modal = $(`
                         <div id="next-action-modal" class="gl-modal-overlay">
-                            <div class="gl-modal">
+                            <div class="gl-modal gl-modal-compact">
                                 <h3 class="gl-modal-title">
                                     <i class="fa fa-check-circle"></i>
                                     Contact saved! Where to next?
                                 </h3>
                                 <div class="gl-modal-buttons">
-                                    <button id="next-create-proposal" class="gl-modal-btn gl-btn-secondary">
-                                        <i class="fa fa-file-text-o"></i>Create Proposal
+                                    <button id="next-create-proposal" class="gl-modal-btn ${proposalClass}" title="${companyActionTitle || 'Create a proposal for this contact'}">
+                                        <i class="fa fa-file-text-o"></i>New Proposal
                                     </button>
-                                    <button id="next-view-contact" class="gl-modal-btn gl-btn-secondary">
+                                    <button id="next-view-contact" class="gl-modal-btn ${viewContactClass}" title="${viewContactTitle}">
                                         <i class="fa fa-user"></i>View Contact
                                     </button>
-                                    <button id="next-add-new" class="gl-modal-btn gl-btn-secondary">
-                                        <i class="fa fa-plus"></i>Add New Contact
+                                    <button id="next-add-new" class="gl-modal-btn gl-btn-tertiary" title="Clear form and add another contact">
+                                        <i class="fa fa-plus"></i>New Contact
                                     </button>
-                                    <button id="next-create-project" class="gl-modal-btn gl-btn-primary">
-                                        <i class="fa fa-folder-open"></i>Create Project
+                                    <button id="next-create-project" class="gl-modal-btn ${projectClass}" title="${companyActionTitle || 'Create a project for this contact'}">
+                                        <i class="fa fa-folder-open"></i>New Project
                                     </button>
                                 </div>
                             </div>
@@ -9477,27 +9548,54 @@ window.ktlReady = function (appInfo = {}) {
                     `);
 
                     $('body').append($modal);
-                    console.log('📋 Showing "Where to next?" modal');
+                    console.log('📋 Showing "Where to next?" modal', { contactEcnId, contactFullName, companyName, companyEcnId });
+
+                    // Store contact ECN ID for button updates
+                    window._modalContactEcnId = contactEcnId;
+
+                    // If company ECN ID not yet available, wait for the promise and enable buttons
+                    if (!companyEcnId && window._ecnIdPromise) {
+                        console.log('⏳ Waiting for company ECN ID to enable Project/Proposal buttons...');
+                        window._ecnIdPromise.then(function(ecnId) {
+                            console.log('✅ Company ECN ID received, enabling buttons:', ecnId);
+                            // Update the stored company ECN ID
+                            window._newCompanyEcnId = ecnId;
+                            // Enable Create Proposal button
+                            $('#next-create-proposal')
+                                .removeClass('gl-btn-disabled')
+                                .attr('title', 'Create a proposal for this contact');
+                            // Enable Create Project button
+                            $('#next-create-project')
+                                .removeClass('gl-btn-disabled')
+                                .attr('title', 'Create a project for this contact');
+                        }).catch(function(error) {
+                            console.error('❌ Failed to get company ECN ID:', error);
+                        });
+                    }
 
                     // Create Proposal button
                     $('#next-create-proposal').on('click', function () {
+                        if ($(this).hasClass('gl-btn-disabled')) return;
                         console.log('📄 Create Proposal selected');
                         $('#next-action-modal').remove();
                         cleanupQuickCreateGlobals();
-                        // TODO: Redirect to create proposal with contact context
+                        // TODO: Redirect to create proposal form with contact context
                         // For now, redirect to contact view
-                        if (contactEcnId) {
-                            window.location.hash = `#contacts6/view-contact3/${contactEcnId}`;
+                        const ecnId = window._modalContactEcnId;
+                        if (ecnId) {
+                            window.location.hash = `#contacts6/view-contact3/${ecnId}`;
                         }
                     });
 
                     // View Contact button
                     $('#next-view-contact').on('click', function () {
+                        if ($(this).hasClass('gl-btn-disabled')) return;
                         console.log('👤 View Contact selected');
                         $('#next-action-modal').remove();
                         cleanupQuickCreateGlobals();
-                        if (contactEcnId) {
-                            window.location.hash = `#contacts6/view-contact3/${contactEcnId}`;
+                        const ecnId = window._modalContactEcnId;
+                        if (ecnId) {
+                            window.location.hash = `#contacts6/view-contact3/${ecnId}`;
                         }
                     });
 
@@ -9505,25 +9603,64 @@ window.ktlReady = function (appInfo = {}) {
                     $('#next-add-new').on('click', function () {
                         console.log('➕ Add New Contact selected');
                         $('#next-action-modal').remove();
-                        // Keep company globals for next contact
-                        window._newCompanyEcnId = companyEcnId;
-                        window._newCompanyRecordId = companyRecordId;
-                        window._newCompanyName = companyName;
+                        // Keep company globals for next contact (use window var if promise resolved after modal shown)
+                        window._newCompanyEcnId = window._newCompanyEcnId || companyEcnId;
+                        window._newCompanyRecordId = window._newCompanyRecordId || companyRecordId;
+                        window._newCompanyName = window._newCompanyName || companyName;
                         // Clear form for new contact
                         clearQuickCreateForm('view_5685');
                     });
 
                     // Create Project button
                     $('#next-create-project').on('click', function () {
+                        if ($(this).hasClass('gl-btn-disabled')) return;
                         console.log('📁 Create Project selected');
                         $('#next-action-modal').remove();
-                        cleanupQuickCreateGlobals();
-                        // TODO: Redirect to create project with contact context
-                        // For now, redirect to contact view
-                        if (contactEcnId) {
-                            window.location.hash = `#contacts6/view-contact3/${contactEcnId}`;
-                        }
+
+                        // Store contact info for New Project form (don't cleanup yet)
+                        // The ECN ID may or may not be available yet - store what we have
+                        window._projectContactEcnId = window._modalContactEcnId || null;
+                        window._projectContactName = contactFullName || '';
+                        window._projectCompanyName = companyName || '';
+                        window._projectFromQuickCreate = true;
+
+                        // Construct the dropdown label format: "Contact Name - Company Name"
+                        window._projectContactLabel = `${window._projectContactName} - ${window._projectCompanyName}`;
+
+                        // Store flow context and prefill vars in sessionStorage (persists through refresh)
+                        sessionStorage.setItem('flowContext', 'NewContact->NewProject');
+                        sessionStorage.setItem('NewContact_NewProject_EcnId', window._projectContactEcnId);
+                        sessionStorage.setItem('NewContact_NewProject_Label', window._projectContactLabel);
+
+                        console.log(`📋 Navigating to New Project form with contact: ${window._projectContactLabel} (ECN: ${window._projectContactEcnId || 'pending'})`);
+
+                        // Cleanup other Quick Create globals (but keep project-related ones)
+                        delete window._newCompanyRecordId;
+                        delete window._newCompanyName;
+                        delete window._newCompanyEcnId;
+                        delete window._parentRecordId;
+                        delete window._modalContactEcnId;
+                        // Keep window._ecnIdPromise - may still be resolving
+
+                        // Clear Quick Create flow sessionStorage (we're moving to a new flow)
+                        sessionStorage.removeItem('NewCompany_QuickCreate_CompanyId');
+                        sessionStorage.removeItem('NewCompany_QuickCreate_CompanyName');
+                        sessionStorage.removeItem('NewCompany_QuickCreate_EcnId');
+                        // Note: flowContext is already being set to 'NewContact->NewProject' above
+
+                        // Navigate to New Project form
+                        window.location.hash = '#contacts6/new-project/';
                     });
+                }
+
+                // Enable View Contact button once ECN ID is available
+                function enableViewContactButton(ecnId) {
+                    window._modalContactEcnId = ecnId;
+                    const $btn = $('#next-view-contact');
+                    if ($btn.length && $btn.hasClass('gl-btn-disabled')) {
+                        $btn.removeClass('gl-btn-disabled').attr('title', 'View the contact record');
+                        console.log('✅ View Contact button enabled');
+                    }
                 }
 
                 // Clear form fields for new contact entry
@@ -9534,6 +9671,15 @@ window.ktlReady = function (appInfo = {}) {
                     $(`#${viewId} #field_4164`).val('');
                     $(`#${viewId} #field_4165`).val('');
                     $(`#${viewId} #field_4056`).val('');
+
+                    // Re-populate hidden parent_record_id field (cleared above)
+                    // This ensures subsequent contacts are linked to the same company
+                    if (window._newCompanyRecordId) {
+                        $('#field_4358').val(window._newCompanyRecordId);
+                        window._parentRecordId = window._newCompanyRecordId;
+                        console.log(`🏢 Re-populated field_4358 with company ID: ${window._newCompanyRecordId}`);
+                    }
+
                     // Focus first name field
                     $(`#${viewId} input[name="first"]`).focus();
                     console.log('🧹 Form cleared for new contact entry');
@@ -9546,7 +9692,150 @@ window.ktlReady = function (appInfo = {}) {
                     delete window._newCompanyEcnId;
                     delete window._ecnIdPromise;
                     delete window._parentRecordId;
+                    delete window._modalContactEcnId;
+                    // Clear sessionStorage for Quick Create flow
+                    if (sessionStorage.getItem('flowContext') === 'NewCompany->QuickCreateContact') {
+                        sessionStorage.removeItem('flowContext');
+                        sessionStorage.removeItem('NewCompany_QuickCreate_CompanyId');
+                        sessionStorage.removeItem('NewCompany_QuickCreate_CompanyName');
+                        sessionStorage.removeItem('NewCompany_QuickCreate_EcnId');
+                        console.log('🧹 Cleared Quick Create flow context from sessionStorage');
+                    }
                 }
+
+                // Cleanup project-related window globals (sessionStorage cleared on form submit)
+                function cleanupProjectGlobals() {
+                    delete window._projectContactEcnId;
+                    delete window._projectContactName;
+                    delete window._projectCompanyName;
+                    delete window._projectContactLabel;
+                    delete window._projectFromQuickCreate;
+                    delete window._ecnIdPromise;
+                }
+
+                // ===== NEW PROJECT FORM (view_5686) =====
+                // This form can be accessed from Quick Create Contact flow or directly
+                $(document).on('knack-view-render.view_5686', function (event, view, data) {
+                    setTimeout(function () {
+                        const viewId = 'view_5686';
+                        console.log('📋 New Project form (view_5686) rendered');
+
+                        // Check sessionStorage for persisted flow context (survives multiple refreshes)
+                        if (!window._projectFromQuickCreate) {
+                            const flowContext = sessionStorage.getItem('flowContext');
+                            if (flowContext === 'NewContact->NewProject') {
+                                // Restore prefill vars for this flow
+                                window._projectContactEcnId = sessionStorage.getItem('NewContact_NewProject_EcnId');
+                                window._projectContactLabel = sessionStorage.getItem('NewContact_NewProject_Label');
+                                window._projectFromQuickCreate = true;
+                                console.log('📋 Restored contact data from sessionStorage (flow: NewContact->NewProject)');
+                            }
+                        }
+
+                        // Check if coming from Quick Create Contact flow
+                        if (window._projectFromQuickCreate) {
+                            console.log(`🔗 Prefilling contact: ${window._projectContactLabel}`);
+
+                            // Function to fill the contact field and display as label
+                            function fillContactField(ecnId, contactLabel) {
+                                if (!ecnId) {
+                                    console.warn('⚠️ No ECN ID available to fill contact field');
+                                    return false;
+                                }
+
+                                // Use provided label or construct from stored values
+                                // Format: "Contact Name - Company Name" (e.g., "John Smith - Acme Pty Ltd")
+                                const label = contactLabel || window._projectContactLabel ||
+                                    `${window._projectContactName || 'Unknown'} - ${window._projectCompanyName || 'Unknown'}`;
+
+                                // For Knack connection fields with Chosen:
+                                // Select uses hyphen: view_5686-field_4409
+                                // Chosen uses underscore: view_5686_field_4409_chzn
+                                const $select = $(`#${viewId}-field_4409`);
+                                const $fieldContainer = $select.closest('.kn-input');
+
+                                if (!$select.length) {
+                                    console.warn('⚠️ Could not find contact field select element');
+                                    return false;
+                                }
+
+                                // Add option and set value (for form submission)
+                                let $option = $select.find(`option[value="${ecnId}"]`);
+                                if ($option.length === 0) {
+                                    $option = $(`<option value="${ecnId}">${label}</option>`);
+                                    $select.append($option);
+                                }
+                                $select.val(ecnId);
+                                $select.trigger('change');
+
+                                // Hide the dropdown field entirely
+                                $fieldContainer.hide();
+
+                                // Add styled label in form header (matching Quick Create Contact style)
+                                const $viewHeader = $(`#${viewId} .view-header`);
+                                const $title = $viewHeader.find('.kn-title');
+
+                                // Remove any existing contact subtitle
+                                $viewHeader.find('.contact-subtitle').remove();
+
+                                // Add contact name as subtitle below the title
+                                const $subtitle = $(`<div class="contact-subtitle" style="
+                                    font-size: 16px;
+                                    color: #39b54a;
+                                    font-weight: 600;
+                                    margin-top: 4px;
+                                    margin-bottom: 8px;
+                                ">for ${label}</div>`);
+
+                                if ($title.length) {
+                                    $title.after($subtitle);
+                                } else {
+                                    $viewHeader.prepend($subtitle);
+                                }
+
+                                console.log(`✅ Prefilled Project Contact: ${label}`);
+                                return true;
+                            }
+
+                            // Check if ECN ID is already available
+                            if (window._projectContactEcnId) {
+                                fillContactField(window._projectContactEcnId, window._projectContactLabel);
+                            } else if (window._ecnIdPromise) {
+                                // ECN ID not yet available - wait for promise
+                                console.log('⏳ Waiting for contact ECN ID from promise...');
+                                window._ecnIdPromise
+                                    .then(ecnId => {
+                                        window._projectContactEcnId = ecnId;
+                                        fillContactField(ecnId, window._projectContactLabel);
+                                    })
+                                    .catch(error => {
+                                        console.error('❌ Failed to get contact ECN ID:', error);
+                                    });
+                            } else {
+                                console.warn('⚠️ No ECN ID or promise available for contact field');
+                            }
+
+                            // Cleanup globals after form is set up
+                            // (but keep them around briefly in case of re-render)
+                            setTimeout(cleanupProjectGlobals, 5000);
+                        } else {
+                            console.log('📋 New Project form opened directly (not from Quick Create flow)');
+                            // Normal render - field should be visible and editable
+                        }
+
+                        console.log('✅ New Project form (view_5686) initialized');
+                    }, 100);
+                });
+
+                // Clear flow context after successful New Project form submission
+                $(document).on('knack-form-submit.view_5686', function (event, view, record) {
+                    if (sessionStorage.getItem('flowContext') === 'NewContact->NewProject') {
+                        sessionStorage.removeItem('flowContext');
+                        sessionStorage.removeItem('NewContact_NewProject_EcnId');
+                        sessionStorage.removeItem('NewContact_NewProject_Label');
+                        console.log('🧹 Cleared NewContact->NewProject flow data after form submit');
+                    }
+                });
 
                 // ===== CONTACT UPDATE FORM (view_5626) =====
                 $(document).on('knack-view-render.view_5626', function (event, view, data) {

@@ -48,6 +48,9 @@ app.get('/api/health', (req, res) => {
 
 // API Routes - import handlers from api/ folder
 const companyValidateHandler = require('./api/company/validate');
+const companyProceedHandler = require('./api/company/proceed');
+const contactValidateHandler = require('./api/contact/validate');
+const contactProceedHandler = require('./api/contact/proceed');
 
 // Mount the handlers
 // Note: Vercel handlers receive (req, res), same as Express
@@ -59,7 +62,31 @@ app.options('/api/company/validate', (req, res) => {
     companyValidateHandler(req, res);
 });
 
-// TODO: Add post-submission endpoint when ready
+app.post('/api/company/proceed', (req, res) => {
+    companyProceedHandler(req, res);
+});
+
+app.options('/api/company/proceed', (req, res) => {
+    companyProceedHandler(req, res);
+});
+
+app.post('/api/contact/validate', (req, res) => {
+    contactValidateHandler(req, res);
+});
+
+app.options('/api/contact/validate', (req, res) => {
+    contactValidateHandler(req, res);
+});
+
+app.post('/api/contact/proceed', (req, res) => {
+    contactProceedHandler(req, res);
+});
+
+app.options('/api/contact/proceed', (req, res) => {
+    contactProceedHandler(req, res);
+});
+
+// TODO: Add company post-submission endpoint when ready
 // const companyProcessHandler = require('./api/company/process');
 // app.post('/api/company/process', companyProcessHandler);
 
@@ -84,6 +111,9 @@ app.listen(PORT, () => {
     console.log('');
     console.log('  Endpoints:');
     console.log(`    POST /api/company/validate`);
+    console.log(`    POST /api/company/proceed`);
+    console.log(`    POST /api/contact/validate`);
+    console.log(`    POST /api/contact/proceed`);
     console.log(`    GET  /api/health`);
     console.log('');
     console.log('  Environment:');
