@@ -5,7 +5,12 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:api": "npx playwright test api"
   },
   "dependencies": {
     "@vercel/functions": "^1.0.0",
@@ -19,6 +24,7 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.0",
     "nodemon": "^3.1.11"
   }
 }
