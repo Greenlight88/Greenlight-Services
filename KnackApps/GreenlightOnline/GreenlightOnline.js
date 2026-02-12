@@ -4121,10 +4121,17 @@ window.ktlReady = function (appInfo = {}) {
                 }
 
                 // Dev mode: use local server if enabled
-                const useLocalApi = sessionStorage.getItem('Greenl_56ea_dev') === 'true' || localStorage.getItem('Greenl_56ea_dev') !== null;
+                const devSessionValue = sessionStorage.getItem('Greenl_56ea_dev');
+                const devLocalValue = localStorage.getItem('Greenl_56ea_dev');
+                console.log(`🔍 Dev mode check: sessionStorage='${devSessionValue}', localStorage='${devLocalValue}'`);
+                console.log(`🔍 formType='${config.formType}'`);
+                const useLocalApi = devSessionValue === 'true' || devLocalValue !== null;
+                console.log(`🔍 useLocalApi=${useLocalApi}`);
                 if (useLocalApi && config.formType === 'company-creation') {
                     webhookUrl = 'http://localhost:3001/api/company/proceed';
                     console.log(`🧪 LOCAL DEV MODE: Using ${webhookUrl} instead of Vercel`);
+                } else {
+                    console.log(`🔍 NOT using local API - useLocalApi=${useLocalApi}, formType=${config.formType}`);
                 }
 
                 console.log(`🚀 Firing post-submission webhook for ${viewId}`);
@@ -9837,6 +9844,37 @@ window.ktlReady = function (appInfo = {}) {
                     }
                 });
 
+                // ===== ENQUIRY-CONTACT LINK (view_4765) =====
+                // When a contact is linked to an enquiry via this form, fire webhook
+                // to trigger mutual enrichment (fill each other's empty fields)
+                $(document).on('knack-form-submit.view_4765', function (event, view, response) {
+                    console.log('📝 Form submission for view_4765 (enquiry-contact link)');
+
+                    const enquiryId = response.id || (response.record && response.record.id) || null;
+                    if (!enquiryId) {
+                        console.error('❌ No enquiry ID in response for view_4765');
+                        return;
+                    }
+
+                    const webhookUrl = 'https://greenlight-native.vercel.app/api/knack/enquiry-contact-link';
+
+                    fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Webhook-Secret': '537073940d52105dea5edf0e01291232cdae71cb6c1549d6278938e264e37550'
+                        },
+                        body: JSON.stringify({ id: enquiryId })
+                    })
+                        .then(r => r.json())
+                        .then(result => {
+                            console.log('✅ Enquiry-contact link webhook fired:', result);
+                        })
+                        .catch(error => {
+                            console.error('❌ Enquiry-contact link webhook error:', error);
+                        });
+                });
+
                 // ===== CONTACT UPDATE FORM (view_5626) =====
                 $(document).on('knack-view-render.view_5626', function (event, view, data) {
                     setTimeout(function () {
@@ -10776,6 +10814,7 @@ window.ktlReady = function (appInfo = {}) {
 
         /**
          * Click a hidden button on view_5576 by button text
+         * Falls back to direct navigation for company forms if button not found
          */
         clickHiddenButton: function (buttonText, searchTerm) {
             console.log(`   🔘 Clicking hidden button: "${buttonText}"`);
@@ -10799,7 +10838,20 @@ window.ktlReady = function (appInfo = {}) {
                 // Set up prefill handler
                 this.setupPrefillHandler();
             } else {
-                console.error(`   ❌ Hidden button not found: "${buttonText}"`);
+                // Fallback: navigate directly to form URL for company
+                // The "Add Company" button may not exist in view_5576
+                if (!isContact) {
+                    console.log(`   🔀 Hidden button not found, navigating directly to company form`);
+                    // Store search term and button type for prefill
+                    window.xeroSearchTerm = searchTerm;
+                    window.xeroButtonType = 'company';
+                    // Set up prefill handler before navigation
+                    this.setupPrefillHandler();
+                    // Navigate to company form
+                    window.location.hash = '#contacts6/new-company-1653/';
+                } else {
+                    console.error(`   ❌ Hidden button not found: "${buttonText}"`);
+                }
             }
         },
 
