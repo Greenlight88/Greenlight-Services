@@ -31,3 +31,16 @@ The issue-board workflow infrastructure was validated through a complete end-to-
 ## Validation Result
 
 All mechanisms exercised successfully. The issue-board workflow is ready for Phase 2 (autonomous team orchestrators).
+
+## E2E Lifecycle Trace
+
+| Step | Timestamp | Actor | Action | Evidence |
+|------|-----------|-------|--------|----------|
+| 1 | 2026-03-31T22:31 | Operator | Created issue #430 with `board/queued` | GitHub Issue |
+| 2 | 2026-03-31T22:31 | Coding orchestrator | Transitioned `board/queued` → `board/in-progress` | Label change |
+| 3 | 2026-03-31T22:31 | Coding orchestrator | Acquired file lock on `docs/e2e-test-record.md` | file-locks.json |
+| 4 | 2026-03-31T22:32 | Coding agent (haiku) | Created this document, committed, pushed | Commit + behavioural log |
+| 5 | 2026-03-31T22:33 | Coding orchestrator | Created PR, posted behavioural log, transitioned to `board/coding-complete` | PR + issue comment |
+| 6 | 2026-03-31T22:33 | Audit orchestrator | Consumed issue body + PR diff + behavioural log | — |
+| 7 | 2026-03-31T22:34 | Audit agent (sonnet) | Reviewed and posted verdict | PR comment |
+| 8 | 2026-03-31T22:35 | Operator | Transitioned to `board/landed`, merged PR | Label + merge |
